@@ -26,6 +26,7 @@ Aşağıdaki tüm özellikler çalışır durumda:
 | Veritabanı listeleme | ✅ Çalışıyor | Durum kartları ile |
 | /databases Sayfası | ✅ Çalışıyor | Arama, filtreleme (ortam/etiket) ve tüm yönetim işlemleri (test, yedek, düzenle, sil) |
 | /archive Sayfası | ✅ Çalışıyor | Arama, veritabanı/durum/tetikleyici filtreleri, depolama istatistikleri, indirme, silme ve toplu temizleme |
+| /storage Sayfası | ✅ Çalışıyor | Toplam kullanılan alan, kullanılabilir alan, limit kartları, görsel kapasite barı ve veritabanı bazlı depolama analizi |
 | Manuel yedek alma | ✅ Çalışıyor | pg_dump gerektirir (özel isimlendirme destekli) |
 | Yedek arşivi | ✅ Çalışıyor | .sql.gz formatı |
 | Yedek indirme | ✅ Çalışıyor | API route |
@@ -100,8 +101,8 @@ Aşağıdaki tüm özellikler çalışır durumda:
 
 ```
 Branch: master
-Son Commit: feat: implement backup archive page (/archive) with search, filters, stats, and pagination controls
-Değiştirilmemiş dosya: Hayır (yedek arşivi eklendi)
+Son Commit: feat: implement storage analytics page (/storage) with visual meters, footprint table, and config details
+Değiştirilmemiş dosya: Hayır (depolama analiz sayfası eklendi)
 ```
 
 ---
