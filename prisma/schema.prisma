@@ -1,0 +1,50 @@
+datasource db {
+  provider = "sqlite"
+}
+
+generator client {
+  provider = "prisma-client"
+  output   = "./generated"
+}
+
+model DatabaseConnection {
+  id           String      @id @default(uuid())
+  name         String
+  host         String
+  port         Int
+  user         String
+  database     String
+  password     String      // Encrypted password
+  ssl          String      @default("prefer") // "prefer", "require", "disable", "allow"
+  environment  String      @default("production") // "production", "staging", "development"
+  labels       String      @default("") // comma-separated list of labels
+  status       String      @default("untested") // "healthy", "offline", "untested"
+  lastTestedAt DateTime?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  backups      BackupJob[]
+  schedules    Schedule[]
+}
+
+model BackupJob {
+  id           String             @id @default(uuid())
+  databaseId   String
+  database     DatabaseConnection @relation(fields: [databaseId], references: [id], onDelete: Cascade)
+  filename     String
+  filepath     String
+  sizeBytes    Int                // size in bytes
+  status       String             // "success", "failed", "processing"
+  errorMessage String?
+  triggerType  String             // "manual", "scheduled"
+  createdAt    DateTime           @default(now())
+}
+
+model Schedule {
+  id           String             @id @default(uuid())
+  databaseId   String
+  database     DatabaseConnection @relation(fields: [databaseId], references: [id], onDelete: Cascade)
+  cron         String
+  enabled      Boolean            @default(true)
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+}

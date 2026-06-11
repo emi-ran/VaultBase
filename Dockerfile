@@ -1,0 +1,63 @@
+# Base stage
+FROM node:22-slim AS base
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable
+
+# Install system dependencies including PostgreSQL Client 17
+RUN apt-get update && apt-get install -y \
+    curl \
+    ca-certificates \
+    gnupg \
+    lsb-release \
+    && curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor -o /usr/share/keyrings/postgresql-keyring.gpg \
+    && echo "deb [signed-by=/usr/share/keyrings/postgresql-keyring.gpg] http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list \
+    && apt-get update && apt-get install -y \
+    postgresql-client-17 \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Dependencies stage
+FROM base AS deps
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile
+
+# Build stage
+FROM base AS builder
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+
+# Generate Prisma Client and build the Next.js app
+RUN pnpm prisma generate
+RUN pnpm build
+
+# Production dependencies stage
+FROM base AS prod-deps
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --prod --frozen-lockfile
+
+# Runner stage
+FROM base AS runner
+ENV NODE_ENV=production
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
+
+COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/prisma ./prisma
+COPY --from=prod-deps /app/node_modules ./node_modules
+COPY --from=builder /app/prisma/config.ts ./prisma.config.ts 2>/dev/null || true
+
+# Environment variables defaults
+ENV APP_SECRET="vaultbase-default-production-secret-key-replace-me"
+ENV DATABASE_URL="file:/app/data/dev.db"
+
+# Create volumes folder
+RUN mkdir -p /app/data /app/backups
+
+EXPOSE 3000
+
+# Start script that runs prisma migrations and then starts next server
+CMD ["sh", "-c", "pnpm prisma migrate deploy && pnpm start"]
