@@ -6,7 +6,7 @@ import fs from "fs";
 import path from "path";
 import { prisma, DatabaseConnection, Schedule } from "../lib/db";
 import { encrypt, decrypt } from "../lib/encryption";
-import { testPostgresConnection, fetchPostgresTables, fetchTableData, DBConfig } from "../lib/db-client";
+import { testPostgresConnection, fetchPostgresTables, fetchTableData, fetchDatabaseSize, DBConfig } from "../lib/db-client";
 import { runBackup, getBackupDirectory } from "../lib/backup-service";
 import { Locale } from "../lib/i18n";
 
@@ -404,5 +404,27 @@ export async function importSettingsAction(jsonString: string) {
     return { success: true, importedCount };
   } catch (error: any) {
     return { success: false, error: error.message || "Failed to import settings" };
+  }
+}
+
+// Get Database Size Action
+export async function getDatabaseSizeAction(id: string) {
+  try {
+    const db = await prisma.databaseConnection.findUnique({ where: { id } });
+    if (!db) throw new Error("Database config not found");
+
+    const decryptedPassword = decrypt(db.password);
+    const size = await fetchDatabaseSize({
+      host: db.host,
+      port: db.port,
+      user: db.user,
+      password: decryptedPassword,
+      database: db.database,
+      ssl: db.ssl,
+    });
+
+    return { success: true, size };
+  } catch (error: any) {
+    return { success: false, error: error.message || "Failed to fetch database size" };
   }
 }

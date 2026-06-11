@@ -90,61 +90,28 @@ export async function runBackup(dbId: string, triggerType: "manual" | "scheduled
         console.error("pg_dump process error:", err);
         gzip.end();
         writeStream.end();
+        cleanupFailedBackup(filepath);
 
-        // Check if pg_dump is not found (ENOENT)
+        let errorMessage = err.message || "Process failed";
         if (err.code === "ENOENT") {
-          console.warn("pg_dump was not found. Creating a mock backup file for local development.");
-          
-          // Fallback: Write mock SQL file for testing purposes
-          const mockSqlContent = `-- VaultBase Mock Backup
--- Date: ${new Date().toISOString()}
--- Database Connection: ${dbConfig.name} (${dbConfig.host}:${dbConfig.port}/${dbConfig.database})
--- Error: pg_dump executable was not found on this system.
---
--- This is a simulated backup file generated for testing the VaultBase interface.
--- To run real backups, ensure postgresql-client is installed.
-
-SELECT 1;
-`;
-          const mockGzip = zlib.gzipSync(Buffer.from(mockSqlContent));
-          fs.writeFileSync(filepath, mockGzip);
-
-          const sizeBytes = fs.statSync(filepath).size;
-
-          await prisma.backupJob.update({
-            where: { id: job.id },
-            data: {
-              status: "success",
-              sizeBytes,
-              errorMessage: "Simulated backup (pg_dump not installed on host)",
-            },
-          });
-
-          // Mark DB as healthy since we reached this point (at least connection configs were valid)
-          await prisma.databaseConnection.update({
-            where: { id: dbConfig.id },
-            data: { status: "healthy", lastTestedAt: new Date() },
-          });
-
-          resolve({
-            success: true,
-            filename,
-            filepath,
-            sizeBytes,
-            error: "Simulated backup: pg_dump not found",
-          });
-        } else {
-          // Actual process error
-          cleanupFailedBackup(filepath);
-          await prisma.backupJob.update({
-            where: { id: job.id },
-            data: {
-              status: "failed",
-              errorMessage: err.message || "Process failed",
-            },
-          });
-          resolve({ success: false, error: err.message });
+          errorMessage = "pg_dump executable was not found on the system path.";
         }
+
+        await prisma.backupJob.update({
+          where: { id: job.id },
+          data: {
+            status: "failed",
+            errorMessage,
+          },
+        });
+
+        // Mark DB as offline since the backup process encountered a system failure
+        await prisma.databaseConnection.update({
+          where: { id: dbConfig.id },
+          data: { status: "offline", lastTestedAt: new Date() },
+        });
+
+        resolve({ success: false, error: errorMessage });
       });
 
       pgDump.on("close", async (code) => {

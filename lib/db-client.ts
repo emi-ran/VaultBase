@@ -126,3 +126,22 @@ export async function fetchTableData(
     throw error;
   }
 }
+
+export async function fetchDatabaseSize(config: DBConfig): Promise<number> {
+  const clientConfig = getClientConfig(config);
+  const client = new pg.Client(clientConfig);
+
+  try {
+    await client.connect();
+    const res = await client.query("SELECT pg_database_size(current_database()) as size;");
+    await client.end();
+    return parseInt(res.rows[0].size, 10);
+  } catch (error) {
+    console.error("Failed to fetch database size:", error);
+    try {
+      await client.end();
+    } catch {}
+    throw error;
+  }
+}
+
