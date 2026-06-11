@@ -95,6 +95,8 @@ db-backuper/
 ├── prisma/
 │   └── schema.prisma               # SQLite şeması
 ├── prisma.config.ts                # Prisma 7 konfigürasyonu
+├── scripts/
+│   └── test-core.ts                # Şifreleme ve Ayarlar export/import test senaryoları
 ├── Dockerfile                      # postgresql-client-18 içerir
 ├── docker-compose.yml              # Docker Compose konfigürasyonu
 ├── .env.example                    # Örnek ortam değişkenleri

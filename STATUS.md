@@ -35,6 +35,7 @@ Aşağıdaki tüm özellikler çalışır durumda:
 | Tablo gezgini | ✅ Çalışıyor | Salt okunur, sayfalandırılmış |
 | Ayarlar export | ✅ Çalışıyor | JSON formatı |
 | Ayarlar import | ✅ Çalışıyor | JSON formatı |
+| Test senaryoları | ✅ Çalışıyor | Şifreleme ve Ayarlar export/import testleri (scripts/test-core.ts) |
 | Türkçe arayüz | ✅ Çalışıyor | i18n altyapısı hazır |
 | Docker paketi | ✅ Çalışıyor | postgresql-client-18 dahil |
 | Onay modalleri | ✅ Çalışıyor | Yedek al, sil, temizle |
@@ -101,8 +102,8 @@ Aşağıdaki tüm özellikler çalışır durumda:
 
 ```
 Branch: master
-Son Commit: feat: implement storage analytics page (/storage) with visual meters, footprint table, and config details
-Değiştirilmemiş dosya: Hayır (depolama analiz sayfası eklendi)
+Son Commit: feat: secure settings export/import using encrypted JSON, optimize decrypt error warnings, and implement test suite
+Değiştirilmemiş dosya: Hayır (test senaryoları eklendi)
 ```
 
 ---

@@ -1,6 +1,14 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath as nextRevalidatePath } from "next/cache";
+
+function revalidatePath(path: string) {
+  try {
+    nextRevalidatePath(path);
+  } catch (error) {
+    // Ignore error when run outside Next.js request context (e.g. in test scripts or background cron workers)
+  }
+}
 import { cookies } from "next/headers";
 import fs from "fs";
 import path from "path";
@@ -292,7 +300,7 @@ export async function exportSettingsAction() {
         port: db.port,
         user: db.user,
         database: db.database,
-        password: db.password, // Keep encrypted, decrypts correctly if keys match
+        password: decrypt(db.password), // Decrypt password to export it securely within the encrypted JSON
         ssl: db.ssl,
         environment: db.environment,
         labels: db.labels,
@@ -308,7 +316,15 @@ export async function exportSettingsAction() {
       }),
     };
 
-    return { success: true, jsonString: JSON.stringify(exportData, null, 2) };
+    const jsonStr = JSON.stringify(exportData);
+    const encryptedPayload = encrypt(jsonStr);
+
+    const wrappedExport = {
+      encrypted: true,
+      payload: encryptedPayload,
+    };
+
+    return { success: true, jsonString: JSON.stringify(wrappedExport, null, 2) };
   } catch (error: any) {
     return { success: false, error: error.message || "Failed to export settings" };
   }
@@ -317,7 +333,22 @@ export async function exportSettingsAction() {
 // Import Settings Action
 export async function importSettingsAction(jsonString: string) {
   try {
-    const importData = JSON.parse(jsonString);
+    const parsedData = JSON.parse(jsonString);
+    let importData: any;
+    let isEncrypted = false;
+
+    if (parsedData && parsedData.encrypted && parsedData.payload) {
+      isEncrypted = true;
+      const decryptedStr = decrypt(parsedData.payload);
+      if (!decryptedStr) {
+        throw new Error("Decryption failed. Please make sure the APP_SECRET on this server matches the exporting server.");
+      }
+      importData = JSON.parse(decryptedStr);
+    } else {
+      // Legacy unencrypted import support
+      importData = parsedData;
+    }
+
     if (!importData.databases || !Array.isArray(importData.databases)) {
       throw new Error("Invalid import format: missing databases array");
     }
@@ -340,6 +371,11 @@ export async function importSettingsAction(jsonString: string) {
       });
 
       let dbId = "";
+      
+      // Decrypt/Encrypt password appropriately
+      // If encrypted, the password in JSON is plain text, so we encrypt it.
+      // If legacy unencrypted, the password in JSON is already encrypted, so we keep it as-is.
+      const dbPassword = isEncrypted ? encrypt(dbInfo.password || "") : dbInfo.password;
 
       if (existing) {
         // Update credentials and info
@@ -349,7 +385,7 @@ export async function importSettingsAction(jsonString: string) {
             host: dbInfo.host,
             port: dbInfo.port,
             user: dbInfo.user,
-            password: dbInfo.password, // Keep encrypted string (assuming matching secrets)
+            password: dbPassword,
             ssl: dbInfo.ssl,
             environment: dbInfo.environment,
             labels: dbInfo.labels,
@@ -365,7 +401,7 @@ export async function importSettingsAction(jsonString: string) {
             port: dbInfo.port,
             user: dbInfo.user,
             database: dbInfo.database,
-            password: dbInfo.password,
+            password: dbPassword,
             ssl: dbInfo.ssl,
             environment: dbInfo.environment,
             labels: dbInfo.labels,
