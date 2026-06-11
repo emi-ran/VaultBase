@@ -67,11 +67,15 @@ db-backuper/
 ├── app/
 │   ├── actions.ts                  # Tüm Server Actions
 │   ├── page.tsx                    # Ana dashboard (Genel Bakış)
-│   ├── databases/[id]/page.tsx     # Salt okunur tablo gezgini
+│   ├── databases/
+│   │   ├── page.tsx                # Bağlantı yönetim sayfası (Arama, filtreleme, test, vb.)
+│   │   └── [id]/page.tsx           # Salt okunur tablo gezgini
 │   ├── settings/page.tsx           # Ayarlar (export/import)
 │   └── api/backups/[id]/route.ts   # Yedek dosyası indirme endpoint
 ├── components/
-│   ├── dashboard-tables.tsx        # Veritabanı ve yedek listesi + onay modalleri
+│   ├── dashboard-tables.tsx        # Dashboard veritabanı ve yedek listesi
+│   ├── databases-page-client.tsx   # Bağlantı listeleme ve yönetim arayüzü
+│   ├── database-modal.tsx          # Bağlantı ekleme & düzenleme modalı
 │   ├── i18n-provider.tsx           # İstemci tarafı dil contexti
 │   └── ui/                         # Shadcn UI bileşenleri
 ├── lib/
