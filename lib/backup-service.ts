@@ -2,19 +2,16 @@ import { spawn } from "child_process";
 import fs from "fs";
 import path from "path";
 import zlib from "zlib";
-import { prisma } from "./db";
 import { decrypt } from "./encryption";
 import { testPostgresConnection } from "./db-client";
 
-const BACKUP_DIR = process.env.BACKUP_DIR || path.join(process.cwd(), "backups");
-
-// Ensure backups directory exists
-if (!fs.existsSync(BACKUP_DIR)) {
-  fs.mkdirSync(BACKUP_DIR, { recursive: true });
-}
 
 export function getBackupDirectory() {
-  return BACKUP_DIR;
+  const dir = process.env.BACKUP_DIR || path.join(process.cwd(), "backups");
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+  return dir;
 }
 
 export interface BackupResult {
@@ -26,6 +23,8 @@ export interface BackupResult {
 }
 
 export async function runBackup(dbId: string, triggerType: "manual" | "scheduled", customFilename?: string): Promise<BackupResult> {
+  const { prisma } = await import("./db");
+
   // 1. Fetch database configuration
   const dbConfig = await prisma.databaseConnection.findUnique({
     where: { id: dbId },
@@ -53,7 +52,7 @@ export async function runBackup(dbId: string, triggerType: "manual" | "scheduled
     }
   }
 
-  const filepath = path.join(BACKUP_DIR, filename);
+  const filepath = path.join(getBackupDirectory(), filename);
 
   // Create a record in processing state
   const job = await prisma.backupJob.create({

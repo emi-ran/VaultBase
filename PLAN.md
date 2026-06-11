@@ -55,7 +55,7 @@ VaultBase; birden fazla PostgreSQL (ilerleyen sürümlerde MongoDB) veritabanın
 - [x] Şifreli veritabanı bilgileri de export/import ile taşınır
 
 ### 1.7 Docker & DevOps
-- [x] Dockerfile (postgresql-client-17 dahil)
+- [x] Dockerfile (postgresql-client-18 dahil)
 - [x] docker-compose.yml (App + test Postgres sidecar)
 - [x] .env.example
 - [x] .gitignore / .dockerignore

@@ -1,6 +1,4 @@
 import cron, { ScheduledTask } from "node-cron";
-import { prisma } from "./db";
-import { runBackup } from "./backup-service";
 
 // Store running cron tasks by Schedule ID
 const activeTasks = new Map<string, ScheduledTask>();
@@ -20,6 +18,9 @@ export async function startScheduler() {
 }
 
 export async function reloadSchedules() {
+  const { prisma } = await import("./db");
+  const { runBackup } = await import("./backup-service");
+
   try {
     // 1. Stop all current active tasks
     console.log(`Stopping ${activeTasks.size} active scheduler tasks...`);
