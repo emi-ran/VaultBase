@@ -15,4 +15,6 @@ services:
       - DATABASE_URL=file:/app/data/dev.db
       - APP_SECRET=your-vaultbase-production-secret-key-change-this
       - PORT=3000
+      - STORAGE_LIMIT_MB=5120
+      - BACKUP_DIR=/app/backups
     restart: unless-stopped

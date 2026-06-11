@@ -6,7 +6,7 @@ import { prisma } from "./db";
 import { decrypt } from "./encryption";
 import { testPostgresConnection } from "./db-client";
 
-const BACKUP_DIR = path.join(process.cwd(), "backups");
+const BACKUP_DIR = process.env.BACKUP_DIR || path.join(process.cwd(), "backups");
 
 // Ensure backups directory exists
 if (!fs.existsSync(BACKUP_DIR)) {
