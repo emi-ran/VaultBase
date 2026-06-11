@@ -25,6 +25,7 @@ Aşağıdaki tüm özellikler çalışır durumda:
 | Bağlantı testi | ✅ Çalışıyor | Gerçek pg bağlantısı |
 | Veritabanı listeleme | ✅ Çalışıyor | Durum kartları ile |
 | /databases Sayfası | ✅ Çalışıyor | Arama, filtreleme (ortam/etiket) ve tüm yönetim işlemleri (test, yedek, düzenle, sil) |
+| /archive Sayfası | ✅ Çalışıyor | Arama, veritabanı/durum/tetikleyici filtreleri, depolama istatistikleri, indirme, silme ve toplu temizleme |
 | Manuel yedek alma | ✅ Çalışıyor | pg_dump gerektirir (özel isimlendirme destekli) |
 | Yedek arşivi | ✅ Çalışıyor | .sql.gz formatı |
 | Yedek indirme | ✅ Çalışıyor | API route |
@@ -99,8 +100,8 @@ Aşağıdaki tüm özellikler çalışır durumda:
 
 ```
 Branch: master
-Son Commit: feat: implement databases management page with search, filters, health check, edit and delete actions
-Değiştirilmemiş dosya: Evet (temiz çalışma dizini)
+Son Commit: feat: implement backup archive page (/archive) with search, filters, stats, and pagination controls
+Değiştirilmemiş dosya: Hayır (yedek arşivi eklendi)
 ```
 
 ---

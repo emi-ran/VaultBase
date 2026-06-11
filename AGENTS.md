@@ -67,6 +67,8 @@ db-backuper/
 ├── app/
 │   ├── actions.ts                  # Tüm Server Actions
 │   ├── page.tsx                    # Ana dashboard (Genel Bakış)
+│   ├── archive/
+│   │   └── page.tsx                # Yedek arşivi yönetim sayfası (Arama, filtreleme, indirme, silme)
 │   ├── databases/
 │   │   ├── page.tsx                # Bağlantı yönetim sayfası (Arama, filtreleme, test, vb.)
 │   │   └── [id]/page.tsx           # Salt okunur tablo gezgini
@@ -75,6 +77,7 @@ db-backuper/
 ├── components/
 │   ├── dashboard-tables.tsx        # Dashboard veritabanı ve yedek listesi
 │   ├── databases-page-client.tsx   # Bağlantı listeleme ve yönetim arayüzü
+│   ├── archive-page-client.tsx     # Yedek arşivi listeleme ve filtreleme arayüzü
 │   ├── database-modal.tsx          # Bağlantı ekleme & düzenleme modalı
 │   ├── i18n-provider.tsx           # İstemci tarafı dil contexti
 │   └── ui/                         # Shadcn UI bileşenleri
