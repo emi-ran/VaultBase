@@ -4,6 +4,7 @@ import path from "path";
 import zlib from "zlib";
 import { prisma } from "./db";
 import { decrypt } from "./encryption";
+import { testPostgresConnection } from "./db-client";
 
 const BACKUP_DIR = path.join(process.cwd(), "backups");
 
@@ -105,10 +106,25 @@ export async function runBackup(dbId: string, triggerType: "manual" | "scheduled
           },
         });
 
-        // Mark DB as offline since the backup process encountered a system failure
+        // Test the actual database connection dynamically
+        let dbStatus = "healthy";
+        try {
+          const test = await testPostgresConnection({
+            host: dbConfig.host,
+            port: dbConfig.port,
+            user: dbConfig.user,
+            password: decryptedPassword,
+            database: dbConfig.database,
+            ssl: dbConfig.ssl,
+          });
+          dbStatus = test.success ? "healthy" : "offline";
+        } catch {
+          dbStatus = "offline";
+        }
+
         await prisma.databaseConnection.update({
           where: { id: dbConfig.id },
-          data: { status: "offline", lastTestedAt: new Date() },
+          data: { status: dbStatus, lastTestedAt: new Date() },
         });
 
         resolve({ success: false, error: errorMessage });
@@ -161,6 +177,28 @@ export async function runBackup(dbId: string, triggerType: "manual" | "scheduled
               errorMessage: stderrData || `Exit code ${code}`,
             },
           });
+
+          // Test the actual database connection dynamically
+          let dbStatus = "healthy";
+          try {
+            const test = await testPostgresConnection({
+              host: dbConfig.host,
+              port: dbConfig.port,
+              user: dbConfig.user,
+              password: decryptedPassword,
+              database: dbConfig.database,
+              ssl: dbConfig.ssl,
+            });
+            dbStatus = test.success ? "healthy" : "offline";
+          } catch {
+            dbStatus = "offline";
+          }
+
+          await prisma.databaseConnection.update({
+            where: { id: dbConfig.id },
+            data: { status: dbStatus, lastTestedAt: new Date() },
+          });
+
           resolve({ success: false, error: stderrData || `Exit code ${code}` });
         }
       });
