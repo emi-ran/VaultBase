@@ -25,6 +25,7 @@ VaultBase; birden fazla PostgreSQL (ilerleyen sürümlerde MongoDB) veritabanın
 - [x] Veritabanı listeleme ve durum gösterimi
 - [x] Çevrimiçi/Çevrimdışı durum takibi
 - [x] Veritabanı silme (onay modalı ile)
+- [x] /databases yönetim sayfası (arama, ortam/etiket filtreleme, test et, yedek al, düzenle, sil aksiyonları)
 
 ### 1.3 Yedekleme Sistemi
 - [x] Manuel yedek alma (pg_dump spawn executor) ve özel isimlendirme

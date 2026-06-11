@@ -24,6 +24,7 @@ Aşağıdaki tüm özellikler çalışır durumda:
 | Veritabanı ekleme | ✅ Çalışıyor | URL ve alan bazlı mod |
 | Bağlantı testi | ✅ Çalışıyor | Gerçek pg bağlantısı |
 | Veritabanı listeleme | ✅ Çalışıyor | Durum kartları ile |
+| /databases Sayfası | ✅ Çalışıyor | Arama, filtreleme (ortam/etiket) ve tüm yönetim işlemleri (test, yedek, düzenle, sil) |
 | Manuel yedek alma | ✅ Çalışıyor | pg_dump gerektirir (özel isimlendirme destekli) |
 | Yedek arşivi | ✅ Çalışıyor | .sql.gz formatı |
 | Yedek indirme | ✅ Çalışıyor | API route |
@@ -97,8 +98,8 @@ Aşağıdaki tüm özellikler çalışır durumda:
 ## Git Durumu
 
 ```
-Branch: main
-Son Commit: Phase 1 tamamlama - onay modalleri, hata yönetimi, Docker
+Branch: master
+Son Commit: feat: implement databases management page with search, filters, health check, edit and delete actions
 Değiştirilmemiş dosya: Evet (temiz çalışma dizini)
 ```
 
