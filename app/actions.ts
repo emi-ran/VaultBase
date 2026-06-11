@@ -428,3 +428,126 @@ export async function getDatabaseSizeAction(id: string) {
     return { success: false, error: error.message || "Failed to fetch database size" };
   }
 }
+
+// Update Database Action
+export async function updateDatabaseAction(id: string, formData: {
+  name: string;
+  mode: "url" | "fields";
+  connectionString?: string;
+  host?: string;
+  port?: number;
+  user?: string;
+  password?: string;
+  database?: string;
+  ssl?: string;
+  environment?: string;
+  labels?: string;
+}) {
+  try {
+    const db = await prisma.databaseConnection.findUnique({ where: { id } });
+    if (!db) throw new Error("Database config not found");
+
+    let connInfo = {
+      host: db.host,
+      port: db.port,
+      user: db.user,
+      password: decrypt(db.password),
+      database: db.database,
+      ssl: db.ssl,
+    };
+
+    if (formData.mode === "url") {
+      if (formData.connectionString) {
+        const parsed = parsePostgresUrl(formData.connectionString);
+        connInfo = {
+          host: parsed.host,
+          port: parsed.port,
+          user: parsed.user,
+          password: parsed.password || connInfo.password,
+          database: parsed.database,
+          ssl: formData.ssl || parsed.ssl,
+        };
+      }
+    } else {
+      connInfo = {
+        host: formData.host || db.host,
+        port: formData.port ? Number(formData.port) : db.port,
+        user: formData.user || db.user,
+        password: formData.password || connInfo.password,
+        database: formData.database || db.database,
+        ssl: formData.ssl || db.ssl,
+      };
+    }
+
+    const encryptedPassword = encrypt(connInfo.password);
+
+    // Test connection after saving
+    let status = db.status;
+    try {
+      const test = await testPostgresConnection({
+        ...connInfo,
+      });
+      status = test.success ? "healthy" : "offline";
+    } catch {}
+
+    const updatedDb = await prisma.databaseConnection.update({
+      where: { id },
+      data: {
+        name: formData.name,
+        host: connInfo.host,
+        port: connInfo.port,
+        user: connInfo.user,
+        database: connInfo.database,
+        password: encryptedPassword,
+        ssl: connInfo.ssl,
+        environment: formData.environment || db.environment,
+        labels: formData.labels || db.labels,
+        status,
+        lastTestedAt: new Date(),
+      },
+    });
+
+    revalidatePath("/");
+    revalidatePath("/databases");
+    return { success: true, database: updatedDb };
+  } catch (error: any) {
+    return { success: false, error: error.message || "Failed to update database" };
+  }
+}
+
+// Test Connection & Update Status Action
+export async function testAndUpdateDatabaseStatusAction(id: string) {
+  try {
+    const db = await prisma.databaseConnection.findUnique({ where: { id } });
+    if (!db) throw new Error("Database config not found");
+
+    const decryptedPassword = decrypt(db.password);
+    
+    let status = "offline";
+    try {
+      const testResult = await testPostgresConnection({
+        host: db.host,
+        port: db.port,
+        user: db.user,
+        password: decryptedPassword,
+        database: db.database,
+        ssl: db.ssl,
+      });
+      status = testResult.success ? "healthy" : "offline";
+    } catch {}
+
+    const updatedDb = await prisma.databaseConnection.update({
+      where: { id },
+      data: {
+        status,
+        lastTestedAt: new Date(),
+      },
+    });
+
+    revalidatePath("/");
+    revalidatePath("/databases");
+    return { success: true, status, lastTestedAt: updatedDb.lastTestedAt };
+  } catch (error: any) {
+    return { success: false, error: error.message || "Failed to test and update status" };
+  }
+}

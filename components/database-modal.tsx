@@ -8,30 +8,33 @@ import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { addDatabaseAction, testConnectionAction } from "../app/actions";
-import { IconDatabasePlus } from "@tabler/icons-react";
+import { addDatabaseAction, testConnectionAction, updateDatabaseAction } from "../app/actions";
+import { IconDatabasePlus, IconEdit } from "@tabler/icons-react";
 
 interface DatabaseModalProps {
   onSuccess?: () => void;
   trigger?: React.ReactNode;
+  database?: any;
 }
 
-export function DatabaseModal({ onSuccess, trigger }: DatabaseModalProps) {
+export function DatabaseModal({ onSuccess, trigger, database: editingDb }: DatabaseModalProps) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   
+  const isEdit = !!editingDb;
+
   // Form state
-  const [name, setName] = useState("");
-  const [mode, setMode] = useState<"url" | "fields">("url");
+  const [name, setName] = useState(editingDb?.name || "");
+  const [mode, setMode] = useState<"url" | "fields">(editingDb ? "fields" : "url");
   const [connectionString, setConnectionString] = useState("");
-  const [host, setHost] = useState("");
-  const [port, setPort] = useState("5432");
-  const [user, setUser] = useState("");
+  const [host, setHost] = useState(editingDb?.host || "");
+  const [port, setPort] = useState(editingDb?.port ? String(editingDb.port) : "5432");
+  const [user, setUser] = useState(editingDb?.user || "");
   const [password, setPassword] = useState("");
-  const [database, setDatabase] = useState("");
-  const [ssl, setSsl] = useState("prefer");
-  const [environment, setEnvironment] = useState("production");
-  const [labels, setLabels] = useState("");
+  const [database, setDatabase] = useState(editingDb?.database || "");
+  const [ssl, setSsl] = useState(editingDb?.ssl || "prefer");
+  const [environment, setEnvironment] = useState(editingDb?.environment || "production");
+  const [labels, setLabels] = useState(editingDb?.labels || "");
 
   // Loading/Status states
   const [testing, setTesting] = useState(false);
@@ -39,16 +42,17 @@ export function DatabaseModal({ onSuccess, trigger }: DatabaseModalProps) {
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   const resetForm = () => {
-    setName("");
+    setName(editingDb?.name || "");
+    setMode(editingDb ? "fields" : "url");
     setConnectionString("");
-    setHost("");
-    setPort("5432");
-    setUser("");
+    setHost(editingDb?.host || "");
+    setPort(editingDb?.port ? String(editingDb.port) : "5432");
+    setUser(editingDb?.user || "");
     setPassword("");
-    setDatabase("");
-    setSsl("prefer");
-    setEnvironment("production");
-    setLabels("");
+    setDatabase(editingDb?.database || "");
+    setSsl(editingDb?.ssl || "prefer");
+    setEnvironment(editingDb?.environment || "production");
+    setLabels(editingDb?.labels || "");
     setMessage(null);
   };
 
@@ -89,29 +93,56 @@ export function DatabaseModal({ onSuccess, trigger }: DatabaseModalProps) {
     setSaving(true);
     setMessage(null);
     try {
-      const res = await addDatabaseAction({
-        name,
-        mode,
-        connectionString,
-        host,
-        port: port ? parseInt(port, 10) : undefined,
-        user,
-        password,
-        database,
-        ssl,
-        environment,
-        labels,
-      });
+      let res;
+      if (isEdit) {
+        res = await updateDatabaseAction(editingDb.id, {
+          name,
+          mode,
+          connectionString,
+          host,
+          port: port ? parseInt(port, 10) : undefined,
+          user,
+          password: password || undefined,
+          database,
+          ssl,
+          environment,
+          labels,
+        });
+      } else {
+        res = await addDatabaseAction({
+          name,
+          mode,
+          connectionString,
+          host,
+          port: port ? parseInt(port, 10) : undefined,
+          user,
+          password,
+          database,
+          ssl,
+          environment,
+          labels,
+        });
+      }
 
       if (res.success) {
-        setMessage({ type: "success", text: t("database.saveSuccess") });
+        setMessage({ 
+          type: "success", 
+          text: isEdit 
+            ? (t("database.updateSuccess") || "Veritabanı başarıyla güncellendi.") 
+            : t("database.saveSuccess") 
+        });
         setTimeout(() => {
           setOpen(false);
-          resetForm();
+          if (!isEdit) {
+            resetForm();
+          }
           if (onSuccess) onSuccess();
         }, 1000);
       } else {
-        setMessage({ type: "error", text: `${t("database.saveFailed")}: ${res.error}` });
+        setMessage({ 
+          type: "error", 
+          text: `${isEdit ? (t("database.updateFailed") || "Güncelleme hatası") : t("database.saveFailed")}: ${res.error}` 
+        });
       }
     } catch (err: any) {
       setMessage({ type: "error", text: err.message || "Failed to save database" });
@@ -133,10 +164,10 @@ export function DatabaseModal({ onSuccess, trigger }: DatabaseModalProps) {
       <DialogContent className="max-w-[600px] sm:max-w-[600px] w-full bg-[#0d0c0b] text-[#E6E4DD] border border-[#2b2926] p-0 overflow-hidden rounded-md shadow-2xl font-sans">
         <DialogHeader className="p-6 border-b border-[#2b2926]">
           <DialogTitle className="text-sm font-mono tracking-wider uppercase text-white">
-            {t("database.newDbTitle")}
+            {isEdit ? (t("database.editDbTitle") || "VERİTABANI BAĞLANTISINI DÜZENLE") : t("database.newDbTitle")}
           </DialogTitle>
           <DialogDescription className="text-xs text-[#a09e96] pt-1.5">
-            {t("database.newDbDesc")}
+            {isEdit ? (t("database.editDbDesc") || "PostgreSQL veritabanı bağlantı detaylarını güncelleyin.") : t("database.newDbDesc")}
           </DialogDescription>
         </DialogHeader>
 
@@ -224,7 +255,7 @@ export function DatabaseModal({ onSuccess, trigger }: DatabaseModalProps) {
                   <Input
                     id="password"
                     type="password"
-                    placeholder="••••••••"
+                    placeholder={isEdit ? (t("database.passwordPlaceholderEdit") || "•••••••• (değiştirmek için)") : "••••••••"}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="bg-[#141210] border-[#2b2926] text-sm text-white font-mono rounded h-9 w-full"
