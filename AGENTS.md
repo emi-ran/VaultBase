@@ -130,3 +130,56 @@ docker compose logs -f app    # Log takibi
 ```
 
 Test veritabanı: postgresql://vaultuser:vaultpass@localhost:5432/vaulttest
+
+---
+
+## Commit Öncesi Zorunlu Kontroller
+
+Her commit öncesinde aşağıdaki kontrollerin tamamlanması **ZORUNLUDUR**. Herhangi bir adım başarısız olursa commit atılmaz ve sorun önce giderilir.
+
+### 1. TypeScript + Production Build Kontrolü
+```bash
+pnpm build
+```
+- TypeScript derleme hataları sıfır olmalı.
+- Tüm route'lar (pages) listede görünmeli.
+
+### 2. Güvenlik Açığı Taraması
+```bash
+pnpm audit
+```
+- `No known vulnerabilities found` çıktısı beklenir.
+- Kritik veya yüksek seviyeli zafiyet varsa `pnpm audit --fix` ile kapatılır; kapanmazsa manuel olarak override/patch uygulanır.
+
+### 3. Docker Build Kontrolü
+```bash
+docker compose build
+```
+- Build hatasız tamamlanmalı.
+- Tüm stage'ler (base, deps, builder, runner) başarılı olmalı.
+
+### 4. Docker Çalışma Testi
+```bash
+docker compose up -d
+docker compose logs app --tail=40
+```
+- Konteyner crash olmadan ayağa kalkmalı.
+- `✓ Ready in` satırı görünmeli (Next.js başarılı başlatma).
+- `Prisma migration` adımı hatasız tamamlanmalı.
+
+### 5. Dokümantasyon Güncelliği
+Commit öncesinde aşağıdaki dosyaların içeriği aktüel durumu yansıtıyor olmalı:
+
+| Dosya | Kontrol Edilecek Alan |
+|---|---|
+| `AGENTS.md` | Dosya haritası, mimari kurallar, commit kontrolleri |
+| `PLAN.md` | Tamamlanan görevler `[x]` işaretli olmalı |
+| `STATUS.md` | Çalışan özellikler tablosu, son commit bilgisi |
+
+### Hızlı Kontrol Komutu (Sıralı)
+```bash
+pnpm build
+pnpm audit
+docker compose build
+```
+Her biri başarılıysa commit güvenlidir.
