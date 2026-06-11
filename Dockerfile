@@ -2,7 +2,7 @@
 FROM node:22-slim AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
-RUN corepack enable
+RUN corepack enable && corepack prepare pnpm@11.5.3 --activate
 
 # Install system dependencies including PostgreSQL Client 17
 RUN apt-get update && apt-get install -y \
@@ -13,14 +13,14 @@ RUN apt-get update && apt-get install -y \
     && curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor -o /usr/share/keyrings/postgresql-keyring.gpg \
     && echo "deb [signed-by=/usr/share/keyrings/postgresql-keyring.gpg] http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list \
     && apt-get update && apt-get install -y \
-    postgresql-client-17 \
+    postgresql-client-18 \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
 # Dependencies stage
 FROM base AS deps
-COPY package.json pnpm-lock.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc* ./
 RUN pnpm install --frozen-lockfile
 
 # Build stage
@@ -34,7 +34,7 @@ RUN pnpm build
 
 # Production dependencies stage
 FROM base AS prod-deps
-COPY package.json pnpm-lock.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc* ./
 RUN pnpm install --prod --frozen-lockfile
 
 # Runner stage
@@ -48,7 +48,9 @@ COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/prisma ./prisma
 COPY --from=prod-deps /app/node_modules ./node_modules
-COPY --from=builder /app/prisma/config.ts ./prisma.config.ts 2>/dev/null || true
+COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
+COPY --from=builder /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
+COPY --from=builder /app/.npmrc* ./
 
 # Environment variables defaults
 ENV APP_SECRET="vaultbase-default-production-secret-key-replace-me"

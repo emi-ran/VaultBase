@@ -97,6 +97,8 @@ export const tr = {
     date: "Tarih",
     trigger: "Tetikleyen",
     filename: "Dosya Adı",
+    customFilenameLabel: "Yedek Dosya Adı (Opsiyonel)",
+    customFilenamePlaceholder: "örn: veritabani_yedek",
   },
   schedules: {
     title: "ZAMANLAMALAR",

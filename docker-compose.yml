@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   vaultbase:
     build:
@@ -17,23 +15,4 @@ services:
       - DATABASE_URL=file:/app/data/dev.db
       - APP_SECRET=your-vaultbase-production-secret-key-change-this
       - PORT=3000
-    depends_on:
-      - test-postgres
     restart: unless-stopped
-
-  # Optional mock PostgreSQL container to test connection and backups instantly
-  test-postgres:
-    image: postgres:17-alpine
-    container_name: vaultbase-test-db
-    ports:
-      - "5432:5432"
-    environment:
-      - POSTGRES_USER=vaultuser
-      - POSTGRES_PASSWORD=vaultpass
-      - POSTGRES_DB=vaulttest
-    volumes:
-      - test-db-data:/var/lib/postgresql/data
-    restart: unless-stopped
-
-volumes:
-  test-db-data:

@@ -97,6 +97,8 @@ export const en = {
     date: "Date",
     trigger: "Trigger",
     filename: "Filename",
+    customFilenameLabel: "Backup Filename (Optional)",
+    customFilenamePlaceholder: "e.g. database_backup",
   },
   schedules: {
     title: "SCHEDULES",

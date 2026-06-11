@@ -4,3 +4,13 @@ allowBuilds:
   sharp: true
   unrs-resolver: true
   msw: false
+  prisma: true
+  "@prisma/engines": true
+  better-sqlite3: true
+
+trustLockfile: true
+minimumReleaseAge: 0
+
+overrides:
+  postcss: "^8.5.10"
+  "@hono/node-server": "^1.19.13"

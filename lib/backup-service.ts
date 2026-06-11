@@ -25,7 +25,7 @@ export interface BackupResult {
   error?: string;
 }
 
-export async function runBackup(dbId: string, triggerType: "manual" | "scheduled"): Promise<BackupResult> {
+export async function runBackup(dbId: string, triggerType: "manual" | "scheduled", customFilename?: string): Promise<BackupResult> {
   // 1. Fetch database configuration
   const dbConfig = await prisma.databaseConnection.findUnique({
     where: { id: dbId },
@@ -37,7 +37,22 @@ export async function runBackup(dbId: string, triggerType: "manual" | "scheduled
 
   const decryptedPassword = decrypt(dbConfig.password);
   const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-  const filename = `${dbConfig.name}_backup_${timestamp}.sql.gz`;
+  let filename = `${dbConfig.name}_backup_${timestamp}.sql.gz`;
+
+  if (customFilename && customFilename.trim()) {
+    let cleanName = customFilename.replace(/[^a-zA-Z0-9_\-]/g, "_").trim();
+    if (cleanName) {
+      if (cleanName.endsWith(".sql.gz")) {
+        // Already ends with correct extension
+      } else if (cleanName.endsWith(".sql")) {
+        cleanName = cleanName.substring(0, cleanName.length - 4) + ".sql.gz";
+      } else {
+        cleanName = cleanName + ".sql.gz";
+      }
+      filename = cleanName;
+    }
+  }
+
   const filepath = path.join(BACKUP_DIR, filename);
 
   // Create a record in processing state

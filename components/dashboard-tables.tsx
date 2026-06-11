@@ -15,6 +15,8 @@ import { useTranslation } from "./i18n-provider";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { Progress } from "./ui/progress";
+import { Input } from "./ui/input";
+import { Label } from "./ui/label";
 import { 
   Table, 
   TableBody, 
@@ -59,6 +61,7 @@ export function DashboardTables({ databases, backups, locale }: DashboardTablesP
   const [sizeError, setSizeError] = useState(false);
   const [backingUp, setBackingUp] = useState(false);
   const [backupResult, setBackupResult] = useState<{ success: boolean; message: string } | null>(null);
+  const [customFilename, setCustomFilename] = useState("");
 
   // Dialog State: Delete Database Confirm
   const [deleteDbOpen, setDeleteDbOpen] = useState(false);
@@ -78,6 +81,7 @@ export function DashboardTables({ databases, backups, locale }: DashboardTablesP
   const openBackupDialog = async (db: any) => {
     setSelectedDb(db);
     setDbSize(null);
+    setCustomFilename("");
     setLoadingSize(true);
     setSizeError(false);
     setBackupResult(null);
@@ -102,7 +106,7 @@ export function DashboardTables({ databases, backups, locale }: DashboardTablesP
     setBackingUp(true);
     setBackupResult(null);
     try {
-      const res = await triggerBackupAction(selectedDb.id);
+      const res = await triggerBackupAction(selectedDb.id, customFilename);
       if (res.success) {
         const filename = "filename" in res ? res.filename : "";
         setBackupResult({ success: true, message: t("backup.successMsg") + (filename || "") });
@@ -385,6 +389,20 @@ export function DashboardTables({ databases, backups, locale }: DashboardTablesP
                 )}
               </span>
             </div>
+          </div>
+
+          <div className="space-y-2 py-2">
+            <Label htmlFor="custom-filename" className="text-xs font-mono text-[#a09e96]">
+              {t("backup.customFilenameLabel")}
+            </Label>
+            <Input
+              id="custom-filename"
+              placeholder={t("backup.customFilenamePlaceholder")}
+              value={customFilename}
+              onChange={(e) => setCustomFilename(e.target.value)}
+              disabled={backingUp}
+              className="bg-[#141210] border-[#2b2926] text-white font-mono text-xs focus:border-[#55f289] focus:ring-1 focus:ring-[#55f289] rounded"
+            />
           </div>
 
           {backupResult && (

@@ -182,9 +182,9 @@ export async function deleteDatabaseAction(id: string) {
 }
 
 // Trigger Manual Backup Action
-export async function triggerBackupAction(dbId: string) {
+export async function triggerBackupAction(dbId: string, customFilename?: string) {
   try {
-    const result = await runBackup(dbId, "manual");
+    const result = await runBackup(dbId, "manual", customFilename);
     revalidatePath("/");
     return result;
   } catch (error: any) {
