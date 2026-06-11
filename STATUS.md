@@ -98,14 +98,13 @@ Aşağıdaki tüm özellikler çalışır durumda:
 
 ---
 
-## Sonraki Adımlar (Phase 2)
+## Sonraki Adımlar (Phase 3)
 
 Öncelik sırasına göre:
 
-1. **node-cron entegrasyonu** — background worker kurulumu
-2. **Zamanlama UI** — her veritabanı için cron ifadesi tanımlama
-3. **"Sıradaki Zamanlama" kartı** — gerçek veriye bağlanma
-4. **Zamanlanmış yedek logları** — Son Aktiviteler akışına entegre
+1. **Bulut depolama entegrasyonu** — Amazon S3, Cloudflare R2, Google Cloud Storage, MinIO entegrasyonları
+2. **Otomatik bulut senkronizasyonu** — yedek tamamlandığında otomatik olarak bulut depolamaya kopyalanması
+3. **Bulut yedekleri yönetimi** — bulut üzerindeki yedek dosyalarını arama, indirme ve silme arayüzleri
 
 ---
 
@@ -113,8 +112,8 @@ Aşağıdaki tüm özellikler çalışır durumda:
 
 ```
 Branch: master
-Son Commit: feat: secure settings export/import using encrypted JSON, optimize decrypt error warnings, and implement test suite
-Değiştirilmemiş dosya: Hayır (test senaryoları eklendi)
+Son Commit: style: replace native timezone select in settings page with scrollable Shadcn Select (4859a13)
+Değiştirilmemiş dosya: Evet (tüm değişiklikler commit edildi)
 ```
 
 ---
