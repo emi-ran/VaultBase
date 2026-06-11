@@ -587,3 +587,98 @@ export async function testAndUpdateDatabaseStatusAction(id: string) {
     return { success: false, error: error.message || "Failed to test and update status" };
   }
 }
+
+// Get Settings Action
+export async function getSettingsAction() {
+  try {
+    const timezoneSetting = await prisma.setting.findUnique({
+      where: { key: "timezone" },
+    });
+    return { success: true, timezone: timezoneSetting?.value || "Europe/Istanbul" };
+  } catch (error: any) {
+    return { success: false, error: error.message || "Failed to load settings" };
+  }
+}
+
+// Save Settings Action
+export async function saveSettingsAction(timezone: string) {
+  try {
+    await prisma.setting.upsert({
+      where: { key: "timezone" },
+      update: { value: timezone },
+      create: { key: "timezone", value: timezone },
+    });
+    
+    // Dynamically import reloadSchedules to prevent circular dependency
+    const { reloadSchedules } = await import("../lib/cron-service");
+    await reloadSchedules();
+    
+    revalidatePath("/");
+    revalidatePath("/settings");
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message || "Failed to save settings" };
+  }
+}
+
+// Add Schedule Action
+export async function addScheduleAction(databaseId: string, cron: string, enabled: boolean = true) {
+  try {
+    const newSchedule = await prisma.schedule.create({
+      data: {
+        databaseId,
+        cron,
+        enabled,
+      },
+    });
+
+    const { reloadSchedules } = await import("../lib/cron-service");
+    await reloadSchedules();
+
+    revalidatePath("/");
+    revalidatePath("/schedules");
+    return { success: true, schedule: newSchedule };
+  } catch (error: any) {
+    return { success: false, error: error.message || "Failed to create schedule" };
+  }
+}
+
+// Update Schedule Action
+export async function updateScheduleAction(id: string, cron: string, enabled: boolean) {
+  try {
+    const updated = await prisma.schedule.update({
+      where: { id },
+      data: {
+        cron,
+        enabled,
+      },
+    });
+
+    const { reloadSchedules } = await import("../lib/cron-service");
+    await reloadSchedules();
+
+    revalidatePath("/");
+    revalidatePath("/schedules");
+    return { success: true, schedule: updated };
+  } catch (error: any) {
+    return { success: false, error: error.message || "Failed to update schedule" };
+  }
+}
+
+// Delete Schedule Action
+export async function deleteScheduleAction(id: string) {
+  try {
+    await prisma.schedule.delete({
+      where: { id },
+    });
+
+    const { reloadSchedules } = await import("../lib/cron-service");
+    await reloadSchedules();
+
+    revalidatePath("/");
+    revalidatePath("/schedules");
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message || "Failed to delete schedule" };
+  }
+}

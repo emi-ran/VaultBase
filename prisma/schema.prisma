@@ -48,3 +48,8 @@ model Schedule {
   createdAt    DateTime           @default(now())
   updatedAt    DateTime           @updatedAt
 }
+
+model Setting {
+  key   String @id
+  value String
+}

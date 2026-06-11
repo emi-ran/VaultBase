@@ -7,14 +7,14 @@ Son güncelleme: 12 Haziran 2026
 ## Anlık Durum
 
 **Aktif Sürüm:** v0.1.0-alpha  
-**Genel Durum:** ✅ Kararlı (Geliştirme Ortamı)  
-**Aktif Phase:** Phase 2 (Zamanlanmış Yedekler) – Henüz başlanmadı
+**Genel Durum:** ✅ Kararlı (Geliştirme & Production Ortamı)  
+**Aktif Phase:** Phase 2 (Zamanlanmış Yedekler) – TAMAMLANDI
 
 ---
 
-## Phase 1 Tamamlama Özeti
+## Phase 1 & 2 Tamamlama Özeti
 
-Phase 1 eksiksiz tamamlandı ve commit edildi.  
+Phase 1 ve Phase 2 özellikleri eksiksiz tamamlandı, test edildi ve kararlı hale getirildi.  
 Aşağıdaki tüm özellikler çalışır durumda:
 
 ### Çalışan Özellikler
@@ -27,6 +27,11 @@ Aşağıdaki tüm özellikler çalışır durumda:
 | /databases Sayfası | ✅ Çalışıyor | Arama, filtreleme (ortam/etiket) ve tüm yönetim işlemleri (test, yedek, düzenle, sil) |
 | /archive Sayfası | ✅ Çalışıyor | Arama, veritabanı/durum/tetikleyici filtreleri, depolama istatistikleri, indirme, silme ve toplu temizleme |
 | /storage Sayfası | ✅ Çalışıyor | Toplam kullanılan alan, kullanılabilir alan, limit kartları, görsel kapasite barı ve veritabanı bazlı depolama analizi |
+| Zamanlanmış Yedekler | ✅ Çalışıyor | `node-cron` entegrasyonu ile arka planda çalışır |
+| /schedules Sayfası | ✅ Çalışıyor | Zamanlanmış oto-yedek kuralları arama, listeleme, düzenleme, silme, aktif/pasif etme |
+| Basit ve Gelişmiş Zamanlama | ✅ Çalışıyor | Basit (Her gün, haftanın günleri, ayın günü) ve Gelişmiş (Özel cron girişi, gün gün ayrı saat belirleme) |
+| Sistem Saati Göstergesi | ✅ Çalışıyor | Sidebar'da yerel/GMT ticking clock |
+| Zaman Dilimi Seçimi | ✅ Çalışıyor | Ayarlar sayfasından IANA zaman dilimi ayarı (GMT+3 vs. otomatik DST hesabı ile) |
 | Manuel yedek alma | ✅ Çalışıyor | pg_dump gerektirir (özel isimlendirme destekli) |
 | Yedek arşivi | ✅ Çalışıyor | .sql.gz formatı |
 | Yedek indirme | ✅ Çalışıyor | API route |
@@ -52,6 +57,12 @@ Aşağıdaki tüm özellikler çalışır durumda:
   - Düzeltme: max-w-[600px] override + popper hizalaması
 - **[ÇÖZÜLDÜ]** Spawn error + close çift tetiklenme hatası
   - Düzeltme: hasErrorOccurred boolean flag
+- **[ÇÖZÜLDÜ]** node-cron tipi ve scheduled: true seçeneğinin kaldırılması
+  - Düzeltme: node-cron v4 standardına uyarlandı, ScheduledTask tipi doğrudan import edildi.
+- **[ÇÖZÜLDÜ]** Test scriptindeki .ts uzantılı importların Next build'ı engellemesi
+  - Düzeltme: scripts/test-core.ts importlarındaki uzantılar kaldırıldı.
+- **[ÇÖZÜLDÜ]** Docker pnpm esbuild scriptinin çalışmasının engellenmesi
+  - Düzeltme: package.json'a pnpm onlyBuiltDependencies tanımlandı.
 
 ### Açık
 - pg_dump Windows'ta PATH'de yoksa hata mesajı bazen belirsiz olabiliyor

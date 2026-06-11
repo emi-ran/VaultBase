@@ -14,9 +14,9 @@ execSync("npx prisma db push --accept-data-loss", {
 });
 
 // Import Prisma client and actions AFTER setting database env
-import { prisma } from "../lib/db.ts";
-import { encrypt, decrypt } from "../lib/encryption.ts";
-import { exportSettingsAction, importSettingsAction } from "../app/actions.ts";
+import { prisma } from "../lib/db";
+import { encrypt, decrypt } from "../lib/encryption";
+import { exportSettingsAction, importSettingsAction } from "../app/actions";
 
 test("Encryption & Decryption core tests", async (t) => {
   await t.test("should successfully encrypt and decrypt a string", () => {

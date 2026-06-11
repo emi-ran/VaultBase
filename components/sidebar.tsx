@@ -21,6 +21,54 @@ import {
 export function Sidebar() {
   const pathname = usePathname();
   const { locale, setLocale, t } = useTranslation();
+  
+  const [serverTime, setServerTime] = React.useState<string>("");
+  const [timezone, setTimezone] = React.useState<string>("Europe/Istanbul");
+
+  React.useEffect(() => {
+    const loadTimezone = async () => {
+      try {
+        const { getSettingsAction } = await import("../app/actions");
+        const res = await getSettingsAction();
+        if (res.success && res.timezone) {
+          setTimezone(res.timezone);
+        }
+      } catch (err) {
+        console.error("Failed to load timezone in sidebar:", err);
+      }
+    };
+    loadTimezone();
+  }, []);
+
+  React.useEffect(() => {
+    const updateTime = () => {
+      try {
+        const now = new Date();
+        const timeStr = new Intl.DateTimeFormat("en-US", {
+          timeZone: timezone,
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          hour12: false,
+        }).format(now);
+
+        const parts = new Intl.DateTimeFormat("en-US", {
+          timeZone: timezone,
+          timeZoneName: "shortOffset",
+        }).formatToParts(now);
+        const offsetPart = parts.find((p) => p.type === "timeZoneName");
+        const offsetVal = offsetPart ? offsetPart.value : "GMT+3";
+
+        setServerTime(`${timeStr} (${offsetVal})`);
+      } catch (e) {
+        setServerTime(new Date().toLocaleTimeString());
+      }
+    };
+
+    updateTime();
+    const interval = setInterval(updateTime, 1000);
+    return () => clearInterval(interval);
+  }, [timezone]);
 
   const menuItems = [
     {
@@ -123,6 +171,19 @@ export function Sidebar() {
             >
               EN
             </button>
+          </div>
+        </div>
+
+        {/* System Time clock */}
+        <div className="flex flex-col gap-1 text-[10px] font-mono border-t border-[#2b2926]/40 pt-3">
+          <div className="flex items-center justify-between">
+            <span className="text-[#605e58]">SYSTEM CLOCK</span>
+            <span className="text-[#a09e96] truncate max-w-[120px] text-right" title={timezone}>
+              {timezone.split("/").pop()?.replace("_", " ")}
+            </span>
+          </div>
+          <div className="text-right text-[#55f289] font-bold text-xs tracking-wider">
+            {serverTime || "..."}
           </div>
         </div>
 

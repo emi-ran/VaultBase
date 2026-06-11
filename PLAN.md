@@ -63,17 +63,17 @@ VaultBase; birden fazla PostgreSQL (ilerleyen sürümlerde MongoDB) veritabanın
 
 ---
 
-## Phase 2 – Zamanlanmış Yedekler (PLANLANDI)
+## Phase 2 – Zamanlanmış Yedekler (TAMAMLANDI)
 
 ### 2.1 Cron Sistemi
-- [ ] node-cron entegrasyonu (background worker)
-- [ ] Veritabanı başına cron ifadesi tanımlama UI'ı
-- [ ] SQLite'ta zamanlama kaydı
-- [ ] Cron tetiklendiğinde otomatik pg_dump çalıştırma
-- [ ] Dashboard'da "Sıradaki Zamanlama" kartını gerçek veriye bağlama
-- [ ] Zamanlanmış yedek geçmişi logları
+- [x] node-cron entegrasyonu (background worker)
+- [x] Veritabanı başına cron ifadesi tanımlama UI'ı
+- [x] SQLite'ta zamanlama kaydı
+- [x] Cron tetiklendiğinde otomatik pg_dump çalıştırma
+- [x] Dashboard'da "Sıradaki Zamanlama" kartını gerçek veriye bağlama
+- [x] Zamanlanmış yedek geçmişi logları
 
-### 2.2 Bildirimler (isteğe bağlı)
+### 2.2 Bildirimler (İlerleyen Fazlarda Ele Alınacak / Devre Dışı Bırakıldı)
 - [ ] Başarılı/başarısız yedek sonrası e-posta bildirimi
 - [ ] Webhook desteği (Slack, Discord, vb.)
 
@@ -152,4 +152,5 @@ VaultBase; birden fazla PostgreSQL (ilerleyen sürümlerde MongoDB) veritabanın
 
 | Sürüm | Tarih | Açıklama |
 |---|---|---|
+| 0.2.0-alpha | 12 Haziran 2026 | Phase 2 tamamlandı – Zamanlanmış otomatik yedekler, sistem saati ve zaman dilimi ayarı |
 | 0.1.0-alpha | Haziran 2026 | Phase 1 tamamlandı – temel yedekleme ve dashboard |
