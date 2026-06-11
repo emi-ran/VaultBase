@@ -13,6 +13,7 @@ import {
 } from "@tabler/icons-react";
 import { Button } from "../../components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
 import { exportSettingsAction, importSettingsAction, getSettingsAction, saveSettingsAction } from "../actions";
 
 const COMMON_TIMEZONES = [
@@ -186,13 +187,11 @@ export default function SettingsPage() {
                 <label className="block text-[10px] font-mono tracking-wider text-[#a09e96] uppercase">
                   {t("settingsPage.timezoneSelectLabel")}
                 </label>
-                <div className="relative">
-                  <select
-                    value={timezone}
-                    onChange={(e) => setTimezone(e.target.value)}
-                    disabled={loading}
-                    className="bg-[#0d0c0b] border border-[#2b2926] rounded px-3 py-2.5 text-xs font-mono text-[#E6E4DD] w-full focus:outline-none focus:ring-1 focus:ring-[#55f289] focus:border-[#55f289] disabled:opacity-50 appearance-none cursor-pointer"
-                  >
+                <Select value={timezone} onValueChange={setTimezone} disabled={loading}>
+                  <SelectTrigger className="bg-[#141210] border-[#2b2926] text-xs text-white font-mono rounded h-10 w-full">
+                    <SelectValue placeholder="Select Timezone" />
+                  </SelectTrigger>
+                  <SelectContent position="popper" className="bg-[#141210] border-[#2b2926] text-[#E6E4DD] max-h-[300px] overflow-y-auto">
                     {timezonesList.map((tz) => {
                       let offsetStr = "";
                       try {
@@ -205,18 +204,13 @@ export default function SettingsPage() {
                       } catch (e) {}
 
                       return (
-                        <option key={tz} value={tz} className="bg-[#0d0c0b] text-[#E6E4DD]">
+                        <SelectItem key={tz} value={tz} className="hover:bg-[#2b2926] text-xs font-mono">
                           {tz}{offsetStr}
-                        </option>
+                        </SelectItem>
                       );
                     })}
-                  </select>
-                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-[#a09e96]">
-                    <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                      <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
-                    </svg>
-                  </div>
-                </div>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="pt-2">
