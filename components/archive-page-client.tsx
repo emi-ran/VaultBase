@@ -347,8 +347,8 @@ export function ArchivePageClient({ initialBackups, databases, locale }: Archive
                 </SelectTrigger>
                 <SelectContent position="popper" className="bg-[#141210] border-[#2b2926] text-[#E6E4DD]">
                   <SelectItem value="all">{t("backup.filterTrigger") || "Tüm Tetikleyiciler"}</SelectItem>
-                  <SelectItem value="manual">MANUAL</SelectItem>
-                  <SelectItem value="scheduled">SCHEDULED</SelectItem>
+                  <SelectItem value="manual">{t("jobs.manual") || "Manuel"}</SelectItem>
+                  <SelectItem value="scheduled">{t("jobs.scheduled") || "Zamanlanmış"}</SelectItem>
                 </SelectContent>
               </Select>
             </div>

@@ -22,6 +22,7 @@ import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "./ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "./ui/dialog";
 import { DatabaseModal } from "./database-modal";
@@ -47,7 +48,7 @@ interface DatabasesPageClientProps {
 }
 
 export function DatabasesPageClient({ databases }: DatabasesPageClientProps) {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const router = useRouter();
 
   // Search & Filter State
@@ -295,36 +296,40 @@ export function DatabasesPageClient({ databases }: DatabasesPageClientProps) {
           </div>
 
           {/* Filters */}
-          <div className="flex flex-wrap gap-3 items-center">
+          <div className="flex flex-wrap gap-4 items-center">
             {/* Env dropdown */}
             <div className="flex items-center gap-2">
-              <span className="text-[9px] font-mono text-[#605e58] tracking-wider uppercase">{t("database.filterEnv") || "ORTAM"}:</span>
-              <select
-                value={selectedEnv}
-                onChange={(e) => setSelectedEnv(e.target.value)}
-                className="bg-[#141210] border border-[#2b2926] rounded text-xs font-mono text-[#E6E4DD] px-2.5 py-1.5 focus:border-[#d2541c] outline-none"
-              >
-                <option value="all">ALL</option>
-                <option value="production">PRODUCTION</option>
-                <option value="staging">STAGING</option>
-                <option value="development">DEVELOPMENT</option>
-              </select>
+              <span className="text-[9px] font-mono text-[#605e58] tracking-wider uppercase whitespace-nowrap">{t("database.filterEnv") || "ORTAM"}:</span>
+              <Select value={selectedEnv} onValueChange={setSelectedEnv}>
+                <SelectTrigger className="bg-[#141210] border-[#2b2926] text-xs text-white font-mono rounded h-8 min-w-[110px] w-auto">
+                  <SelectValue placeholder={locale === "tr" ? "Tümü" : "All"} />
+                </SelectTrigger>
+                <SelectContent position="popper" className="bg-[#141210] border-[#2b2926] text-[#E6E4DD]">
+                  <SelectItem value="all" className="hover:bg-[#2b2926] text-xs font-mono">{locale === "tr" ? "Tümü" : "All"}</SelectItem>
+                  <SelectItem value="production" className="hover:bg-[#2b2926] text-xs font-mono">{t("database.envProduction") || "Production"}</SelectItem>
+                  <SelectItem value="staging" className="hover:bg-[#2b2926] text-xs font-mono">{t("database.envStaging") || "Staging"}</SelectItem>
+                  <SelectItem value="development" className="hover:bg-[#2b2926] text-xs font-mono">{t("database.envDevelopment") || "Development"}</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Label dropdown */}
             {allLabels.length > 0 && (
               <div className="flex items-center gap-2">
-                <span className="text-[9px] font-mono text-[#605e58] tracking-wider uppercase">{t("database.filterLabel") || "ETİKET"}:</span>
-                <select
-                  value={selectedLabel}
-                  onChange={(e) => setSelectedLabel(e.target.value)}
-                  className="bg-[#141210] border border-[#2b2926] rounded text-xs font-mono text-[#E6E4DD] px-2.5 py-1.5 focus:border-[#d2541c] outline-none"
-                >
-                  <option value="all">ALL</option>
-                  {allLabels.map((lbl) => (
-                    <option key={lbl} value={lbl}>{lbl.toUpperCase()}</option>
-                  ))}
-                </select>
+                <span className="text-[9px] font-mono text-[#605e58] tracking-wider uppercase whitespace-nowrap">{t("database.filterLabel") || "ETİKET"}:</span>
+                <Select value={selectedLabel} onValueChange={setSelectedLabel}>
+                  <SelectTrigger className="bg-[#141210] border-[#2b2926] text-xs text-white font-mono rounded h-8 min-w-[110px] w-auto">
+                    <SelectValue placeholder={locale === "tr" ? "Tümü" : "All"} />
+                  </SelectTrigger>
+                  <SelectContent position="popper" className="bg-[#141210] border-[#2b2926] text-[#E6E4DD]">
+                    <SelectItem value="all" className="hover:bg-[#2b2926] text-xs font-mono">{locale === "tr" ? "Tümü" : "All"}</SelectItem>
+                    {allLabels.map((lbl) => (
+                      <SelectItem key={lbl} value={lbl} className="hover:bg-[#2b2926] text-xs font-mono">
+                        {lbl.toUpperCase()}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             )}
 
