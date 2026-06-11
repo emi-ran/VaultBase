@@ -74,6 +74,8 @@ export async function runBackup(dbId: string, triggerType: "manual" | "scheduled
 
       console.log(`Starting pg_dump for ${dbConfig.name}. Output: ${filepath}`);
 
+      let hasErrorOccurred = false;
+
       const pgDump = spawn("pg_dump", pgDumpArgs, { env });
 
       pgDump.stdout.pipe(gzip);
@@ -84,6 +86,7 @@ export async function runBackup(dbId: string, triggerType: "manual" | "scheduled
       });
 
       pgDump.on("error", async (err: any) => {
+        hasErrorOccurred = true;
         console.error("pg_dump process error:", err);
         gzip.end();
         writeStream.end();
@@ -145,6 +148,7 @@ SELECT 1;
       });
 
       pgDump.on("close", async (code) => {
+        if (hasErrorOccurred) return;
         if (code === 0) {
           // Success
           writeStream.on("finish", async () => {
