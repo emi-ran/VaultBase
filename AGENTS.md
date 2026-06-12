@@ -125,6 +125,8 @@ Next.js 16 (App Router), Tailwind CSS v4, Shadcn UI, SQLite (Prisma 7 + Better-S
 |---|---|---|
 | DATABASE_URL | SQLite dosya yolu (file:./vaultbase.db) | Evet |
 | APP_SECRET | AES şifreleme anahtarı (min 32 karakter) | Evet |
+| ADMIN_USERNAME | Web arayüzü yönetici kullanıcı adı | Evet |
+| ADMIN_PASSWORD | Web arayüzü yönetici şifresi | Evet |
 | BACKUP_DIR | Yedek dosyalarının kaydedileceği dizin | Hayır (varsayılan: ./backups) |
 | STORAGE_LIMIT_MB | Maksimum depolama limiti (MB) | Hayır (varsayılan: 5120) |
 

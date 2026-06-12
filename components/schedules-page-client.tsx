@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useTranslation } from "./i18n-provider";
 import { 
   IconClock, 
@@ -91,10 +91,107 @@ function getCronDescription(cronStr: string, t: any, locale: string) {
   return `${t("schedules.cronExpr")}: ${cronStr}`;
 }
 
+function parseCronField(field: string, min: number, max: number) {
+  if (field === "*") return null;
+
+  const values = field.split(",").map((part) => Number(part));
+  if (values.some((value) => !Number.isInteger(value) || value < min || value > max)) {
+    return undefined;
+  }
+
+  return new Set(values);
+}
+
+function getTimeParts(date: Date, timezone: string) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: timezone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(date);
+
+  const value = (type: string) => Number(parts.find((part) => part.type === type)?.value);
+  const year = value("year");
+  const month = value("month");
+  const day = value("day");
+
+  return {
+    minute: value("minute"),
+    hour: value("hour"),
+    dayOfMonth: day,
+    month,
+    dayOfWeek: new Date(Date.UTC(year, month - 1, day)).getUTCDay(),
+  };
+}
+
+function getNextRunDate(cronStr: string, timezone: string, now: Date) {
+  const parts = cronStr.trim().split(/\s+/);
+  if (parts.length !== 5) return null;
+
+  const [min, hour, dayOfMonth, month, dayOfWeek] = parts;
+  const minuteValues = parseCronField(min, 0, 59);
+  const hourValues = parseCronField(hour, 0, 23);
+  const dayOfMonthValues = parseCronField(dayOfMonth, 1, 31);
+  const monthValues = parseCronField(month, 1, 12);
+  const dayOfWeekValues = parseCronField(dayOfWeek.replace(/\b7\b/g, "0"), 0, 6);
+
+  if (
+    minuteValues === undefined ||
+    hourValues === undefined ||
+    dayOfMonthValues === undefined ||
+    monthValues === undefined ||
+    dayOfWeekValues === undefined
+  ) {
+    return null;
+  }
+
+  const candidate = new Date(now);
+  candidate.setSeconds(0, 0);
+  candidate.setMinutes(candidate.getMinutes() + 1);
+
+  for (let i = 0; i < 60 * 24 * 366; i++) {
+    const current = getTimeParts(candidate, timezone);
+    const matches =
+      (!minuteValues || minuteValues.has(current.minute)) &&
+      (!hourValues || hourValues.has(current.hour)) &&
+      (!dayOfMonthValues || dayOfMonthValues.has(current.dayOfMonth)) &&
+      (!monthValues || monthValues.has(current.month)) &&
+      (!dayOfWeekValues || dayOfWeekValues.has(current.dayOfWeek));
+
+    if (matches) return new Date(candidate);
+    candidate.setMinutes(candidate.getMinutes() + 1);
+  }
+
+  return null;
+}
+
+function formatTimeUntil(target: Date, now: Date, locale: string, t: any) {
+  const diffSeconds = Math.max(0, Math.round((target.getTime() - now.getTime()) / 1000));
+  if (diffSeconds < 60) return t("schedules.lessThanMinute");
+
+  const days = Math.floor(diffSeconds / 86400);
+  const hours = Math.floor((diffSeconds % 86400) / 3600);
+  const minutes = Math.floor((diffSeconds % 3600) / 60);
+
+  if (locale === "tr") {
+    if (days > 0) return `${days} gün ${hours} saat sonra`;
+    if (hours > 0) return `${hours} saat ${minutes} dk sonra`;
+    return `${minutes} dk sonra`;
+  }
+
+  if (days > 0) return `in ${days}d ${hours}h`;
+  if (hours > 0) return `in ${hours}h ${minutes}m`;
+  return `in ${minutes}m`;
+}
+
 export function SchedulesPageClient({ initialDatabases, initialSchedules, timezone }: SchedulesPageClientProps) {
   const { t, locale } = useTranslation();
   const [schedules, setSchedules] = useState<Schedule[]>(initialSchedules);
   const [databases] = useState<Database[]>(initialDatabases);
+  const [now, setNow] = useState(() => new Date());
 
   // Modal open states
   const [modalOpen, setOpen] = useState(false);
@@ -132,6 +229,11 @@ export function SchedulesPageClient({ initialDatabases, initialSchedules, timezo
   const totalSchedules = schedules.length;
   const activeSchedules = schedules.filter(s => s.enabled).length;
   const passiveSchedules = totalSchedules - activeSchedules;
+
+  useEffect(() => {
+    const interval = window.setInterval(() => setNow(new Date()), 30_000);
+    return () => window.clearInterval(interval);
+  }, []);
 
   const resetForm = () => {
     if (editingSchedule) {
@@ -789,7 +891,10 @@ export function SchedulesPageClient({ initialDatabases, initialSchedules, timezo
               </div>
             ) : (
               <div className="divide-y divide-[#2b2926]/60">
-                {schedules.map((sch) => (
+                {schedules.map((sch) => {
+                  const nextRun = sch.enabled ? getNextRunDate(sch.cron, timezone, now) : null;
+
+                  return (
                   <div key={sch.id} className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-[#141210]/40 transition-colors">
                     
                     {/* Connection and expression descriptions */}
@@ -804,6 +909,21 @@ export function SchedulesPageClient({ initialDatabases, initialSchedules, timezo
                         <span className="text-[#605e58] font-bold text-[9px] px-1 bg-[#1c1a17] border border-[#2b2926] rounded uppercase">
                           {sch.cron}
                         </span>
+                      </div>
+                      <div className="text-[10px] font-mono text-[#605e58] flex items-center gap-1.5 pt-0.5">
+                        <IconClock size={12} className={sch.enabled && nextRun ? "text-[#55f289]" : "text-[#605e58]"} />
+                        {sch.enabled ? (
+                          nextRun ? (
+                            <span>
+                              {t("schedules.nextBackup")}: <span className="text-[#E6E4DD]">{formatTimeUntil(nextRun, now, locale, t)}</span>
+                              <span className="text-[#605e58]"> · {nextRun.toLocaleString(locale === "tr" ? "tr-TR" : "en-US", { timeZone: timezone, day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}</span>
+                            </span>
+                          ) : (
+                            <span>{t("schedules.nextBackupUnknown")}</span>
+                          )
+                        ) : (
+                          <span>{t("schedules.nextBackupDisabled")}</span>
+                        )}
                       </div>
                     </div>
 
@@ -854,7 +974,8 @@ export function SchedulesPageClient({ initialDatabases, initialSchedules, timezo
                     </div>
 
                   </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </CardContent>

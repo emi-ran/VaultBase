@@ -158,6 +158,10 @@ export const en = {
     deleteConfirm: "Are you sure you want to delete this schedule?",
     systemTimezone: "System Timezone",
     timezoneDesc: "This timezone is used as the reference to calculate when scheduled backups run.",
+    nextBackup: "Next backup",
+    nextBackupDisabled: "Inactive schedule - no next backup",
+    nextBackupUnknown: "Next backup could not be calculated",
+    lessThanMinute: "in less than 1m",
     daysOfWeek: {
       "1": "Monday",
       "2": "Tuesday",

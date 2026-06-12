@@ -158,6 +158,10 @@ export const tr = {
     deleteConfirm: "Bu zamanlamayı silmek istediğinize emin misiniz?",
     systemTimezone: "Sistem Zaman Dilimi",
     timezoneDesc: "Zamanlanmış otomatik yedeklerin çalıştırılacağı saat hesaplanırken bu zaman dilimi baz alınır.",
+    nextBackup: "Sonraki yedek",
+    nextBackupDisabled: "Pasif zamanlama - sonraki yedek yok",
+    nextBackupUnknown: "Sonraki yedek hesaplanamadı",
+    lessThanMinute: "1 dk'dan az sonra",
     daysOfWeek: {
       "1": "Pazartesi",
       "2": "Salı",

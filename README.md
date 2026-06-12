@@ -133,6 +133,9 @@ Tarayıcıda açın: **http://localhost:3000**
 Uygulamayı Docker Compose ile tek komutla ayağa kaldırabilirsiniz:
 
 ```bash
+# İlk çalıştırmadan önce .env dosyanızı oluşturun ve ADMIN_USERNAME / ADMIN_PASSWORD değerlerini değiştirin
+cp .env.example .env
+
 # Başlat
 docker compose up -d
 
@@ -142,6 +145,8 @@ docker compose logs -f app
 # Durdur
 docker compose down
 ```
+
+Docker Compose, `.env` dosyasındaki `APP_SECRET`, `ADMIN_USERNAME`, `ADMIN_PASSWORD`, `PORT` ve `STORAGE_LIMIT_MB` değerlerini container ortamına aktarır. SQLite ve yedek dizinleri container içinde kalıcı volume yolları olan `/app/data` ve `/app/backups` olarak ayarlanır.
 
 ---
 
