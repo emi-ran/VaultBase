@@ -81,6 +81,7 @@ export const en = {
     tables: "Tables",
     noTables: "No tables found",
     rowsCount: "Total rows:",
+    rowsPerPage: "Rows/page",
     queryError: "Query error: ",
     noData: "No data in this table.",
     editDbTitle: "EDIT DATABASE CONNECTION",

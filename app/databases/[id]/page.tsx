@@ -17,7 +17,6 @@ import {
 import { Button } from "../../../components/ui/button";
 import { Badge } from "../../../components/ui/badge";
 import { DatabaseTypeMark } from "../../../components/database-type-mark";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../../../components/ui/card";
 import { 
   Table, 
   TableBody, 
@@ -29,19 +28,21 @@ import {
 
 interface DatabaseExplorerPageProps {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ table?: string; page?: string }>;
+  searchParams: Promise<{ table?: string; page?: string; pageSize?: string }>;
 }
+
+const PAGE_SIZE_OPTIONS = [25, 50, 100] as const;
 
 export default async function DatabaseExplorerPage({ params, searchParams }: DatabaseExplorerPageProps) {
   const { id } = await params;
-  const { table: activeTable, page: pageStr } = await searchParams;
+  const { table: activeTable, page: pageStr, pageSize: pageSizeStr } = await searchParams;
   
   const cookieStore = await cookies();
   const locale = (cookieStore.get("locale")?.value as Locale) || "tr";
   const t = getT(locale);
 
   const currentPage = pageStr ? parseInt(pageStr, 10) : 1;
-  const pageSize = 25;
+  const pageSize = pageSizeStr ? parseInt(pageSizeStr, 10) : 50;
 
   // 1. Fetch database configuration from Prisma
   const db = await prisma.databaseConnection.findUnique({
@@ -99,7 +100,8 @@ export default async function DatabaseExplorerPage({ params, searchParams }: Dat
         },
         activeTable,
         currentPage,
-        pageSize
+        pageSize,
+        true
       );
     } catch (err: any) {
       queryError = err.message || "Veri yüklenirken bir hata oluştu.";
@@ -179,27 +181,50 @@ export default async function DatabaseExplorerPage({ params, searchParams }: Dat
               </div>
 
               {/* Pagination controls */}
-              {tableData && totalPages > 1 && (
-                <div className="flex items-center gap-3 font-mono text-xs text-[#a09e96]">
-                  <span>{currentPage} / {totalPages}</span>
-                  <div className="flex gap-1.5">
-                    <Link
-                      href={currentPage > 1 ? `/databases/${id}?table=${activeTable}&page=${currentPage - 1}` : "#"}
-                      className={currentPage === 1 ? "pointer-events-none opacity-40" : ""}
-                    >
-                      <Button size="icon" variant="outline" className="h-7 w-7 border-[#2b2926] hover:bg-[#1c1a17] rounded cursor-pointer">
-                        <IconChevronLeft size={14} />
-                      </Button>
-                    </Link>
-                    <Link
-                      href={currentPage < totalPages ? `/databases/${id}?table=${activeTable}&page=${currentPage + 1}` : "#"}
-                      className={currentPage === totalPages ? "pointer-events-none opacity-40" : ""}
-                    >
-                      <Button size="icon" variant="outline" className="h-7 w-7 border-[#2b2926] hover:bg-[#1c1a17] rounded cursor-pointer">
-                        <IconChevronRight size={14} />
-                      </Button>
-                    </Link>
+              {tableData && (
+                <div className="flex items-center gap-4 font-mono text-xs text-[#a09e96]">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[9px] text-[#605e58] tracking-wider uppercase">{t("database.rowsPerPage")}</span>
+                    {PAGE_SIZE_OPTIONS.map((s) => {
+                      const isActive = pageSize === s;
+                      return (
+                        <Link
+                          key={s}
+                          href={`/databases/${id}?table=${activeTable}&pageSize=${s}&page=1`}
+                          className={`px-2 py-0.5 rounded text-[10px] transition-all ${
+                            isActive
+                              ? "bg-[#1b3224]/30 text-[#55f289] font-bold"
+                              : "text-[#605e58] hover:text-[#a09e96] hover:bg-[#141210]"
+                          }`}
+                        >
+                          {s}
+                        </Link>
+                      );
+                    })}
                   </div>
+                  {totalPages > 1 && (
+                    <>
+                      <span>{currentPage} / {totalPages}</span>
+                      <div className="flex gap-1.5">
+                        <Link
+                          href={currentPage > 1 ? `/databases/${id}?table=${activeTable}&page=${currentPage - 1}&pageSize=${pageSize}` : "#"}
+                          className={currentPage === 1 ? "pointer-events-none opacity-40" : ""}
+                        >
+                          <Button size="icon" variant="outline" className="h-7 w-7 border-[#2b2926] hover:bg-[#1c1a17] rounded cursor-pointer">
+                            <IconChevronLeft size={14} />
+                          </Button>
+                        </Link>
+                        <Link
+                          href={currentPage < totalPages ? `/databases/${id}?table=${activeTable}&page=${currentPage + 1}&pageSize=${pageSize}` : "#"}
+                          className={currentPage === totalPages ? "pointer-events-none opacity-40" : ""}
+                        >
+                          <Button size="icon" variant="outline" className="h-7 w-7 border-[#2b2926] hover:bg-[#1c1a17] rounded cursor-pointer">
+                            <IconChevronRight size={14} />
+                          </Button>
+                        </Link>
+                      </div>
+                    </>
+                  )}
                 </div>
               )}
             </div>

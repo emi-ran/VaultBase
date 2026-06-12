@@ -215,7 +215,7 @@ Export sırasında isteğe bağlı bir şifre belirleyebilirsiniz (AES-256-CBC k
 
 ```
 .
-├── middleware.ts                   # Route koruması (auth)
+├── proxy.ts                        # Route koruması (auth)
 ├── app/
 │   ├── actions.ts                  # Tüm Server Actions
 │   ├── page.tsx                    # Ana dashboard

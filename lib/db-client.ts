@@ -79,17 +79,18 @@ export async function fetchTableData(
   config: DBConfig,
   tableName: string,
   page: number = 1,
-  pageSize: number = 50
+  pageSize: number = 50,
+  skipValidation: boolean = false
 ): Promise<{ columns: string[]; rows: any[]; totalCount: number }> {
-  // 1. Safety check: Validate table name contains only safe characters
   if (!/^[a-zA-Z0-9_.-]+$/.test(tableName)) {
     throw new Error("Invalid table name");
   }
 
-  // 2. Fetch list of tables first to prevent SQL injection by verifying table exists
-  const tables = await fetchPostgresTables(config);
-  if (!tables.includes(tableName)) {
-    throw new Error(`Table "${tableName}" not found in database`);
+  if (!skipValidation) {
+    const tables = await fetchPostgresTables(config);
+    if (!tables.includes(tableName)) {
+      throw new Error(`Table "${tableName}" not found in database`);
+    }
   }
 
   const clientConfig = getClientConfig(config);
@@ -98,11 +99,21 @@ export async function fetchTableData(
   try {
     await client.connect();
 
-    // Fetch total row count
-    const countRes = await client.query(`SELECT COUNT(*) as count FROM "public"."${tableName}";`);
-    const totalCount = parseInt(countRes.rows[0].count, 10);
+    let totalCount: number;
 
-    // Fetch paginated data
+    const approxRes = await client.query(
+      `SELECT reltuples::bigint AS count FROM pg_class WHERE oid = $1::regclass`,
+      [tableName]
+    );
+    const approxCount = parseInt(approxRes.rows[0].count, 10);
+
+    if (approxCount > 10000) {
+      totalCount = approxCount;
+    } else {
+      const countRes = await client.query(`SELECT COUNT(*) as count FROM "public"."${tableName}";`);
+      totalCount = parseInt(countRes.rows[0].count, 10);
+    }
+
     const offset = (page - 1) * pageSize;
     const dataRes = await client.query(`
       SELECT * FROM "public"."${tableName}" 
@@ -111,13 +122,8 @@ export async function fetchTableData(
 
     await client.end();
 
-    // Extract columns and rows
     const columns = dataRes.fields.map((field) => field.name);
-    return {
-      columns,
-      rows: dataRes.rows,
-      totalCount,
-    };
+    return { columns, rows: dataRes.rows, totalCount };
   } catch (error) {
     console.error(`Failed to fetch data for table ${tableName}:`, error);
     try {

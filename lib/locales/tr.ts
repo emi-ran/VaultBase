@@ -81,6 +81,7 @@ export const tr = {
     tables: "Tablolar",
     noTables: "Tablo bulunamadı",
     rowsCount: "Toplam satır:",
+    rowsPerPage: "Satır/sayfa",
     queryError: "Sorgu hatası: ",
     noData: "Bu tabloda veri bulunmuyor.",
     editDbTitle: "VERİTABANI BAĞLANTISINI DÜZENLE",

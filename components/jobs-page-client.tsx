@@ -20,7 +20,7 @@ import {
 import { Button } from "./ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Input } from "./ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "./ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "./ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { deleteBackupAction, clearAllBackupsAction } from "../app/actions";
 
@@ -58,6 +58,17 @@ export function JobsPageClient({ initialJobs }: JobsPageClientProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 15;
 
+  // Delete log dialog
+  const [deleteLogOpen, setDeleteLogOpen] = useState(false);
+  const [logToDelete, setLogToDelete] = useState<string | null>(null);
+  const [deletingLog, setDeletingLog] = useState(false);
+  const [deleteLogError, setDeleteLogError] = useState<string | null>(null);
+
+  // Clear all logs dialog
+  const [clearLogsOpen, setClearLogsOpen] = useState(false);
+  const [clearingLogs, setClearingLogs] = useState(false);
+  const [clearLogsError, setClearLogsError] = useState<string | null>(null);
+
   // Error modal details
   const [selectedError, setSelectedError] = useState<string | null>(null);
 
@@ -66,31 +77,52 @@ export function JobsPageClient({ initialJobs }: JobsPageClientProps) {
   const successLogs = jobs.filter(j => j.status === "success").length;
   const failedLogs = jobs.filter(j => j.status === "failed").length;
 
-  const handleDeleteLog = async (id: string) => {
-    if (!confirm(t("jobs.deleteConfirm"))) return;
+  const openDeleteLogDialog = (id: string) => {
+    setLogToDelete(id);
+    setDeleteLogError(null);
+    setDeleteLogOpen(true);
+  };
+
+  const handleDeleteLog = async () => {
+    if (!logToDelete) return;
+    setDeletingLog(true);
+    setDeleteLogError(null);
     try {
-      const res = await deleteBackupAction(id);
+      const res = await deleteBackupAction(logToDelete);
       if (res.success) {
-        setJobs(prev => prev.filter(j => j.id !== id));
+        setDeleteLogOpen(false);
+        setLogToDelete(null);
+        setJobs(prev => prev.filter(j => j.id !== logToDelete));
       } else {
-        alert(res.error || "Failed to delete log entry");
+        setDeleteLogError(res.error || null);
       }
     } catch (err: any) {
-      alert(err.message || "Failed to delete log entry");
+      setDeleteLogError(err.message || "Failed to delete log entry");
+    } finally {
+      setDeletingLog(false);
     }
   };
 
+  const openClearLogsDialog = () => {
+    setClearLogsError(null);
+    setClearLogsOpen(true);
+  };
+
   const handleClearAllLogs = async () => {
-    if (!confirm(t("jobs.clearLogsConfirm"))) return;
+    setClearingLogs(true);
+    setClearLogsError(null);
     try {
       const res = await clearAllBackupsAction();
       if (res.success) {
+        setClearLogsOpen(false);
         setJobs([]);
       } else {
-        alert(res.error || "Failed to clear log history");
+        setClearLogsError(res.error || null);
       }
     } catch (err: any) {
-      alert(err.message || "Failed to clear log history");
+      setClearLogsError(err.message || "Failed to clear log history");
+    } finally {
+      setClearingLogs(false);
     }
   };
 
@@ -138,7 +170,7 @@ export function JobsPageClient({ initialJobs }: JobsPageClientProps) {
 
         {jobs.length > 0 && (
           <Button
-            onClick={handleClearAllLogs}
+            onClick={openClearLogsDialog}
             variant="ghost"
             className="border border-[#2b2926] hover:bg-[#2d1210]/30 text-[#a09e96] hover:text-[#f25c55] font-mono text-xs cursor-pointer py-1.5 px-3 h-auto rounded flex items-center gap-2"
           >
@@ -348,7 +380,7 @@ export function JobsPageClient({ initialJobs }: JobsPageClientProps) {
 
                         <Button
                           variant="ghost"
-                          onClick={() => handleDeleteLog(job.id)}
+                          onClick={() => openDeleteLogDialog(job.id)}
                           className="h-8 w-8 p-0 border border-transparent hover:border-[#2b2926] hover:bg-[#2d1210]/30 text-[#a09e96] hover:text-[#f25c55] rounded cursor-pointer flex items-center justify-center transition-colors"
                           title={t("common.delete")}
                         >
@@ -393,6 +425,84 @@ export function JobsPageClient({ initialJobs }: JobsPageClientProps) {
         )}
 
       </div>
+
+      {/* Delete Log Confirmation Modal */}
+      <Dialog open={deleteLogOpen} onOpenChange={(v) => { if (!deletingLog) { setDeleteLogOpen(v); setDeleteLogError(null); } }}>
+        <DialogContent className="max-w-[450px] sm:max-w-[450px] bg-[#0d0c0b] border-[#2b2926] text-[#E6E4DD] rounded-md font-sans p-6">
+          <DialogHeader className="border-b border-[#2b2926] pb-4 mb-4">
+            <DialogTitle className="text-sm font-mono tracking-wider text-white uppercase flex items-center gap-2">
+              <IconAlertCircle size={16} className="text-[#f25c55]" />
+              {t("common.delete")?.toUpperCase() || "SİL"}
+            </DialogTitle>
+            <DialogDescription className="text-xs text-[#a09e96] pt-1">
+              {t("jobs.deleteConfirm") || "Bu log kaydını silmek istediğinize emin misiniz?"}
+            </DialogDescription>
+          </DialogHeader>
+
+          {deleteLogError && (
+            <div className="mb-4 p-3 bg-[#2d1210] border border-[#4b1b1a] rounded text-[11px] font-mono text-[#f25c55]">
+              {deleteLogError}
+            </div>
+          )}
+
+          <DialogFooter className="gap-2">
+            <Button
+              onClick={() => { setDeleteLogOpen(false); setLogToDelete(null); setDeleteLogError(null); }}
+              disabled={deletingLog}
+              variant="outline"
+              className="border-[#2b2926] text-[#a09e96] hover:text-white font-mono text-xs cursor-pointer rounded px-4 h-9"
+            >
+              {t("common.cancel")}
+            </Button>
+            <Button
+              onClick={handleDeleteLog}
+              disabled={deletingLog}
+              className="bg-[#2d1210] hover:bg-[#4b1b1a] text-[#f25c55] border border-[#4b1b1a] font-mono text-xs cursor-pointer rounded px-4 h-9 flex items-center gap-2"
+            >
+              {deletingLog ? t("common.loading") : t("common.delete")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Clear All Logs Confirmation Modal */}
+      <Dialog open={clearLogsOpen} onOpenChange={(v) => { if (!clearingLogs) { setClearLogsOpen(v); setClearLogsError(null); } }}>
+        <DialogContent className="max-w-[450px] sm:max-w-[450px] bg-[#0d0c0b] border-[#2b2926] text-[#E6E4DD] rounded-md font-sans p-6">
+          <DialogHeader className="border-b border-[#2b2926] pb-4 mb-4">
+            <DialogTitle className="text-sm font-mono tracking-wider text-white uppercase flex items-center gap-2">
+              <IconAlertCircle size={16} className="text-[#f25c55]" />
+              {t("jobs.clearLogs")?.toUpperCase() || "TÜM LOGLARI TEMİZLE"}
+            </DialogTitle>
+            <DialogDescription className="text-xs text-[#a09e96] pt-1">
+              {t("jobs.clearLogsConfirm") || "Bu işlem tüm log kayıtlarını kalıcı olarak silecektir. Emin misiniz?"}
+            </DialogDescription>
+          </DialogHeader>
+
+          {clearLogsError && (
+            <div className="mb-4 p-3 bg-[#2d1210] border border-[#4b1b1a] rounded text-[11px] font-mono text-[#f25c55]">
+              {clearLogsError}
+            </div>
+          )}
+
+          <DialogFooter className="gap-2">
+            <Button
+              onClick={() => { setClearLogsOpen(false); setClearLogsError(null); }}
+              disabled={clearingLogs}
+              variant="outline"
+              className="border-[#2b2926] text-[#a09e96] hover:text-white font-mono text-xs cursor-pointer rounded px-4 h-9"
+            >
+              {t("common.cancel")}
+            </Button>
+            <Button
+              onClick={handleClearAllLogs}
+              disabled={clearingLogs}
+              className="bg-[#2d1210] hover:bg-[#4b1b1a] text-[#f25c55] border border-[#4b1b1a] font-mono text-xs cursor-pointer rounded px-4 h-9 flex items-center gap-2"
+            >
+              {clearingLogs ? t("common.loading") : t("common.delete")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Error Details Modal */}
       <Dialog open={!!selectedError} onOpenChange={(open) => !open && setSelectedError(null)}>

@@ -52,6 +52,7 @@ Next.js 16 (App Router), Tailwind CSS v4, Shadcn UI, SQLite (Prisma 7 + Better-S
 ### UI / Responsive
 - Modal genişlikleri: max-w-[600px] sm:max-w-[600px] — Shadcn default sm:max-w-sm sınırını geçersiz kılmak için açıkça belirtilmeli.
 - Select dropdown hizalaması: popper (item-aligned değil).
+- **ZORUNLU:** Onay gerektiren işlemlerde asla tarayıcının `confirm()` / `alert()` fonksiyonlarını kullanma. Bunun yerine projedeki mevcut Shadcn UI Dialog pattern'ini kullan (bkz. components/dashboard-tables.tsx, components/databases-page-client.tsx). Pattern: `{action}Open` state + `{item}ToDelete` state + `{actioning}` loading state + `<Dialog>` + `<DialogContent>` + `<DialogHeader>` + `<DialogFooter>`. Herhangi bir yeni onay modalı eklemeden ÖNCE mutlaka projedeki mevcut örnekleri incele ve aynı pattern'i uygula.
 
 ### Güvenlik
 - Tüm veritabanı şifreleri AES-256-CBC ile APP_SECRET env değişkeni kullanılarak şifrelenir.
@@ -103,7 +104,7 @@ Next.js 16 (App Router), Tailwind CSS v4, Shadcn UI, SQLite (Prisma 7 + Better-S
 │   └── locales/
 │       ├── tr.ts                   # Türkçe çeviriler
 │       └── en.ts                   # İngilizce çeviriler
-├── middleware.ts                   # Route koruması (auth kontrolü + yönlendirme)
+├── proxy.ts                        # Route koruması (auth kontrolü + yönlendirme)
 ├── prisma/
 │   └── schema.prisma               # SQLite şeması
 ├── prisma.config.ts                # Prisma 7 konfigürasyonu
