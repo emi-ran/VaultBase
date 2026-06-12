@@ -2,337 +2,204 @@
 
 # 🗄️ VaultBase
 
-**Self-hosted PostgreSQL yedekleme yöneticisi ve salt okunur veritabanı gezgini**
+**Sleek, self-hosted PostgreSQL backup manager & read-only database explorer.**
 
-[![Next.js](https://img.shields.io/badge/Next.js-16-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind-v4-06B6D4?style=for-the-badge&logo=tailwindcss)](https://tailwindcss.com/)
-[![Prisma](https://img.shields.io/badge/Prisma-7-2D3748?style=for-the-badge&logo=prisma)](https://www.prisma.io/)
-[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker)](https://www.docker.com/)
-[![License](https://img.shields.io/badge/Lisans-MIT-green?style=for-the-badge)](LICENSE)
+[![TR / Türkçe](https://img.shields.io/badge/Language-TR%20%2F%20T%C3%BCrk%C3%A7e-blue?style=flat-square)](README.tr.md)
+[![Next.js](https://img.shields.io/badge/Next.js-16-black?style=flat-square&logo=next.js)](https://nextjs.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-v4-06B6D4?style=flat-square&logo=tailwindcss)](https://tailwindcss.com/)
+[![Prisma](https://img.shields.io/badge/Prisma-7-2D3748?style=flat-square&logo=prisma)](https://www.prisma.io/)
+[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=flat-square&logo=docker)](https://www.docker.com/)
+[![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
 
-[Özellikler](#-özellikler) · [Hızlı Başlangıç](#-hızlı-başlangıç) · [Docker](#-docker-ile-çalıştırma) · [Yapılandırma](#-yapılandırma) · [Katkıda Bulun](#-katkıda-bulunma)
+[Features](#-key-features) · [Quick Start](#-quick-start) · [Docker Setup](#-docker-deployment) · [Configuration](#-configuration) · [Screenshots](#-visual-walkthrough)
 
 </div>
 
 ---
 
-## 📋 İçindekiler
+## 🔍 Overview
 
-- [Nedir?](#-nedir)
-- [Özellikler](#-özellikler)
-- [Ekran Görüntüleri](#-ekran-görüntüleri)
-- [Hızlı Başlangıç](#-hızlı-başlangıç)
-- [Docker ile Çalıştırma](#-docker-ile-çalıştırma)
-- [Yapılandırma](#-yapılandırma)
-- [Kullanım](#-kullanım)
-- [Proje Yapısı](#-proje-yapısı)
-- [Teknoloji Yığını](#-teknoloji-yığını)
-- [Yol Haritası](#-yol-haritası)
-- [Katkıda Bulunma](#-katkıda-bulunma)
-- [Lisans](#-lisans)
+VaultBase is a lightweight, fully self-hosted dashboard that allows you to manage backups, execute restores, and explore multiple PostgreSQL databases from a single modern interface. It handles background cron schedules, displays real-time connection health, and isolates access through custom credentials.
 
 ---
 
-## 🔍 Nedir?
+## ✨ Key Features
 
-VaultBase, birden fazla PostgreSQL veritabanını tek bir panelden güvenli şekilde yönetmenizi sağlayan, **tamamen self-hosted** bir yedekleme ve keşif aracıdır.
+### 🔑 Security First
+* **AES-256-CBC Encryption**: All target database connection strings and credentials are encrypted at rest using your custom `APP_SECRET` key.
+* **Route Protection**: Fully protected routes using custom HMAC-SHA256 session cookies.
+* **Safe SQL Queries**: DB exploration executes under strict read-only constraints with full SQL injection prevention.
 
-- 🔐 Tüm veritabanı şifreleri **AES-256-CBC** ile şifrelenerek saklanır
-- 📦 Yedekler **gzip sıkıştırılmış** `.sql.gz` formatında yerel diske kaydedilir
-- 🔍 Veritabanlarınızı **salt okunur** modda güvenle gezebilirsiniz
-- 🌍 Türkçe ve İngilizce **i18n** desteği (genişletilebilir)
-- 🐳 **Docker** ile tek komutla çalıştırılabilir
+### 📦 Backup & Recovery
+* **Manual Backups**: Run instant database dumps with one click, showing estimated size before starting.
+* **Automated Schedules**: Set up per-database `node-cron` schedules directly from the UI.
+* **Gzip Compression**: All backups are securely stored as space-efficient `.sql.gz` files.
+* **Streaming Restores**: Gunzip-and-restore pipeline that handles target DB recovery via clean drops and recreation with real-time UI logging.
 
----
+### 🔍 Read-only Explorer
+* **Database Navigator**: List tables, examine schemas, and view pageable table rows in a clean, modern UI.
+* **Database Brand Badging**: Instant brand visualization for quick recognition.
 
-## ✨ Özellikler
-
-### Veritabanı Yönetimi
-- ✅ URL veya alan bazlı bağlantı ekleme
-- ✅ Gerçek zamanlı bağlantı testi
-- ✅ Tüm bağlantıları tek butonla test etme
-- ✅ Çevrimiçi / Çevrimdışı durum takibi
-- ✅ PostgreSQL tür logosu (kart/tablo/explorer başlıklarında)
-- ✅ Birden fazla ortam (development, staging, production)
-
-### Yedekleme
-- ✅ Manuel yedek alma (onay modalı ile)
-- ✅ Yedek öncesi tahmini boyut gösterimi
-- ✅ Gzip sıkıştırılmış `.sql.gz` formatı
-- ✅ Yedek arşivi listeleme ve indirme
-- ✅ Yedek ve arşiv silme (onay modalı ile)
-- ✅ Depolama limiti takibi
-
-### Veritabanı Gezgini
-- ✅ Tablo listesi görüntüleme
-- ✅ Sayfalandırılmış tablo içeriği (salt okunur)
-- ✅ SQL injection koruması
-
-### Ayarlar
-- ✅ Tüm yapılandırmayı JSON olarak dışa aktar (isteğe bağlı şifre korumalı)
-- ✅ JSON'dan yapılandırma içe aktar (sunucular arası taşıma)
-- ✅ Şifreli export: kullanıcı şifresiyle AES-256-CBC koruma
-- ✅ Sağlık kontrolü aralığı ayarı (15sn / 30sn / 1dk)
-- ✅ Otomatik sağlık kontrolü (sayfa açıkken periyodik polling)
-
-### Güvenlik
-- ✅ Kullanıcı adı / şifre ile giriş (`.env` tabanlı)
-- ✅ HMAC-SHA256 imzalı session cookie (24 saat)
-- ✅ Proxy (proxy.ts) ile route koruması
-- ✅ API uç noktalarında 401 koruması
-- ✅ Geri yükleme (streaming gunzip → psql, onay modalı ile)
-- ✅ Tüm veritabanı şifreleri AES-256-CBC ile şifrelenir
-
-### Genel
-- ✅ Dashboard istatistik kartları
-- ✅ Son aktiviteler akışı
-- ✅ Türkçe / İngilizce dil desteği
-- ✅ Karanlık tema
-- ✅ Docker + Docker Compose hazır
+### ⚙️ Portability & Settings
+* **Configuration Sync**: Export/import settings as JSON files. You can encrypt your configurations with a password for secure backups.
+* **Polling Status Checker**: Auto-check database status periodically (15s / 30s / 1m).
 
 ---
 
-## 🚀 Hızlı Başlangıç
+## 📸 Visual Walkthrough
 
-### Gereksinimler
+### 1. Main Dashboard Overview
+Monitor overall stats, connection status of databases, storage consumption limits, and recent activity logs.
+![Main Dashboard](assets/main_dashboard.png)
 
-| Araç | Minimum Sürüm |
+### 2. Connection Manager
+Manage multiple database connections and environments (Development, Staging, Production) with real-time health checks.
+![Connection Manager](assets/databases_page.png)
+
+### 3. Read-Only Database Explorer
+Safely browse, filter, and paginate through your database table records without accidental write-operations.
+![Database Explorer](assets/db_explorer.png)
+
+### 4. Interactive Backup & Restores
+Start manual backups showing estimated size or manage scheduled jobs, restoring easily with custom confirmations.
+![Backup Modal](assets/backup_modal.png)
+
+---
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+| Component | Minimum Version |
 |---|---|
 | Node.js | v20+ |
 | pnpm | v8+ |
 | PostgreSQL Client (`pg_dump`) | v14+ |
 
-> **Not:** Docker kullanıyorsanız `pg_dump`'ı ayrıca kurmanıza gerek yoktur; image içinde `postgresql-client-18` mevcuttur.
+> [!NOTE]
+> If you run VaultBase via Docker, `pg_dump` is pre-bundled (PostgreSQL client version 18), so you do not need to install it locally.
 
-### Kurulum
+### Local Installation
 
 ```bash
-# 1. Repoyu klonlayın
-git clone https://github.com/kullanici/vaultbase.git
+# 1. Clone the repository
+git clone https://github.com/yourusername/vaultbase.git
 cd vaultbase
 
-# 2. Bağımlılıkları yükleyin
+# 2. Install dependencies
 pnpm install
 
-# 3. Ortam değişkenlerini ayarlayın
+# 3. Setup environment variables
 cp .env.example .env
-# .env dosyasını düzenleyin (APP_SECRET en az 32 karakter olmalı)
+# Edit .env file and set a secure APP_SECRET (min 32 characters)
 
-# 4. SQLite veritabanını oluşturun
+# 4. Generate & Push SQLite settings database
 pnpm prisma db push
 
-# 5. Geliştirme sunucusunu başlatın
+# 5. Run development server
 pnpm dev
 ```
 
-Tarayıcıda açın: **http://localhost:3000**
+Open your browser at: **http://localhost:3000**
 
 ---
 
-## 🐳 Docker ile Çalıştırma
+## 🐳 Docker Deployment
 
-Uygulamayı Docker Compose ile tek komutla ayağa kaldırabilirsiniz:
+The simplest way to run VaultBase is with Docker Compose:
 
 ```bash
-# İlk çalıştırmadan önce .env dosyanızı oluşturun ve ADMIN_USERNAME / ADMIN_PASSWORD değerlerini değiştirin
+# Copy and configure environment variables
 cp .env.example .env
 
-# Başlat
+# Spin up the container in detached mode
 docker compose up -d
 
-# Log takibi
+# Watch container logs
 docker compose logs -f app
 
-# Durdur
+# Tear down the container
 docker compose down
 ```
 
-Docker Compose, `.env` dosyasındaki `APP_SECRET`, `ADMIN_USERNAME`, `ADMIN_PASSWORD`, `PORT` ve `STORAGE_LIMIT_MB` değerlerini container ortamına aktarır. SQLite ve yedek dizinleri container içinde kalıcı volume yolları olan `/app/data` ve `/app/backups` olarak ayarlanır.
+SQLite databases and backup dumps will be persisted inside local volumes pointing to `/app/data` and `/app/backups`.
 
 ---
 
-## ⚙️ Yapılandırma
+## ⚙️ Configuration
 
-`.env` dosyanızı aşağıdaki değişkenlerle yapılandırın:
+Configure VaultBase using your `.env` file:
 
-```env
-# SQLite veritabanı yolu (ayarların saklandığı yer)
-DATABASE_URL="file:./vaultbase.db"
+| Environment Variable | Description | Required | Default / Example |
+|---|---|---|---|
+| `DATABASE_URL` | SQLite database connection string for settings | Yes | `file:./vaultbase.db` |
+| `APP_SECRET` | 32+ character key for AES encryption | Yes | *Your secure random secret* |
+| `ADMIN_USERNAME`| Web UI Administrator Username | Yes | `admin` |
+| `ADMIN_PASSWORD`| Web UI Administrator Password | Yes | *Your secure password* |
+| `BACKUP_DIR` | Directory where backups are written | No | `./backups` |
+| `STORAGE_LIMIT_MB`| Maximum local storage quota (in Megabytes) | No | `5120` (5 GB) |
 
-# AES-256 şifreleme anahtarı — EN AZ 32 karakter olmalı!
-APP_SECRET="buraya-cok-gizli-ve-uzun-bir-anahtar-girin-32-karakter"
-
-# Yönetici giriş bilgileri (web arayüzü için)
-ADMIN_USERNAME="admin"
-ADMIN_PASSWORD="guclu-bir-sifre-belirleyin"
-
-# Yedek dosyalarının kaydedileceği dizin (isteğe bağlı)
-BACKUP_DIR="./backups"
-
-# Maksimum depolama limiti MB cinsinden (isteğe bağlı, varsayılan: 5120 = 5 GB)
-STORAGE_LIMIT_MB=5120
-```
-
-> ⚠️ **Güvenlik Uyarısı:** `APP_SECRET` değerini asla kaynak koda veya Git'e commit etmeyin. Şifre değişirse mevcut şifreli kayıtlar çözülemez.
+> [!WARNING]
+> Keep `APP_SECRET` secure. If you lose or change this key, all stored database passwords will become unrecoverable.
 
 ---
 
-## 📖 Kullanım
-
-### Giriş
-
-1. Tarayıcınızda `http://sunucunuz:3000/login` adresine gidin
-2. `.env` dosyasında tanımladığınız `ADMIN_USERNAME` ve `ADMIN_PASSWORD` ile giriş yapın
-3. Oturum 24 saat boyunca geçerlidir; sidebardaki **Çıkış Yap** butonu ile oturumu sonlandırabilirsiniz
-
-### Veritabanı Ekleme
-
-1. Dashboard'da **"Veritabanı Ekle"** butonuna tıklayın
-2. Bağlantıyı iki şekilde tanımlayabilirsiniz:
-   - **URL modu:** `postgresql://kullanici:sifre@host:5432/dbname`
-   - **Alan modu:** Host, port, kullanıcı ve şifre ayrı ayrı
-3. **"Bağlantıyı Test Et"** ile doğrulayın
-4. Kaydedin
-
-### Manuel Yedek Alma
-
-1. İstediğiniz veritabanının satırında yedek ikonuna tıklayın
-2. Açılan modalda **tahmini boyutu** görün
-3. **"Yedeği Başlat"** ile onaylayın
-4. Yedek Arşivi bölümünde `.sql.gz` dosyası belirecek
-
-### Ayarları Taşıma
-
-```
-Ayarlar → Yapılandırmayı Dışa Aktar → vaultbase_config.json
-```
-
-Bu JSON dosyasını başka bir VaultBase instance'ında **"İçe Aktar"** ile yükleyebilirsiniz.
-Export sırasında isteğe bağlı bir şifre belirleyebilirsiniz (AES-256-CBC koruma) veya uyarıyı kabul ederek şifresiz dışa aktarabilirsiniz.
-
-### Veritabanı Geri Yükleme
-
-1. **/databases** sayfasında hedef veritabanının satırındaki **Import** butonuna (🟠) tıklayın
-2. Açılan modalda hedef DB bilgilerini, uyarıları ve veri kaybı onay kutusunu görün
-3. `.sql.gz` yedek dosyasını seçin
-4. Onay kutusunu işaretleyip **Geri Yükle**'ye tıklayın
-5. Hedef veritabanının public schema'sı tamamen değiştirilir (DROP SCHEMA CASCADE → CREATE SCHEMA)
-
----
-
-## 📁 Proje Yapısı
+## 📁 Directory Structure
 
 ```
 .
-├── proxy.ts                        # Route koruması (auth kontrolü + yönlendirme)
-├── instrumentation.ts              # Next.js instrumentation (cron başlatma)
+├── proxy.ts                        # Route protection middleware
+├── instrumentation.ts              # Next.js instrumentation (launches cron schedules)
 ├── app/
-│   ├── actions.ts                  # Tüm Server Actions
-│   ├── page.tsx                    # Ana dashboard
-│   ├── login/
-│   │   └── page.tsx                # Giriş formu
-│   ├── archive/page.tsx            # Yedek arşivi
-│   ├── databases/page.tsx          # Bağlantı yönetimi
-│   ├── databases/[id]/page.tsx     # Salt okunur tablo gezgini
-│   ├── jobs/page.tsx               # Yedek işlem geçmişi
-│   ├── schedules/page.tsx          # Zamanlama yönetimi
-│   ├── settings/page.tsx           # Ayarlar sayfası
-│   ├── storage/page.tsx            # Depolama analizi
-│   └── api/
-│       ├── backups/[id]/route.ts   # Yedek indirme endpoint'i
-│       └── restore/route.ts        # Geri yükleme endpoint'i (streaming)
+│   ├── actions.ts                  # Backend Server Actions
+│   ├── page.tsx                    # Dashboard (Overview)
+│   ├── login/                      # Login page client-side form
+│   ├── archive/                    # Backups archive table
+│   ├── databases/                  # Database connections & Explorer
+│   ├── jobs/                       # Job logs & history
+│   ├── schedules/                  # Automated cron schedule manager
+│   ├── settings/                   # Configuration export/import
+│   ├── storage/                    # Disk space analyzer
+│   └── api/                        # Backup download and restore SSE routes
 ├── components/
-│   ├── archive-page-client.tsx     # Arşiv arayüzü
-│   ├── dashboard-tables.tsx        # Dashboard tabloları
-│   ├── database-modal.tsx          # Bağlantı ekleme/düzenleme modalı
-│   ├── database-type-mark.tsx      # Veritabanı tür logosu
-│   ├── databases-page-client.tsx   # Bağlantı listeleme (restore butonu dahil)
-│   ├── i18n-provider.tsx           # Dil context sağlayıcı
-│   ├── jobs-page-client.tsx        # İşlem geçmişi arayüzü
-│   ├── schedules-page-client.tsx   # Zamanlama arayüzü
-│   ├── sidebar.tsx                 # Yan navigasyon
-│   ├── storage-page-client.tsx     # Depolama analiz arayüzü
-│   ├── theme-provider.tsx          # Tema sağlayıcı
-│   └── ui/                         # Shadcn UI bileşenleri
+│   ├── ui/                         # Shadcn UI reusable components
+│   └── *.tsx                       # Feature-specific client pages
 ├── lib/
-│   ├── auth.ts                     # Session yönetimi (HMAC-SHA256 imzalı cookie)
-│   ├── backup-service.ts           # pg_dump çalıştırıcı
-│   ├── cron-service.ts             # Zamanlanmış yedek cron yöneticisi
-│   ├── db.ts                       # Prisma SQLite istemcisi
-│   ├── db-client.ts                # PostgreSQL dinamik bağlantı
-│   ├── encryption.ts               # AES-256-CBC şifreleme
-│   ├── i18n.ts                     # i18n yardımcıları
-│   ├── restore-service.ts          # Geri yükleme (gunzip → psql)
-│   ├── utils.ts                    # cn() yardımcısı (tailwind-merge)
-│   └── locales/
-│       ├── tr.ts                   # Türkçe çeviriler
-│       └── en.ts                   # İngilizce çeviriler
-├── prisma/
-│   └── schema.prisma               # SQLite şeması
-├── prisma.config.ts                # Prisma 7 konfigürasyonu
-├── scripts/
-│   └── test-core.ts                # Şifreleme ve Ayarlar export/import testleri
-├── Dockerfile                      # postgresql-client-18 içerir
-├── docker-compose.yml              # Docker Compose konfigürasyonu
-├── .env.example                    # Örnek ortam değişkenleri
-├── AGENTS.md                       # AI ajan rehberi
-├── PLAN.md                         # Proje yol haritası
-└── STATUS.md                       # Geliştirme durumu
+│   ├── auth.ts                     # Session cookies manager (HMAC-SHA256)
+│   ├── backup-service.ts           # Spawns pg_dump instances
+│   ├── cron-service.ts             # Manages node-cron intervals
+│   ├── db.ts                       # SQLite Prisma connection client
+│   ├── db-client.ts                # Direct PostgreSQL connection pooler
+│   ├── encryption.ts               # AES-256-CBC crypto helper
+│   ├── i18n.ts                     # Localization helpers
+│   └── locales/                    # English (en) & Turkish (tr) translations
+├── prisma/                         # Database schema configuration
+├── scripts/                        # Development test runner scripts
+└── Dockerfile                      # Bundles Next.js along with postgresql-client-18
 ```
 
 ---
 
-## 🛠️ Teknoloji Yığını
+## 🤝 Contributing
 
-| Katman | Teknoloji | Neden? |
-|---|---|---|
-| **Framework** | Next.js 16 (App Router) | Server Actions, file routing, SSR |
-| **UI** | Shadcn UI + Tailwind CSS v4 | Hızlı, erişilebilir, özelleştirilebilir |
-| **İkonlar** | Tabler Icons | Açık kaynak, kapsamlı |
-| **Ayar DB** | SQLite + Prisma 7 | Sıfır bağımlılık, taşınabilir |
-| **Driver** | Better-SQLite3 | Sync API, Prisma 7 adapter uyumlu |
-| **Target DB** | node-postgres (`pg`) | Olgun, geniş destek |
-| **Şifreleme** | AES-256-CBC (Node crypto) | Ekstra bağımlılık gerektirmez |
-| **Yedekleme** | `pg_dump` (sistem binary) | Native, en güvenilir yöntem |
-| **Container** | Docker + Compose | Kolay deployment |
+Contributions are welcome! Please check out the steps below:
+
+1. Fork the project repository.
+2. Create your feature branch: `git checkout -b feature/cool-new-feature`
+3. Commit your changes: `git commit -m 'feat: add support for S3 buckets'`
+4. Push to the branch: `git push origin feature/cool-new-feature`
+5. Open a Pull Request.
 
 ---
 
-## 🗺️ Yol Haritası
+## 📄 License
 
-| Phase | Özellik | Durum |
-|---|---|---|
-| **1** | Temel altyapı, yedekleme, dashboard, explorer | ✅ Tamamlandı |
-| **2** | Zamanlanmış otomatik yedekler (node-cron) | ✅ Tamamlandı |
-| **3** | Bulut depolama (S3 / R2 / GCS / MinIO) | 🔜 Planlandı |
-| **4** | Geri yükleme sistemi (psql + streaming) | ✅ Kısmen Tamamlandı |
-| **5** | MongoDB desteği (mongodump) | 🔜 Planlandı |
-| **6** | Kullanıcı yönetimi & 2FA | 🔜 Planlandı |
-
-Detaylar için [PLAN.md](PLAN.md) dosyasına bakın.
-
----
-
-## 🤝 Katkıda Bulunma
-
-1. Bu repoyu fork'layın
-2. Özellik dalı oluşturun: `git checkout -b feature/harika-ozellik`
-3. Değişikliklerinizi commit edin: `git commit -m 'feat: harika özellik eklendi'`
-4. Dalı push edin: `git push origin feature/harika-ozellik`
-5. Pull Request açın
-
-Büyük değişiklikler için önce bir Issue açarak tartışmaya başlayın.
-
----
-
-## 📄 Lisans
-
-Bu proje [MIT Lisansı](LICENSE) altında dağıtılmaktadır.
+Distributed under the MIT License. See `LICENSE` for more information.
 
 ---
 
 <div align="center">
 
-**VaultBase** — Verilerinizi güvende tutun 🔐
+**VaultBase** — Secure your database peace of mind 🔐
 
 </div>
