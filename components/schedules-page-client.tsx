@@ -19,7 +19,7 @@ import { Button } from "./ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "./ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from "./ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { addScheduleAction, updateScheduleAction, deleteScheduleAction } from "../app/actions";
 
@@ -44,14 +44,14 @@ interface SchedulesPageClientProps {
   timezone: string;
 }
 
-const DAYS_OF_WEEK = [
-  { value: "1", labelTr: "Pazartesi", labelEn: "Monday" },
-  { value: "2", labelTr: "Salı", labelEn: "Tuesday" },
-  { value: "3", labelTr: "Çarşamba", labelEn: "Wednesday" },
-  { value: "4", labelTr: "Perşembe", labelEn: "Thursday" },
-  { value: "5", labelTr: "Cuma", labelEn: "Friday" },
-  { value: "6", labelTr: "Cumartesi", labelEn: "Saturday" },
-  { value: "0", labelTr: "Pazar", labelEn: "Sunday" },
+const DAYS_OF_WEEK: { value: string }[] = [
+  { value: "1" },
+  { value: "2" },
+  { value: "3" },
+  { value: "4" },
+  { value: "5" },
+  { value: "6" },
+  { value: "0" },
 ];
 
 function getCronDescription(cronStr: string, t: any, locale: string) {
@@ -63,7 +63,7 @@ function getCronDescription(cronStr: string, t: any, locale: string) {
   const getDayLabel = (val: string) => {
     const day = DAYS_OF_WEEK.find(d => d.value === val);
     if (!day) return val;
-    return locale === "tr" ? day.labelTr : day.labelEn;
+    return t(`schedules.daysOfWeek.${day.value}`);
   };
 
   // Check if it matches Daily: "M H * * *"
@@ -176,15 +176,9 @@ function formatTimeUntil(target: Date, now: Date, locale: string, t: any) {
   const hours = Math.floor((diffSeconds % 86400) / 3600);
   const minutes = Math.floor((diffSeconds % 3600) / 60);
 
-  if (locale === "tr") {
-    if (days > 0) return `${days} gün ${hours} saat sonra`;
-    if (hours > 0) return `${hours} saat ${minutes} dk sonra`;
-    return `${minutes} dk sonra`;
-  }
-
-  if (days > 0) return `in ${days}d ${hours}h`;
-  if (hours > 0) return `in ${hours}h ${minutes}m`;
-  return `in ${minutes}m`;
+  if (days > 0) return t("schedules.timeUntilDays", { days, hours });
+  if (hours > 0) return t("schedules.timeUntilHours", { hours, minutes });
+  return t("schedules.timeUntilMinutes", { minutes });
 }
 
 export function SchedulesPageClient({ initialDatabases, initialSchedules, timezone }: SchedulesPageClientProps) {
@@ -224,6 +218,12 @@ export function SchedulesPageClient({ initialDatabases, initialSchedules, timezo
 
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  // Delete schedule dialog
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [scheduleToDelete, setScheduleToDelete] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   // Statistics
   const totalSchedules = schedules.length;
@@ -384,24 +384,36 @@ export function SchedulesPageClient({ initialDatabases, initialSchedules, timezo
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm(t("schedules.deleteConfirm"))) return;
+  const openDeleteDialog = (id: string) => {
+    setScheduleToDelete(id);
+    setDeleteError(null);
+    setDeleteOpen(true);
+  };
+
+  const handleDelete = async () => {
+    if (!scheduleToDelete) return;
+    setDeleting(true);
+    setDeleteError(null);
     try {
-      const res = await deleteScheduleAction(id);
+      const res = await deleteScheduleAction(scheduleToDelete);
       if (res.success) {
-        setSchedules(prev => prev.filter(s => s.id !== id));
+        setDeleteOpen(false);
+        setScheduleToDelete(null);
+        setSchedules(prev => prev.filter(s => s.id !== scheduleToDelete));
       } else {
-        alert(res.error || "Failed to delete schedule");
+        setDeleteError(res.error || t("common.error"));
       }
     } catch (err: any) {
-      alert(err.message || "Failed to delete schedule");
+      setDeleteError(err.message || t("common.error"));
+    } finally {
+      setDeleting(false);
     }
   };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!databaseId) {
-      setStatus({ type: "error", text: "Lütfen bir veritabanı seçin." });
+      setStatus({ type: "error", text: t("schedules.validationNoDb") });
       return;
     }
 
@@ -422,7 +434,7 @@ export function SchedulesPageClient({ initialDatabases, initialSchedules, timezo
           cronExpressions.push(`${min} ${hour} * * *`);
         } else if (frequency === "weekly") {
           if (selectedDays.length === 0) {
-            setStatus({ type: "error", text: "Lütfen en az bir gün seçin." });
+            setStatus({ type: "error", text: t("schedules.validationNoDay") });
             setLoading(false);
             return;
           }
@@ -430,7 +442,7 @@ export function SchedulesPageClient({ initialDatabases, initialSchedules, timezo
         } else if (frequency === "monthly") {
           const dom = parseInt(dayOfMonth, 10);
           if (isNaN(dom) || dom < 1 || dom > 31) {
-            setStatus({ type: "error", text: "Lütfen 1-31 arasında geçerli bir gün seçin." });
+            setStatus({ type: "error", text: t("schedules.validationInvalidDay") });
             setLoading(false);
             return;
           }
@@ -445,7 +457,7 @@ export function SchedulesPageClient({ initialDatabases, initialSchedules, timezo
           // Day-by-day customized different times
           const enabledDays = Object.entries(dayTimes).filter(([_, val]) => val.enabled);
           if (enabledDays.length === 0) {
-            setStatus({ type: "error", text: "Lütfen en az bir gün seçip saat girin." });
+            setStatus({ type: "error", text: t("schedules.validationNoDayTime") });
             setLoading(false);
             return;
           }
@@ -562,7 +574,7 @@ export function SchedulesPageClient({ initialDatabases, initialSchedules, timezo
                 ) : (
                   <Select value={databaseId} onValueChange={setDatabaseId}>
                     <SelectTrigger className="bg-[#141210] border-[#2b2926] text-xs text-white font-mono rounded h-9 w-full">
-                      <SelectValue placeholder="Veritabanı seçin" />
+                      <SelectValue placeholder={t("schedules.database")} />
                     </SelectTrigger>
                     {/* position="popper" for layout dropdown alignment as per AGENTS.md */}
                     <SelectContent className="bg-[#141210] border-[#2b2926] text-[#E6E4DD]" position="popper">
@@ -588,8 +600,8 @@ export function SchedulesPageClient({ initialDatabases, initialSchedules, timezo
               {/* Advanced Mode Toggle Trigger */}
               <div className="flex items-center justify-between border-t border-b border-[#2b2926] py-3">
                 <div className="flex flex-col gap-0.5">
-                  <span className="text-xs font-mono text-white tracking-wider font-bold">GELİŞMİŞ SEÇENEKLER</span>
-                  <span className="text-[10px] text-[#605e58]">Günlük detaylı saat ayarları veya özel Cron ifadeleri</span>
+                  <span className="text-xs font-mono text-white tracking-wider font-bold">{t("schedules.advancedOptions")}</span>
+                  <span className="text-[10px] text-[#605e58]">{t("schedules.advancedOptionsDesc")}</span>
                 </div>
                 <button
                   type="button"
@@ -654,7 +666,7 @@ export function SchedulesPageClient({ initialDatabases, initialSchedules, timezo
                                   : "bg-[#0d0c0b] border-[#2b2926] text-[#a09e96] hover:bg-[#141210]"
                               }`}
                             >
-                              {locale === "tr" ? day.labelTr.substring(0, 3) : day.labelEn.substring(0, 3)}
+                              {t(`schedules.daysOfWeek.${day.value}`).substring(0, 3)}
                             </button>
                           );
                         })}
@@ -679,7 +691,7 @@ export function SchedulesPageClient({ initialDatabases, initialSchedules, timezo
                           required
                         />
                         <span className="text-[10px] font-mono text-[#605e58]">
-                          (1 - 31)
+                          {t("schedules.dayRange")}
                         </span>
                       </div>
                     </div>
@@ -715,7 +727,7 @@ export function SchedulesPageClient({ initialDatabases, initialSchedules, timezo
                           : "border-transparent text-[#a09e96] hover:text-white"
                       }`}
                     >
-                      Özel Cron
+                      {t("schedules.customCron")}
                     </button>
                     {!editingSchedule && (
                       <button
@@ -727,7 +739,7 @@ export function SchedulesPageClient({ initialDatabases, initialSchedules, timezo
                             : "border-transparent text-[#a09e96] hover:text-white"
                         }`}
                       >
-                        Gün Gün Saat Ayarı
+                        {t("schedules.dayByDay")}
                       </button>
                     )}
                   </div>
@@ -743,20 +755,20 @@ export function SchedulesPageClient({ initialDatabases, initialSchedules, timezo
                           id="cron"
                           value={rawCron}
                           onChange={(e) => setRawCron(e.target.value)}
-                          placeholder="e.g. 0 2 * * *"
+                          placeholder={t("schedules.cronPlaceholder")}
                           className="bg-[#141210] border-[#2b2926] text-xs font-mono text-white rounded h-9"
                           required
                         />
                       </div>
                       
                       <div className="p-3 bg-[#141210] border border-[#2b2926] rounded text-[10px] font-mono text-[#a09e96] leading-relaxed space-y-1.5">
-                        <span className="text-white font-bold uppercase block">CRON REFERANS REHBERİ:</span>
+                        <span className="text-white font-bold uppercase block">{t("schedules.cronRefTitle")}</span>
                         <div className="grid grid-cols-5 text-[#605e58] border-b border-[#2b2926] pb-1 mb-1.5">
-                          <div>dakika</div>
-                          <div>saat</div>
-                          <div>gün (ay)</div>
-                          <div>ay</div>
-                          <div>gün (hafta)</div>
+                          <div>{t("schedules.cronRefMinute")}</div>
+                          <div>{t("schedules.cronRefHour")}</div>
+                          <div>{t("schedules.cronRefDayMonth")}</div>
+                          <div>{t("schedules.cronRefMonth")}</div>
+                          <div>{t("schedules.cronRefDayWeek")}</div>
                         </div>
                         <div className="grid grid-cols-5 font-bold text-[#a09e96]">
                           <div>0-59</div>
@@ -766,7 +778,7 @@ export function SchedulesPageClient({ initialDatabases, initialSchedules, timezo
                           <div>0-6</div>
                         </div>
                         <p className="pt-2 text-[9px] text-[#605e58]">
-                          * Not: Pazar günü "0" veya "7" ile temsil edilir.
+                          {t("schedules.cronRefNote")}
                         </p>
                       </div>
                     </div>
@@ -774,7 +786,7 @@ export function SchedulesPageClient({ initialDatabases, initialSchedules, timezo
                     /* Option B: Day-by-Day Different Hours setting */
                     <div className="space-y-3 border border-[#2b2926] p-4 bg-[#141210] rounded">
                       <Label className="text-[10px] font-mono tracking-wider text-[#a09e96] uppercase block mb-2">
-                        Hangi Günlerde, Saat Kaçta Yedek Alınsın?
+                        {t("schedules.dayByDayTitle")}
                       </Label>
                       
                       <div className="space-y-3 pt-1">
@@ -790,7 +802,7 @@ export function SchedulesPageClient({ initialDatabases, initialSchedules, timezo
                                   className="h-4 w-4 bg-[#0d0c0b] border-[#2b2926] text-[#1b3224] focus:ring-0 focus:ring-offset-0 rounded cursor-pointer"
                                 />
                                 <span className={`text-xs font-mono tracking-wider ${config.enabled ? "text-white font-bold" : "text-[#605e58]"}`}>
-                                  {locale === "tr" ? day.labelTr : day.labelEn}
+                                  {t(`schedules.daysOfWeek.${day.value}`)}
                                 </span>
                               </label>
 
@@ -844,7 +856,7 @@ export function SchedulesPageClient({ initialDatabases, initialSchedules, timezo
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Card className="bg-[#0d0c0b] border-[#2b2926] rounded-md font-sans">
             <CardHeader className="p-4 flex flex-row items-center justify-between pb-2">
-              <span className="text-[10px] font-mono tracking-wider text-[#a09e96] uppercase">TOPLAM ZAMANLAMA</span>
+              <span className="text-[10px] font-mono tracking-wider text-[#a09e96] uppercase">{t("schedules.totalSchedules")}</span>
               <IconClock size={16} className="text-[#a09e96]" />
             </CardHeader>
             <CardContent className="p-4 pt-0">
@@ -864,7 +876,7 @@ export function SchedulesPageClient({ initialDatabases, initialSchedules, timezo
 
           <Card className="bg-[#0d0c0b] border-[#2b2926] rounded-md font-sans border-l-2 border-l-[#f25c55]/60">
             <CardHeader className="p-4 flex flex-row items-center justify-between pb-2">
-              <span className="text-[10px] font-mono tracking-wider text-[#a09e96] uppercase">PASİF ZAMANLAMA</span>
+              <span className="text-[10px] font-mono tracking-wider text-[#a09e96] uppercase">{t("schedules.passiveSchedules")}</span>
               <IconAlertCircle size={16} className="text-[#f25c55]/60" />
             </CardHeader>
             <CardContent className="p-4 pt-0">
@@ -878,10 +890,10 @@ export function SchedulesPageClient({ initialDatabases, initialSchedules, timezo
           <CardHeader className="p-6 border-b border-[#2b2926]">
             <CardTitle className="text-sm font-mono tracking-wider text-white uppercase flex items-center gap-2">
               <IconCalendar size={16} className="text-[#55f289]" />
-              ZAMANLANMIŞ İŞ LİSTESİ
+              {t("schedules.listTitle")}
             </CardTitle>
             <CardDescription className="text-xs text-[#a09e96] pt-1 leading-relaxed">
-              Otomatik yedeklemelerinizi yönetin, düzenleyin ve aktif/pasif duruma getirin.
+              {t("schedules.listDesc")}
             </CardDescription>
           </CardHeader>
           <CardContent className="p-0">
@@ -963,7 +975,7 @@ export function SchedulesPageClient({ initialDatabases, initialSchedules, timezo
                         </Button>
                         <Button
                           variant="ghost"
-                          onClick={() => handleDelete(sch.id)}
+                          onClick={() => openDeleteDialog(sch.id)}
                           className="h-8 w-8 p-0 border border-transparent hover:border-[#2b2926] hover:bg-[#2d1210]/30 text-[#a09e96] hover:text-[#f25c55] rounded cursor-pointer flex items-center justify-center"
                           title={t("common.delete")}
                         >
@@ -980,6 +992,45 @@ export function SchedulesPageClient({ initialDatabases, initialSchedules, timezo
             )}
           </CardContent>
         </Card>
+
+        {/* Delete Schedule Confirmation Dialog */}
+        <Dialog open={deleteOpen} onOpenChange={(v) => { if (!deleting) { setDeleteOpen(v); setDeleteError(null); } }}>
+          <DialogContent className="max-w-112.5 sm:max-w-112.5 bg-[#0d0c0b] border-[#2b2926] text-[#E6E4DD] rounded-md font-sans p-6">
+            <DialogHeader className="border-b border-[#2b2926] pb-4 mb-4">
+              <DialogTitle className="text-sm font-mono tracking-wider text-white uppercase flex items-center gap-2">
+                <IconAlertCircle size={16} className="text-[#f25c55]" />
+                {t("common.delete")?.toUpperCase()}
+              </DialogTitle>
+              <DialogDescription className="text-xs text-[#a09e96] pt-1">
+                {t("schedules.deleteConfirm")}
+              </DialogDescription>
+            </DialogHeader>
+
+            {deleteError && (
+              <div className="mb-4 p-3 bg-[#2d1210] border border-[#4b1b1a] rounded text-[11px] font-mono text-[#f25c55]">
+                {deleteError}
+              </div>
+            )}
+
+            <DialogFooter className="gap-2">
+              <Button
+                onClick={() => { setDeleteOpen(false); setScheduleToDelete(null); setDeleteError(null); }}
+                disabled={deleting}
+                variant="outline"
+                className="border-[#2b2926] text-[#a09e96] hover:text-white font-mono text-xs cursor-pointer rounded px-4 h-9"
+              >
+                {t("common.cancel")}
+              </Button>
+              <Button
+                onClick={handleDelete}
+                disabled={deleting}
+                className="bg-[#2d1210] hover:bg-[#4b1b1a] text-[#f25c55] border border-[#4b1b1a] font-mono text-xs cursor-pointer rounded px-4 h-9 flex items-center gap-2"
+              >
+                {deleting ? t("common.loading") : t("common.delete")}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
       </div>
     </div>

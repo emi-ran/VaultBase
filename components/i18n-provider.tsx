@@ -6,7 +6,7 @@ import { Locale, getTranslations, translate } from "../lib/i18n";
 interface LanguageContextProps {
   locale: Locale;
   setLocale: (locale: Locale) => void;
-  t: (path: string) => string;
+  t: (path: string, vars?: Record<string, string | number>) => string;
 }
 
 const LanguageContext = createContext<LanguageContextProps | undefined>(undefined);
@@ -39,8 +39,8 @@ export function LanguageProvider({
     window.location.reload();
   };
 
-  const t = (path: string) => {
-    return translate(dictionary, path);
+  const t = (path: string, vars?: Record<string, string | number>) => {
+    return translate(dictionary, path, vars);
   };
 
   return (

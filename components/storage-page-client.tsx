@@ -72,21 +72,21 @@ export function StoragePageClient({
   const statusInfo = useMemo(() => {
     if (utilizationPercent >= 95) {
       return {
-        label: t("storagePage.critical") || "Kritik (>95%)",
+        label: t("storagePage.critical"),
         color: "bg-[#2d1210] border-[#4b1d1a] text-[#f25c55]",
         icon: IconAlertOctagon,
         textColor: "text-[#f25c55]"
       };
     } else if (utilizationPercent >= 80) {
       return {
-        label: t("storagePage.warning") || "Uyarı (>80%)",
+        label: t("storagePage.warning"),
         color: "bg-[#2d2410] border-[#4b3c1a] text-[#f2b855]",
         icon: IconAlertTriangle,
         textColor: "text-[#f2b855]"
       };
     } else {
       return {
-        label: t("storagePage.normal") || "Normal",
+        label: t("storagePage.normal"),
         color: "bg-[#1b3224]/30 border-[#2b4c37] text-[#55f289]",
         icon: IconShieldCheck,
         textColor: "text-[#55f289]"
@@ -141,7 +141,7 @@ export function StoragePageClient({
           <Card className="bg-[#0d0c0b] border-[#2b2926] rounded-md">
             <CardHeader className="p-4 pb-1">
               <CardTitle className="text-[10px] font-mono text-[#605e58] tracking-wider uppercase">
-                {t("storagePage.used") || "Kullanılan"}
+                {t("storagePage.used")}
               </CardTitle>
             </CardHeader>
             <CardContent className="p-4 pt-0">
@@ -160,7 +160,7 @@ export function StoragePageClient({
           <Card className="bg-[#0d0c0b] border-[#2b2926] rounded-md">
             <CardHeader className="p-4 pb-1">
               <CardTitle className="text-[10px] font-mono text-[#605e58] tracking-wider uppercase">
-                {t("storagePage.available") || "Kullanılabilir Alan"}
+                {t("storagePage.available")}
               </CardTitle>
             </CardHeader>
             <CardContent className="p-4 pt-0">
@@ -179,7 +179,7 @@ export function StoragePageClient({
           <Card className="bg-[#0d0c0b] border-[#2b2926] rounded-md">
             <CardHeader className="p-4 pb-1">
               <CardTitle className="text-[10px] font-mono text-[#605e58] tracking-wider uppercase">
-                {t("storagePage.limit") || "Limit"}
+                {t("storagePage.limit")}
               </CardTitle>
             </CardHeader>
             <CardContent className="p-4 pt-0">
@@ -198,7 +198,7 @@ export function StoragePageClient({
           <Card className="bg-[#0d0c0b] border-[#2b2926] rounded-md">
             <CardHeader className="p-4 pb-1">
               <CardTitle className="text-[10px] font-mono text-[#605e58] tracking-wider uppercase">
-                {t("storagePage.status") || "Depolama Durumu"}
+                {t("storagePage.status")}
               </CardTitle>
             </CardHeader>
             <CardContent className="p-4 pt-0">
@@ -241,7 +241,7 @@ export function StoragePageClient({
           <div className="p-6 border-b border-[#2b2926] flex flex-row items-center justify-between">
             <h3 className="text-xs font-mono font-bold tracking-wider text-white uppercase flex items-center gap-2">
               <IconDatabase size={14} className="text-[#55f289]" />
-              {t("storagePage.databaseBreakdown") || "VERİTABANI BAZLI DEPOLAMA DAĞILIMI"}
+              {t("storagePage.databaseBreakdown")}
             </h3>
           </div>
           <div>
@@ -260,16 +260,16 @@ export function StoragePageClient({
                       {t("database.connAddress")}
                     </TableHead>
                     <TableHead className="text-[10px] font-mono tracking-wider text-[#605e58] uppercase">
-                      {t("storagePage.backupCount") || "Yedek Sayısı"}
+                      {t("storagePage.backupCount")}
                     </TableHead>
                     <TableHead className="text-[10px] font-mono tracking-wider text-[#605e58] uppercase">
-                      {t("storagePage.avgSize") || "Ort. Yedek Boyutu"}
+                      {t("storagePage.avgSize")}
                     </TableHead>
                     <TableHead className="text-[10px] font-mono tracking-wider text-[#605e58] uppercase">
-                      {t("storagePage.percentTotal") || "Toplam Payı"}
+                      {t("storagePage.percentTotal")}
                     </TableHead>
                     <TableHead className="text-[10px] font-mono tracking-wider text-[#605e58] uppercase text-right px-6">
-                      {t("storagePage.used") || "Kullanılan"}
+                      {t("storagePage.used")}
                     </TableHead>
                   </TableRow>
                 </TableHeader>
@@ -329,36 +329,36 @@ export function StoragePageClient({
           <Card className="bg-[#0d0c0b] border-[#2b2926] rounded-md md:col-span-2 p-6 space-y-4">
             <h4 className="text-xs font-mono font-bold tracking-wider text-white uppercase flex items-center gap-2">
               <IconInfoCircle size={14} className="text-[#a09e96]" />
-              {t("storagePage.configurationTitle") || "DEPOLAMA YAPILANDIRMASI"}
+              {t("storagePage.configurationTitle")}
             </h4>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 font-mono text-xs">
               <div className="space-y-1">
                 <span className="text-[#605e58] text-[10px] block uppercase">
-                  {t("storagePage.backupDir") || "Yedek Dizini"}
+                  {t("storagePage.backupDir")}
                 </span>
                 <span className="text-white break-all">{backupDir}</span>
               </div>
 
               <div className="space-y-1">
                 <span className="text-[#605e58] text-[10px] block uppercase">
-                  {t("storagePage.compression") || "Sıkıştırma"}
+                  {t("storagePage.compression")}
                 </span>
                 <span className="text-[#55f289]">
-                  {t("storagePage.compressionDesc") || "Gzip sıkıştırması aktif (.sql.gz)"}
+                  {t("storagePage.compressionDesc")}
                 </span>
               </div>
 
               <div className="space-y-1 md:col-span-2 border-t border-[#2b2926]/40 pt-3">
                 <span className="text-[#605e58] text-[10px] block uppercase">
-                  {t("storagePage.envLimit") || "Ortam Limiti (STORAGE_LIMIT_MB)"}
+                  {t("storagePage.envLimit")}
                 </span>
                 <div className="flex items-center gap-2">
                   <span className="text-white font-bold">{limitMb} MB</span>
                   <span className="text-[10px] text-[#605e58]">(~ {formatBytes(maxStorageBytes, 0)})</span>
                 </div>
                 <p className="text-[10px] text-[#605e58] pt-1">
-                  * Bu limiti değiştirmek için docker-compose veya .env dosyasındaki `STORAGE_LIMIT_MB` değişkenini düzenleyebilirsiniz.
+                  {t("storagePage.limitNote")}
                 </p>
               </div>
             </div>
@@ -368,16 +368,16 @@ export function StoragePageClient({
           <Card className="bg-[#1b3224]/10 border border-[#2b4c37]/50 rounded-md p-6 flex flex-col justify-between">
             <div className="space-y-2">
               <h4 className="text-xs font-mono font-bold tracking-wider text-[#55f289] uppercase">
-                Yedeklerinizi Yönetin
+                {t("storagePage.manageTitle")}
               </h4>
               <p className="text-xs text-[#a09e96] leading-relaxed">
-                Yedek dosyaları depolama sınırına yaklaştığında eski yedekleri silerek veya arşivi tamamen temizleyerek disk alanı açabilirsiniz.
+                {t("storagePage.manageDesc")}
               </p>
             </div>
             
             <Link href="/archive" className="mt-4">
               <Button className="w-full bg-[#1b3224] hover:bg-[#203c2b] text-[#55f289] border border-[#2b4c37] rounded font-mono text-xs h-9 cursor-pointer flex items-center justify-between px-4">
-                <span>{t("storagePage.cleanupLink") || "Yedek Arşivini Yönet"}</span>
+                <span>{t("storagePage.cleanupLink")}</span>
                 <IconArrowRight size={14} />
               </Button>
             </Link>

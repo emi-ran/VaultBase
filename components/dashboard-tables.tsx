@@ -119,7 +119,7 @@ export function DashboardTables({ databases, backups, locale }: DashboardTablesP
         setBackupResult({ success: false, message: t("backup.failedMsg") + (res.error || "") });
       }
     } catch (err: any) {
-      setBackupResult({ success: false, message: err.message || "Backup failed" });
+      setBackupResult({ success: false, message: err.message || t("backup.failedMsg") });
     } finally {
       setBackingUp(false);
     }
@@ -237,7 +237,7 @@ export function DashboardTables({ databases, backups, locale }: DashboardTablesP
                     </TableCell>
                     <TableCell className="text-right px-6 space-x-2">
                       <Link href={`/databases/${db.id}`}>
-                        <Button size="icon" variant="ghost" className="h-7 w-7 text-[#a09e96] hover:text-white hover:bg-[#1c1a17] rounded cursor-pointer" title="Gezgin">
+                        <Button size="icon" variant="ghost" className="h-7 w-7 text-[#a09e96] hover:text-white hover:bg-[#1c1a17] rounded cursor-pointer" title={t("database.explorerTitle")}>
                           <IconExternalLink size={14} />
                         </Button>
                       </Link>
@@ -362,32 +362,32 @@ export function DashboardTables({ databases, backups, locale }: DashboardTablesP
           <DialogHeader className="pb-3 border-b border-[#2b2926]">
             <DialogTitle className="text-sm font-mono tracking-wider uppercase text-white flex items-center gap-2">
               <IconDatabaseExport size={16} className="text-[#55f289]" />
-              Yedeklemeyi Başlat
+              {t("backup.dialogTitle")}
             </DialogTitle>
             <DialogDescription className="text-xs text-[#a09e96] pt-1 leading-relaxed">
-              <strong>{selectedDb?.name}</strong> veritabanı için yedekleme işlemi başlatılacak.
+              {t("backup.dialogDesc", { name: selectedDb?.name || "" })}
             </DialogDescription>
           </DialogHeader>
 
           <div className="py-4 space-y-3 font-mono text-xs text-[#a09e96]">
             <div className="flex justify-between border-b border-[#2b2926]/40 pb-2">
-              <span>Veritabanı:</span>
+              <span>{t("common.database")}:</span>
               <span className="text-white font-bold">{selectedDb?.database}</span>
             </div>
             <div className="flex justify-between border-b border-[#2b2926]/40 pb-2">
-              <span>Bağlantı:</span>
+              <span>{t("common.connection")}:</span>
               <span className="text-white">{selectedDb?.host}:{selectedDb?.port}</span>
             </div>
             <div className="flex justify-between border-b border-[#2b2926]/40 pb-2 items-center">
-              <span>Tahmini Veri Boyutu:</span>
+              <span>{t("common.estimatedSize")}:</span>
               <span className="text-[#55f289] font-bold">
                 {loadingSize ? (
                   <span className="flex items-center gap-1">
                     <IconLoader2 size={12} className="animate-spin text-[#605e58]" />
-                    Hesaplanıyor...
+                    {t("common.calculating")}
                   </span>
                 ) : sizeError ? (
-                  <span className="text-[#f25c55]">Bağlantı Hatası (Hesaplanamadı)</span>
+                  <span className="text-[#f25c55]">{t("common.connectionError")}</span>
                 ) : (
                   dbSize
                 )}
@@ -439,7 +439,7 @@ export function DashboardTables({ databases, backups, locale }: DashboardTablesP
                   {t("common.loading")}
                 </span>
               ) : (
-                "Yedeklemeyi Başlat"
+                t("backup.startBtn")
               )}
             </Button>
           </DialogFooter>
@@ -452,10 +452,10 @@ export function DashboardTables({ databases, backups, locale }: DashboardTablesP
           <DialogHeader className="pb-3 border-b border-[#2b2926]">
             <DialogTitle className="text-sm font-mono tracking-wider uppercase text-white flex items-center gap-2">
               <IconAlertCircle size={16} className="text-[#f25c55]" />
-              Veritabanını Sil?
+              {t("database.deleteConfirm")}
             </DialogTitle>
             <DialogDescription className="text-xs text-[#a09e96] pt-1 leading-relaxed">
-              Bu işlem geri alınamaz. <strong>{dbToDelete?.name}</strong> veritabanı bağlantısı kalıcı olarak silinecektir.
+              {t("database.deleteConfirm", { name: dbToDelete?.name || "" })}
             </DialogDescription>
           </DialogHeader>
 
@@ -485,10 +485,10 @@ export function DashboardTables({ databases, backups, locale }: DashboardTablesP
           <DialogHeader className="pb-3 border-b border-[#2b2926]">
             <DialogTitle className="text-sm font-mono tracking-wider uppercase text-white flex items-center gap-2">
               <IconAlertCircle size={16} className="text-[#f25c55]" />
-              Yedek Dosyasını Sil?
+              {t("backup.deleteTitle")}
             </DialogTitle>
             <DialogDescription className="text-xs text-[#a09e96] pt-1 leading-relaxed">
-              Bu işlem geri alınamaz. <strong>{backupToDelete?.filename}</strong> yedek dosyası diskten tamamen silinecektir.
+              {t("backup.deleteDesc", { filename: backupToDelete?.filename || "" })}
             </DialogDescription>
           </DialogHeader>
 
@@ -518,10 +518,10 @@ export function DashboardTables({ databases, backups, locale }: DashboardTablesP
           <DialogHeader className="pb-3 border-b border-[#2b2926]">
             <DialogTitle className="text-sm font-mono tracking-wider uppercase text-white flex items-center gap-2">
               <IconAlertCircle size={16} className="text-[#f25c55]" />
-              Tüm Arşivi Temizle?
+              {t("backup.clearTitle")}
             </DialogTitle>
             <DialogDescription className="text-xs text-[#a09e96] pt-1 leading-relaxed">
-              Bu işlem geri alınamaz. <strong>TÜM</strong> yedek dosyaları diskten ve sistem kayıtlarından kalıcı olarak silinecektir.
+              {t("backup.clearArchiveConfirm")}
             </DialogDescription>
           </DialogHeader>
 

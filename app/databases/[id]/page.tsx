@@ -53,8 +53,8 @@ export default async function DatabaseExplorerPage({ params, searchParams }: Dat
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-8 bg-[#090807] text-white">
         <IconAlertCircle size={48} className="text-[#f25c55] mb-4" />
-        <h2 className="text-lg font-mono font-bold">Veritabanı Bulunamadı</h2>
-        <p className="text-xs text-[#a09e96] mt-2">İstenen veritabanı bağlantısı sistemde mevcut değil.</p>
+        <h2 className="text-lg font-mono font-bold">{t("database.notFound")}</h2>
+        <p className="text-xs text-[#a09e96] mt-2">{t("database.notFoundDesc")}</p>
         <Link href="/" className="mt-4">
           <Button variant="outline" className="border-[#2b2926] text-xs font-mono">
             {t("common.cancel")}
@@ -80,7 +80,7 @@ export default async function DatabaseExplorerPage({ params, searchParams }: Dat
       ssl: db.ssl,
     });
   } catch (err: any) {
-    errorMsg = err.message || "Veritabanı bağlantısı kurulamadı.";
+    errorMsg = err.message || t("database.testFailed");
   }
 
   // 3. Fetch active table data if a table is selected
@@ -104,7 +104,7 @@ export default async function DatabaseExplorerPage({ params, searchParams }: Dat
         true
       );
     } catch (err: any) {
-      queryError = err.message || "Veri yüklenirken bir hata oluştu.";
+      queryError = err.message || t("database.queryError");
     }
   }
 
@@ -298,7 +298,7 @@ export default async function DatabaseExplorerPage({ params, searchParams }: Dat
             </div>
             <h3 className="font-bold text-white text-sm uppercase">{t("database.explorerTitle")}</h3>
             <p className="mt-1.5 text-center max-w-75 leading-relaxed">
-              {t("database.explorerDesc")} Sol menüden incelemek istediğiniz bir tabloyu seçin.
+              {t("database.explorerDesc")} {t("database.selectTable")}
             </p>
           </div>
         )}

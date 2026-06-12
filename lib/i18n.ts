@@ -14,7 +14,7 @@ export function getT(locale: Locale) {
   return (path: string) => translate(dict, path);
 }
 
-export function translate(dict: any, path: string): string {
+export function translate(dict: any, path: string, vars?: Record<string, string | number>): string {
   if (!dict) return path;
   const keys = path.split(".");
   let current = dict;
@@ -24,5 +24,10 @@ export function translate(dict: any, path: string): string {
     }
     current = current[key];
   }
-  return typeof current === "string" ? current : path;
+  if (typeof current !== "string") return path;
+  if (!vars) return current;
+  return current.replace(/\{(\w+)\}/g, (_, key) => {
+    const val = vars[key];
+    return val !== undefined ? String(val) : `{${key}}`;
+  });
 }

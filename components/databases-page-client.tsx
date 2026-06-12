@@ -238,7 +238,7 @@ export function DatabasesPageClient({ databases }: DatabasesPageClientProps) {
         setBackupResult({ success: false, message: t("backup.failedMsg") + (res.error || "") });
       }
     } catch (err: any) {
-      setBackupResult({ success: false, message: err.message || "Backup failed" });
+      setBackupResult({ success: false, message: err.message || t("backup.failedMsg") });
     } finally {
       setBackingUp(false);
     }
@@ -317,7 +317,7 @@ export function DatabasesPageClient({ databases }: DatabasesPageClientProps) {
         <div className="flex items-center gap-4">
           <h2 className="text-sm font-mono tracking-wider font-bold text-white uppercase">{t("navigation.databases")}</h2>
           <span className="text-[10px] font-mono text-[#605e58] border border-[#2b2926] px-2 py-0.5 rounded">
-            {stats.total} {stats.total === 1 ? "CONNECTION" : "CONNECTIONS"}
+            {stats.total} {t("common.connection").toUpperCase()}{stats.total === 1 ? "" : "S"}
           </span>
         </div>
 
@@ -354,7 +354,7 @@ export function DatabasesPageClient({ databases }: DatabasesPageClientProps) {
           <Card className="bg-[#0d0c0b] border-[#2b2926] rounded-md shadow-lg">
             <CardHeader className="p-4 pb-2">
               <CardTitle className="text-[10px] font-mono text-[#605e58] tracking-wider uppercase">
-                {t("database.statsTotal") || "TOTAL DATABASES"}
+                {t("database.statsTotal")}
               </CardTitle>
             </CardHeader>
             <CardContent className="p-4 pt-0">
@@ -369,7 +369,7 @@ export function DatabasesPageClient({ databases }: DatabasesPageClientProps) {
           <Card className="bg-[#0d0c0b] border-[#2b2926] rounded-md shadow-lg">
             <CardHeader className="p-4 pb-2">
               <CardTitle className="text-[10px] font-mono text-[#605e58] tracking-wider uppercase">
-                {t("database.statsHealthy") || "HEALTHY CONNECTIONS"}
+                {t("database.statsHealthy")}
               </CardTitle>
             </CardHeader>
             <CardContent className="p-4 pt-0">
@@ -384,7 +384,7 @@ export function DatabasesPageClient({ databases }: DatabasesPageClientProps) {
           <Card className="bg-[#0d0c0b] border-[#2b2926] rounded-md shadow-lg">
             <CardHeader className="p-4 pb-2">
               <CardTitle className="text-[10px] font-mono text-[#605e58] tracking-wider uppercase">
-                {t("database.statsOffline") || "OFFLINE CONNECTIONS"}
+                {t("database.statsOffline")}
               </CardTitle>
             </CardHeader>
             <CardContent className="p-4 pt-0">
@@ -399,7 +399,7 @@ export function DatabasesPageClient({ databases }: DatabasesPageClientProps) {
           <Card className="bg-[#0d0c0b] border-[#2b2926] rounded-md shadow-lg">
             <CardHeader className="p-4 pb-2">
               <CardTitle className="text-[10px] font-mono text-[#605e58] tracking-wider uppercase">
-                {t("database.statsUntested") || "UNTESTED CONNECTIONS"}
+                {t("database.statsUntested")}
               </CardTitle>
             </CardHeader>
             <CardContent className="p-4 pt-0">
@@ -417,7 +417,7 @@ export function DatabasesPageClient({ databases }: DatabasesPageClientProps) {
           <div className="relative flex-1 max-w-md">
             <IconSearch size={14} className="absolute left-3 top-3 text-[#605e58]" />
             <Input
-              placeholder={t("database.searchPlaceholder") || "İsim, veritabanı veya host ile ara..."}
+              placeholder={t("database.searchPlaceholder")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-9 bg-[#141210] border-[#2b2926] text-xs font-mono text-white focus:border-[#d2541c] focus:ring-1 focus:ring-[#d2541c] rounded h-9 w-full"
@@ -428,16 +428,16 @@ export function DatabasesPageClient({ databases }: DatabasesPageClientProps) {
           <div className="flex flex-wrap gap-4 items-center">
             {/* Env dropdown */}
             <div className="flex items-center gap-2">
-              <span className="text-[9px] font-mono text-[#605e58] tracking-wider uppercase whitespace-nowrap">{t("database.filterEnv") || "ORTAM"}:</span>
+                <span className="text-[9px] font-mono text-[#605e58] tracking-wider uppercase whitespace-nowrap">{t("database.filterEnv")}:</span>
               <Select value={selectedEnv} onValueChange={setSelectedEnv}>
                 <SelectTrigger className="bg-[#141210] border-[#2b2926] text-xs text-white font-mono rounded h-8 min-w-27.5 w-auto">
-                  <SelectValue placeholder={locale === "tr" ? "Tümü" : "All"} />
+                  <SelectValue placeholder={t("common.all")} />
                 </SelectTrigger>
                 <SelectContent position="popper" className="bg-[#141210] border-[#2b2926] text-[#E6E4DD]">
-                  <SelectItem value="all" className="hover:bg-[#2b2926] text-xs font-mono">{locale === "tr" ? "Tümü" : "All"}</SelectItem>
-                  <SelectItem value="production" className="hover:bg-[#2b2926] text-xs font-mono">{t("database.envProduction") || "Production"}</SelectItem>
-                  <SelectItem value="staging" className="hover:bg-[#2b2926] text-xs font-mono">{t("database.envStaging") || "Staging"}</SelectItem>
-                  <SelectItem value="development" className="hover:bg-[#2b2926] text-xs font-mono">{t("database.envDevelopment") || "Development"}</SelectItem>
+                  <SelectItem value="all" className="hover:bg-[#2b2926] text-xs font-mono">{t("common.all")}</SelectItem>
+                  <SelectItem value="production" className="hover:bg-[#2b2926] text-xs font-mono">{t("database.envProduction")}</SelectItem>
+                  <SelectItem value="staging" className="hover:bg-[#2b2926] text-xs font-mono">{t("database.envStaging")}</SelectItem>
+                  <SelectItem value="development" className="hover:bg-[#2b2926] text-xs font-mono">{t("database.envDevelopment")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -445,13 +445,13 @@ export function DatabasesPageClient({ databases }: DatabasesPageClientProps) {
             {/* Label dropdown */}
             {allLabels.length > 0 && (
               <div className="flex items-center gap-2">
-                <span className="text-[9px] font-mono text-[#605e58] tracking-wider uppercase whitespace-nowrap">{t("database.filterLabel") || "ETİKET"}:</span>
+                <span className="text-[9px] font-mono text-[#605e58] tracking-wider uppercase whitespace-nowrap">{t("database.filterLabel")}:</span>
                 <Select value={selectedLabel} onValueChange={setSelectedLabel}>
                   <SelectTrigger className="bg-[#141210] border-[#2b2926] text-xs text-white font-mono rounded h-8 min-w-27.5 w-auto">
-                    <SelectValue placeholder={locale === "tr" ? "Tümü" : "All"} />
+                    <SelectValue placeholder={t("common.all")} />
                   </SelectTrigger>
                   <SelectContent position="popper" className="bg-[#141210] border-[#2b2926] text-[#E6E4DD]">
-                    <SelectItem value="all" className="hover:bg-[#2b2926] text-xs font-mono">{locale === "tr" ? "Tümü" : "All"}</SelectItem>
+                    <SelectItem value="all" className="hover:bg-[#2b2926] text-xs font-mono">{t("common.all")}</SelectItem>
                     {allLabels.map((lbl) => (
                       <SelectItem key={lbl} value={lbl} className="hover:bg-[#2b2926] text-xs font-mono">
                         {lbl.toUpperCase()}
@@ -484,10 +484,10 @@ export function DatabasesPageClient({ databases }: DatabasesPageClientProps) {
           <div className="border border-dashed border-[#2b2926] rounded-lg p-16 text-center bg-[#0d0c0b]/40 shadow-inner">
             <IconDatabase size={40} className="mx-auto text-[#2b2926] mb-3" />
             <h3 className="text-sm font-mono text-[#a09e96] font-semibold">
-              {databases.length === 0 ? t("database.noDbs") : "Eşleşen veritabanı bulunamadı."}
+              {databases.length === 0 ? t("database.noDbs") : t("database.noMatch")}
             </h3>
             <p className="text-[11px] text-[#605e58] mt-1 font-mono">
-              {databases.length === 0 ? "Yedek almaya başlamak için yeni bir PostgreSQL bağlantısı ekleyin." : "Lütfen arama terimini veya filtreleri değiştirin."}
+              {databases.length === 0 ? t("database.addFirst") : t("common.changeSearch")}
             </p>
           </div>
         ) : (
@@ -497,7 +497,7 @@ export function DatabasesPageClient({ databases }: DatabasesPageClientProps) {
               const labelsArr = db.labels ? db.labels.split(",").map((l: string) => l.trim()).filter(Boolean) : [];
               const lastTestedStr = db.lastTestedAt 
                 ? new Date(db.lastTestedAt).toLocaleString(locale === "tr" ? "tr-TR" : "en-US") 
-                : t("database.neverTested") || "Hiç test edilmedi";
+                : t("database.neverTested");
 
               return (
                 <Card key={db.id} className="bg-[#0d0c0b] border-[#2b2926] rounded-md overflow-hidden hover:border-[#3e3b37] transition-all duration-300 flex flex-col justify-between shadow-2xl relative group">
@@ -538,14 +538,14 @@ export function DatabasesPageClient({ databases }: DatabasesPageClientProps) {
                     <CardContent className="px-5 py-2 space-y-4 font-mono text-[11px] text-[#a09e96]">
                       {/* Host & Port */}
                       <div className="space-y-1">
-                        <span className="text-[9px] text-[#605e58] block tracking-wider uppercase">{t("database.connAddress") || "SUNUCU ADRESİ"}</span>
+                        <span className="text-[9px] text-[#605e58] block tracking-wider uppercase">{t("database.connAddress")}</span>
                         <span className="text-white truncate block">{db.host}:{db.port}</span>
                       </div>
 
                       {/* Connection Health & Status details */}
                       <div className="flex justify-between items-center bg-[#141210] border border-[#2b2926]/40 p-2 rounded">
                         <div className="space-y-0.5">
-                          <span className="text-[8px] text-[#605e58] block tracking-wider uppercase">{t("database.lastTested") || "SON TEST"}</span>
+                          <span className="text-[8px] text-[#605e58] block tracking-wider uppercase">{t("database.lastTested")}</span>
                           <span className="text-[10px] text-[#E6E4DD] truncate block max-w-37.5">{lastTestedStr}</span>
                         </div>
                         <div className="flex items-center gap-1.5">
@@ -563,14 +563,14 @@ export function DatabasesPageClient({ databases }: DatabasesPageClientProps) {
                         <div className="bg-[#141210]/40 border border-[#2b2926]/20 p-2 rounded flex items-center gap-2">
                           <IconFileZip size={14} className="text-[#a09e96] opacity-50" />
                           <div>
-                            <span className="text-[#605e58] block">BACKUPS</span>
+                            <span className="text-[#605e58] block">{t("common.backups")}</span>
                             <span className="text-white font-bold">{db.backups?.length || 0}</span>
                           </div>
                         </div>
                         <div className="bg-[#141210]/40 border border-[#2b2926]/20 p-2 rounded flex items-center gap-2">
                           <IconClock size={14} className="text-[#a09e96] opacity-50" />
                           <div>
-                            <span className="text-[#605e58] block">SCHEDULES</span>
+                            <span className="text-[#605e58] block">{t("common.schedules")}</span>
                             <span className="text-white font-bold">{db.schedules?.length || 0}</span>
                           </div>
                         </div>
@@ -585,7 +585,7 @@ export function DatabasesPageClient({ databases }: DatabasesPageClientProps) {
                       {labelsArr.length === 0 ? (
                         <span className="text-[9px] text-[#605e58] italic flex items-center gap-1">
                           <IconTag size={10} />
-                          no labels
+                          {t("common.noLabels")}
                         </span>
                       ) : (
                         labelsArr.map((lbl: string) => (
@@ -616,14 +616,14 @@ export function DatabasesPageClient({ databases }: DatabasesPageClientProps) {
                         ) : (
                           <IconRefresh size={12} />
                         )}
-                        {(t("common.testConnection") || "Test Et").toUpperCase()}
+                        {t("common.testConnection").toUpperCase()}
                       </Button>
 
                       {/* Right: Quick actions panel */}
                       <div className="flex items-center gap-1">
                         {/* Explore Tables link */}
                         <Link href={`/databases/${db.id}`}>
-                          <Button size="icon" variant="ghost" className="h-7 w-7 text-[#a09e96] hover:text-white hover:bg-[#1c1a17] rounded cursor-pointer" title="Veritabanı Gezgini">
+                          <Button size="icon" variant="ghost" className="h-7 w-7 text-[#a09e96] hover:text-white hover:bg-[#1c1a17] rounded cursor-pointer" title={t("database.explorerTitle")}>
                             <IconExternalLink size={14} />
                           </Button>
                         </Link>
@@ -691,21 +691,21 @@ export function DatabasesPageClient({ databases }: DatabasesPageClientProps) {
               {t("backup.backupNow").toUpperCase()}
             </DialogTitle>
             <DialogDescription className="text-xs text-[#a09e96] pt-1">
-              {selectedDb?.name} ({selectedDb?.database}) veritabanı yedeğini anında başlatın.
+              {t("backup.dialogDesc", { name: selectedDb?.name || "" })}
             </DialogDescription>
           </DialogHeader>
 
           <div className="py-4 space-y-4 font-mono text-xs">
             {/* Display DB size calculated dynamically */}
             <div className="flex justify-between border-b border-[#2b2926]/40 pb-2">
-              <span className="text-[#605e58]">{t("backup.size")?.toUpperCase() || "BOYUT"}:</span>
+              <span className="text-[#605e58]">{t("backup.size")?.toUpperCase()}:</span>
               {loadingSize ? (
                 <span className="flex items-center gap-1 text-white">
                   <IconLoader2 size={12} className="animate-spin" />
                   {t("common.loading")}
                 </span>
               ) : sizeError ? (
-                <span className="text-[#f25c55]">{t("common.unknown")?.toUpperCase() || "BİLİNMİYOR"}</span>
+                  <span className="text-[#f25c55]">{t("common.unknown")?.toUpperCase()}</span>
               ) : (
                 <span className="text-white font-bold">{dbSize}</span>
               )}
@@ -714,11 +714,11 @@ export function DatabasesPageClient({ databases }: DatabasesPageClientProps) {
             {/* Custom Filename Field */}
             <div className="space-y-1.5 pt-1">
               <Label htmlFor="custom-filename" className="text-[10px] tracking-wider uppercase text-[#a09e96] block">
-                {t("backup.customFilenameLabel") || "Yedek Dosya Adı (Opsiyonel)"}
+                {t("backup.customFilenameLabel")}
               </Label>
               <Input
                 id="custom-filename"
-                placeholder={t("backup.customFilenamePlaceholder") || "örn: veritabani_yedek"}
+                placeholder={t("backup.customFilenamePlaceholder")}
                 value={customFilename}
                 onChange={(e) => setCustomFilename(e.target.value)}
                 disabled={backingUp}
@@ -773,17 +773,17 @@ export function DatabasesPageClient({ databases }: DatabasesPageClientProps) {
           <DialogHeader>
             <DialogTitle className="text-sm font-mono tracking-wider uppercase text-white flex items-center gap-2">
               <IconUpload size={16} className="text-[#e6b04e]" />
-              {t("restore.title")?.toUpperCase() || "VERİTABANINI GERİ YÜKLE"}
+              {t("restore.title")?.toUpperCase()}
             </DialogTitle>
             <DialogDescription className="text-xs text-[#a09e96] pt-1">
-              {t("restore.desc") || "Bir .sql.gz yedek dosyası seçerek bu veritabanına geri yükleyin."}
+              {t("restore.desc")}
             </DialogDescription>
           </DialogHeader>
 
           <div className="py-4 space-y-5 font-mono text-xs">
             {/* Target Database Info */}
             <div className="bg-[#141210] border border-[#2b2926] rounded p-3 space-y-1.5">
-              <span className="text-[9px] text-[#605e58] tracking-wider uppercase">{t("restore.targetDb") || "HEDEF VERİTABANI"}</span>
+              <span className="text-[9px] text-[#605e58] tracking-wider uppercase">{t("restore.targetDb")}</span>
               <div className="flex items-center gap-2">
                 <DatabaseTypeMark />
                 <span className="text-white font-bold text-sm">{dbToRestore?.name}</span>
@@ -802,18 +802,18 @@ export function DatabasesPageClient({ databases }: DatabasesPageClientProps) {
 
             {/* File Picker */}
             <div className="space-y-2">
-              <span className="text-[10px] text-[#a09e96] tracking-wider uppercase">{t("restore.selectFile") || "DOSYA SEÇ"}</span>
+               <span className="text-[10px] text-[#a09e96] tracking-wider uppercase">{t("restore.selectFile")}</span>
               <label className="flex items-center gap-3 bg-[#141210] border border-[#2b2926] hover:border-[#e6b04e]/40 rounded p-3 cursor-pointer transition-colors">
                 <IconUpload size={20} className="text-[#e6b04e] shrink-0" />
                 <div className="flex-1 min-w-0">
                   {restoreFile ? (
                     <span className="text-white text-[11px] truncate block">
-                      {(t("restore.fileInfo") || "{filename} ({size})")
+                      {t("restore.fileInfo")
                         .replace("{filename}", restoreFile.name)
                         .replace("{size}", formatFileSize(restoreFile.size))}
                     </span>
                   ) : (
-                    <span className="text-[#605e58] text-[11px]">{t("restore.noFile") || "Henüz dosya seçilmedi"}</span>
+                     <span className="text-[#605e58] text-[11px]">{t("restore.noFile")}</span>
                   )}
                 </div>
                 <input
@@ -824,7 +824,7 @@ export function DatabasesPageClient({ databases }: DatabasesPageClientProps) {
                     const file = e.target.files?.[0]
                     if (file) {
                       if (!file.name.endsWith(".sql.gz") && !file.name.endsWith(".gz")) {
-                        setRestoreResult({ success: false, message: t("restore.invalidFile") || "Lütfen geçerli bir .sql.gz dosyası seçin." })
+                        setRestoreResult({ success: false, message: t("restore.invalidFile") })
                         setRestoreFile(null)
                         setRestoreAcknowledged(false)
                         return
@@ -842,7 +842,7 @@ export function DatabasesPageClient({ databases }: DatabasesPageClientProps) {
               <div className="bg-[#2d1210] border border-[#4b1b1a] rounded p-3 flex items-start gap-2">
                 <IconAlertCircle size={14} className="text-[#f25c55] shrink-0 mt-0.5" />
                 <span className="text-[11px] text-[#f25c55]">
-                  {(t("restore.productionWarning") || "Bu bir PRODUCTION veritabanıdır! Devam etmeden önce güncel bir yedek aldığınızdan emin olun.")}
+                  {t("restore.productionWarning")}
                 </span>
               </div>
             )}
@@ -852,11 +852,11 @@ export function DatabasesPageClient({ databases }: DatabasesPageClientProps) {
               <div className="flex items-center gap-2">
                 <IconAlertCircle size={14} className="text-[#f25c55]" />
                 <span className="text-[11px] font-bold text-[#f25c55] tracking-wider uppercase">
-                  {t("restore.warningTitle") || "VERİ KAYBI UYARISI"}
+                  {t("restore.warningTitle")}
                 </span>
               </div>
               <p className="text-[11px] text-[#f25c55]/90 leading-relaxed">
-                {(t("restore.warningText") || "Bu işlem hedef veritabanındaki tüm mevcut tabloları ve verileri SİLECEKTİR. İşlem geri alınamaz.")}
+                {t("restore.warningText")}
               </p>
             </div>
 
@@ -870,7 +870,7 @@ export function DatabasesPageClient({ databases }: DatabasesPageClientProps) {
                 className="mt-0.5 accent-[#e6b04e]"
               />
               <span className={`text-[11px] leading-relaxed ${!restoreFile ? "text-[#605e58]" : "text-[#a09e96]"}`}>
-                {(t("restore.confirmLabel") || "Veri kaybı riskini anlıyorum ve geri yüklemeyi başlatmak istiyorum.")}
+                {t("restore.confirmLabel")}
               </span>
             </label>
 
@@ -909,10 +909,10 @@ export function DatabasesPageClient({ databases }: DatabasesPageClientProps) {
               {restoring ? (
                 <span className="flex items-center gap-2">
                   <IconLoader2 size={12} className="animate-spin" />
-                  {t("restore.processing") || "Geri yükleniyor..."}
+                  {t("restore.processing")}
                 </span>
               ) : (
-                <span>{t("restore.startButton") || "GERİ YÜKLEMEYİ BAŞLAT"}</span>
+                 <span>{t("restore.startButton")}</span>
               )}
             </Button>
           </DialogFooter>
@@ -925,24 +925,24 @@ export function DatabasesPageClient({ databases }: DatabasesPageClientProps) {
           <DialogHeader>
             <DialogTitle className="text-sm font-mono tracking-wider uppercase text-white flex items-center gap-2">
               <IconAlertCircle size={16} className="text-[#f25c55]" />
-              {t("common.delete")?.toUpperCase() || "SİL"}
+              {t("common.delete")?.toUpperCase()}
             </DialogTitle>
             <DialogDescription className="text-xs text-[#a09e96] pt-1">
-              {t("database.deleteConfirm") || "Bu veritabanı bağlantısını silmek istediğinize emin misiniz?"}
+              {t("database.deleteConfirm")}
             </DialogDescription>
           </DialogHeader>
 
           <div className="py-2 space-y-1 font-mono text-xs border-y border-[#2b2926]/40 my-3">
             <div className="flex justify-between">
-              <span className="text-[#605e58]">KISA AD:</span>
+              <span className="text-[#605e58]">{t("common.shortName")}:</span>
               <span className="text-white font-bold">{dbToDelete?.name}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-[#605e58]">VERİTABANI ADI:</span>
+              <span className="text-[#605e58]">{t("database.dbName")}:</span>
               <span className="text-white">{dbToDelete?.database}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-[#605e58]">ADRES:</span>
+              <span className="text-[#605e58]">{t("common.addresses")}:</span>
               <span className="text-[#a09e96]">{dbToDelete?.host}:{dbToDelete?.port}</span>
             </div>
           </div>

@@ -230,7 +230,7 @@ export function ArchivePageClient({ initialBackups, databases, locale }: Archive
             {t("backup.archive")}
           </h2>
           <span className="text-[10px] font-mono text-[#605e58] border border-[#2b2926] px-2 py-0.5 rounded uppercase">
-            {backups.length} {t("stats.totalStored").split(" ")[1] || "Yedek"}
+            {backups.length} {t("common.stored")}
           </span>
         </div>
 
@@ -254,7 +254,7 @@ export function ArchivePageClient({ initialBackups, databases, locale }: Archive
           <Card className="bg-[#0d0c0b] border-[#2b2926] rounded-md">
             <CardHeader className="p-4 pb-1">
               <CardTitle className="text-[10px] font-mono text-[#605e58] tracking-wider uppercase">
-                {t("backup.statsTotal") || "TOPLAM YEDEK"}
+                {t("backup.statsTotal")}
               </CardTitle>
             </CardHeader>
             <CardContent className="p-4 pt-0">
@@ -262,7 +262,7 @@ export function ArchivePageClient({ initialBackups, databases, locale }: Archive
                 <span className="text-xl font-mono font-bold text-white">
                   {stats.total}
                 </span>
-                <span className="text-[10px] font-mono text-[#605e58]">{t("stats.totalStored").split(" ")[1] || "YEDEK"}</span>
+                <span className="text-[10px] font-mono text-[#605e58]">{t("common.stored")}</span>
               </div>
             </CardContent>
           </Card>
@@ -271,7 +271,7 @@ export function ArchivePageClient({ initialBackups, databases, locale }: Archive
           <Card className="bg-[#0d0c0b] border-[#2b2926] rounded-md">
             <CardHeader className="p-4 pb-1">
               <CardTitle className="text-[10px] font-mono text-[#605e58] tracking-wider uppercase">
-                {t("backup.statsTotalSize") || "TOPLAM SAKLANAN"}
+                {t("backup.statsTotalSize")}
               </CardTitle>
             </CardHeader>
             <CardContent className="p-4 pt-0">
@@ -287,7 +287,7 @@ export function ArchivePageClient({ initialBackups, databases, locale }: Archive
           <Card className="bg-[#0d0c0b] border-[#2b2926] rounded-md">
             <CardHeader className="p-4 pb-1">
               <CardTitle className="text-[10px] font-mono text-[#605e58] tracking-wider uppercase">
-                {t("backup.statsSuccess") || "BAŞARILI YEDEK"}
+                {t("backup.statsSuccess")}
               </CardTitle>
             </CardHeader>
             <CardContent className="p-4 pt-0">
@@ -304,7 +304,7 @@ export function ArchivePageClient({ initialBackups, databases, locale }: Archive
           <Card className="bg-[#0d0c0b] border-[#2b2926] rounded-md">
             <CardHeader className="p-4 pb-1">
               <CardTitle className="text-[10px] font-mono text-[#605e58] tracking-wider uppercase">
-                {t("backup.statsFailed") || "BAŞARISIZ YEDEK"}
+                {t("backup.statsFailed")}
               </CardTitle>
             </CardHeader>
             <CardContent className="p-4 pt-0">
@@ -325,13 +325,13 @@ export function ArchivePageClient({ initialBackups, databases, locale }: Archive
             {/* Search Input */}
             <div className="space-y-1.5">
               <Label htmlFor="search" className="text-[10px] font-mono tracking-wider uppercase text-[#a09e96]">
-                {t("database.searchPlaceholder").split(" ")[0] || "ARA"}
+                {t("common.search")}
               </Label>
               <div className="relative">
                 <IconSearch size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#605e58]" />
                 <Input
                   id="search"
-                  placeholder={t("backup.searchPlaceholder") || "Dosya adı ile ara..."}
+                  placeholder={t("backup.searchPlaceholder")}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="bg-[#141210] border-[#2b2926] text-xs font-mono text-white rounded pl-9 h-9 w-full placeholder:text-[#605e58] focus:border-[#55f289]/40 transition-colors"
@@ -342,14 +342,14 @@ export function ArchivePageClient({ initialBackups, databases, locale }: Archive
             {/* Database Filter Select */}
             <div className="space-y-1.5">
               <Label className="text-[10px] font-mono tracking-wider uppercase text-[#a09e96]">
-                {t("schedules.database") || "VERİTABANI"}
+                {t("schedules.database")}
               </Label>
               <Select value={selectedDbId} onValueChange={setSelectedDbId}>
                 <SelectTrigger className="bg-[#141210] border-[#2b2926] text-xs text-white font-mono rounded h-9 w-full">
-                  <SelectValue placeholder={t("backup.filterDb") || "Tüm Veritabanları"} />
+                  <SelectValue placeholder={t("backup.filterDb")} />
                 </SelectTrigger>
                 <SelectContent position="popper" className="bg-[#141210] border-[#2b2926] text-[#E6E4DD]">
-                  <SelectItem value="all">{t("backup.filterDb") || "Tüm Veritabanları"}</SelectItem>
+                  <SelectItem value="all">{t("backup.filterDb")}</SelectItem>
                   {databases.map((db) => (
                     <SelectItem key={db.id} value={db.id}>
                       {db.name}
@@ -362,17 +362,17 @@ export function ArchivePageClient({ initialBackups, databases, locale }: Archive
             {/* Status Filter Select */}
             <div className="space-y-1.5">
               <Label className="text-[10px] font-mono tracking-wider uppercase text-[#a09e96]">
-                {t("database.status") || "DURUM"}
+                {t("database.status")}
               </Label>
               <Select value={selectedStatus} onValueChange={setSelectedStatus}>
                 <SelectTrigger className="bg-[#141210] border-[#2b2926] text-xs text-white font-mono rounded h-9 w-full">
-                  <SelectValue placeholder={t("backup.filterStatus") || "Tüm Durumlar"} />
+                  <SelectValue placeholder={t("backup.filterStatus")} />
                 </SelectTrigger>
                 <SelectContent position="popper" className="bg-[#141210] border-[#2b2926] text-[#E6E4DD]">
-                  <SelectItem value="all">{t("backup.filterStatus") || "Tüm Durumlar"}</SelectItem>
-                  <SelectItem value="success">{t("common.success") || "Başarılı"}</SelectItem>
-                  <SelectItem value="failed">{t("common.error") || "Hata"}</SelectItem>
-                  <SelectItem value="processing">{t("common.loading").replace("...", "") || "Yükleniyor"}</SelectItem>
+                  <SelectItem value="all">{t("backup.filterStatus")}</SelectItem>
+                  <SelectItem value="success">{t("common.success")}</SelectItem>
+                  <SelectItem value="failed">{t("common.error")}</SelectItem>
+                  <SelectItem value="processing">{t("archive.labelProcessing")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -380,16 +380,16 @@ export function ArchivePageClient({ initialBackups, databases, locale }: Archive
             {/* Trigger Filter Select */}
             <div className="space-y-1.5">
               <Label className="text-[10px] font-mono tracking-wider uppercase text-[#a09e96]">
-                {t("backup.trigger") || "TETİKLEYİCİ"}
+                {t("backup.trigger")}
               </Label>
               <Select value={selectedTrigger} onValueChange={setSelectedTrigger}>
                 <SelectTrigger className="bg-[#141210] border-[#2b2926] text-xs text-white font-mono rounded h-9 w-full">
-                  <SelectValue placeholder={t("backup.filterTrigger") || "Tüm Tetikleyiciler"} />
+                  <SelectValue placeholder={t("backup.filterTrigger")} />
                 </SelectTrigger>
                 <SelectContent position="popper" className="bg-[#141210] border-[#2b2926] text-[#E6E4DD]">
-                  <SelectItem value="all">{t("backup.filterTrigger") || "Tüm Tetikleyiciler"}</SelectItem>
-                  <SelectItem value="manual">{t("jobs.manual") || "Manuel"}</SelectItem>
-                  <SelectItem value="scheduled">{t("jobs.scheduled") || "Zamanlanmış"}</SelectItem>
+                  <SelectItem value="all">{t("backup.filterTrigger")}</SelectItem>
+                  <SelectItem value="manual">{t("jobs.manual")}</SelectItem>
+                  <SelectItem value="scheduled">{t("jobs.scheduled")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -404,7 +404,7 @@ export function ArchivePageClient({ initialBackups, databases, locale }: Archive
                 className="text-xs font-mono text-[#a09e96] hover:text-white hover:bg-[#141210] rounded h-7 px-3 flex items-center gap-1.5 cursor-pointer"
               >
                 <IconRefresh size={12} />
-                Filtreleri Temizle
+                {t("archive.resetFilters")}
               </Button>
             </div>
           )}
@@ -415,7 +415,7 @@ export function ArchivePageClient({ initialBackups, databases, locale }: Archive
           {filteredBackups.length === 0 ? (
             <div className="p-12 text-center text-xs font-mono text-[#605e58] space-y-2">
               <IconArchive size={28} className="mx-auto text-[#2b2926]" />
-              <p>{t("backup.noBackups") || "Henüz tamamlanmış yedek dosyası yok"}</p>
+              <p>{t("backup.noBackups")}</p>
             </div>
           ) : (
             <>
@@ -426,7 +426,7 @@ export function ArchivePageClient({ initialBackups, databases, locale }: Archive
                       {t("backup.filename")}
                     </TableHead>
                     <TableHead className="text-[10px] font-mono tracking-wider text-[#605e58] uppercase">
-                      {t("schedules.database") || "VERİTABANI"}
+                      {t("schedules.database")}
                     </TableHead>
                     <TableHead className="text-[10px] font-mono tracking-wider text-[#605e58] uppercase">
                       {t("backup.size")}
@@ -580,7 +580,7 @@ export function ArchivePageClient({ initialBackups, databases, locale }: Archive
           <DialogHeader className="pb-3 border-b border-[#2b2926]">
             <DialogTitle className="text-sm font-mono tracking-wider uppercase text-white flex items-center gap-2">
               <IconAlertCircle size={16} className="text-[#f25c55]" />
-              Yedek Dosyasını Sil
+              {t("archive.deleteTitle")}
             </DialogTitle>
             <DialogDescription className="text-xs text-[#a09e96] pt-1 leading-relaxed">
               {t("backup.deleteConfirm")}
@@ -590,15 +590,15 @@ export function ArchivePageClient({ initialBackups, databases, locale }: Archive
           {backupToDelete && (
             <div className="py-4 space-y-2 font-mono text-xs text-[#a09e96]">
               <div className="flex flex-col gap-1 border-b border-[#2b2926]/40 pb-2">
-                <span>Dosya Adı:</span>
+                <span>{t("archive.labelFilename")}:</span>
                 <span className="text-white font-bold break-all">{backupToDelete.filename}</span>
               </div>
               <div className="flex justify-between border-b border-[#2b2926]/40 pb-2">
-                <span>Veritabanı:</span>
+                <span>{t("common.database")}:</span>
                 <span className="text-white">{backupToDelete.database?.name || t("common.none")}</span>
               </div>
               <div className="flex justify-between border-b border-[#2b2926]/40 pb-2">
-                <span>Boyut:</span>
+                <span>{t("archive.labelSize")}:</span>
                 <span className="text-white">{backupToDelete.status === "success" ? formatBytes(backupToDelete.sizeBytes) : "-"}</span>
               </div>
             </div>
@@ -631,10 +631,10 @@ export function ArchivePageClient({ initialBackups, databases, locale }: Archive
           <DialogHeader className="pb-3 border-b border-[#2b2926]">
             <DialogTitle className="text-sm font-mono tracking-wider uppercase text-white flex items-center gap-2">
               <IconAlertCircle size={16} className="text-[#f25c55]" />
-              Yedek Arşivini Temizle
+              {t("archive.clearTitle")}
             </DialogTitle>
             <DialogDescription className="text-xs text-[#a09e96] pt-1 leading-relaxed">
-              {t("backup.clearArchiveConfirm") || "Tüm yedek arşivini silmek ve diskteki dosyaları temizlemek istediğinize emin misiniz? Bu işlem geri alınamaz."}
+              {t("backup.clearArchiveConfirm")}
             </DialogDescription>
           </DialogHeader>
 
@@ -665,10 +665,10 @@ export function ArchivePageClient({ initialBackups, databases, locale }: Archive
           <DialogHeader className="pb-3 border-b border-[#2b2926]">
             <DialogTitle className="text-sm font-mono tracking-wider uppercase text-white flex items-center gap-2">
               <IconUpload size={16} className="text-[#e6b04e]" />
-              {t("restore.fromArchive")?.toUpperCase() || "ARŞİVDEN GERİ YÜKLE"}
+              {t("restore.fromArchive")?.toUpperCase()}
             </DialogTitle>
             <DialogDescription className="text-xs text-[#a09e96] pt-1 leading-relaxed">
-              {t("restore.archiveDesc") || "Arşivdeki bir yedek dosyasını seçerek hedef veritabanına geri yükleyin."}
+              {t("restore.archiveDesc")}
             </DialogDescription>
           </DialogHeader>
 
@@ -676,28 +676,28 @@ export function ArchivePageClient({ initialBackups, databases, locale }: Archive
             <div className="py-4 space-y-4 font-mono text-xs">
               {/* Backup Info */}
               <div className="bg-[#141210] border border-[#2b2926] rounded p-3 space-y-1.5">
-                <span className="text-[9px] text-[#605e58] tracking-wider uppercase">{t("restore.backupInfo") || "YEDEK BİLGİSİ"}</span>
+                <span className="text-[9px] text-[#605e58] tracking-wider uppercase">{t("restore.backupInfo")}</span>
                 <div className="flex items-center gap-2">
                   <IconDatabase size={14} className="text-[#55f289]" />
                   <span className="text-white font-bold text-sm truncate">{backupToRestore.filename}</span>
                 </div>
                 <div className="flex justify-between text-[10px]">
-                  <span className="text-[#605e58]">{t("restore.sourceDb") || "Kaynak DB"}: {backupToRestore.database?.name || t("common.none")}</span>
-                  <span className="text-[#a09e96]">{t("restore.fileSize") || "Boyut"}: {formatBytes(backupToRestore.sizeBytes)}</span>
+                  <span className="text-[#605e58]">{t("restore.sourceDb")}: {backupToRestore.database?.name || t("common.none")}</span>
+                  <span className="text-[#a09e96]">{t("restore.fileSize")}: {formatBytes(backupToRestore.sizeBytes)}</span>
                 </div>
                 <div className="text-[10px] text-[#605e58]">
-                  {t("restore.archivedDate") || "Tarih"}: {new Date(backupToRestore.createdAt).toLocaleString(locale === "tr" ? "tr-TR" : "en-US")}
+                  {t("restore.archivedDate")}: {new Date(backupToRestore.createdAt).toLocaleString(locale === "tr" ? "tr-TR" : "en-US")}
                 </div>
               </div>
 
               {/* Target Database Selector */}
               <div className="space-y-1.5">
                 <Label className="text-[10px] tracking-wider uppercase text-[#a09e96]">
-                  {t("restore.selectTargetDb") || "Hedef Veritabanı Seç"}
+                  {t("restore.selectTargetDb")}
                 </Label>
                 <Select value={restoreTargetId} onValueChange={setRestoreTargetId}>
                   <SelectTrigger className="bg-[#141210] border-[#2b2926] text-xs text-white font-mono rounded h-9 w-full">
-                    <SelectValue placeholder={t("restore.selectTargetDb") || "Hedef Veritabanı Seç"} />
+                    <SelectValue placeholder={t("restore.selectTargetDb")} />
                   </SelectTrigger>
                   <SelectContent position="popper" className="bg-[#141210] border-[#2b2926] text-[#E6E4DD]">
                     {databases.map((db) => (
@@ -719,7 +719,7 @@ export function ArchivePageClient({ initialBackups, databases, locale }: Archive
                       <div className="bg-[#2d1210] border border-[#4b1b1a] rounded p-3 flex items-start gap-2">
                         <IconAlertCircle size={14} className="text-[#f25c55] shrink-0 mt-0.5" />
                         <span className="text-[11px] text-[#f25c55]">
-                          {t("restore.productionWarning") || "Bu bir PRODUCTION veritabanıdır!"}
+                          {t("restore.productionWarning")}
                         </span>
                       </div>
                     )}
@@ -729,11 +729,11 @@ export function ArchivePageClient({ initialBackups, databases, locale }: Archive
                       <div className="flex items-center gap-2">
                         <IconAlertCircle size={14} className="text-[#f25c55]" />
                         <span className="text-[11px] font-bold text-[#f25c55] tracking-wider uppercase">
-                          {t("restore.warningTitle") || "VERİ KAYBI UYARISI"}
+                          {t("restore.warningTitle")}
                         </span>
                       </div>
                       <p className="text-[11px] text-[#f25c55]/90 leading-relaxed">
-                        {(t("restore.warningText") || "Bu işlem hedef veritabanındaki tüm mevcut tabloları ve verileri SİLECEKTİR. İşlem geri alınamaz.")}
+                        {t("restore.warningText")}
                       </p>
                     </div>
 
@@ -747,7 +747,7 @@ export function ArchivePageClient({ initialBackups, databases, locale }: Archive
                         className="mt-0.5 accent-[#e6b04e]"
                       />
                       <span className="text-[11px] leading-relaxed text-[#a09e96]">
-                        {(t("restore.confirmLabel") || "Veri kaybı riskini anlıyorum ve geri yüklemeyi başlatmak istiyorum.")}
+                        {t("restore.confirmLabel")}
                       </span>
                     </label>
                   </>
@@ -786,7 +786,7 @@ export function ArchivePageClient({ initialBackups, databases, locale }: Archive
               }`}
             >
               {restoring && <IconLoader2 size={12} className="animate-spin" />}
-              {restoring ? t("restore.processing") : t("restore.startButton")?.toUpperCase() || "GERİ YÜKLE"}
+              {restoring ? t("restore.processing") : t("restore.startButton")?.toUpperCase()}
             </Button>
           </DialogFooter>
         </DialogContent>

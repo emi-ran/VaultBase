@@ -99,10 +99,10 @@ export default function SettingsPage() {
           window.location.reload();
         }, 1500);
       } else {
-        setStatus({ type: "error", message: res.error || "Failed to save settings." });
+        setStatus({ type: "error", message: res.error || t("common.error") });
       }
     } catch (err: any) {
-      setStatus({ type: "error", message: err.message || "Failed to save settings." });
+      setStatus({ type: "error", message: err.message || t("common.error") });
     } finally {
       setLoading(false);
     }
@@ -136,12 +136,12 @@ export default function SettingsPage() {
         setExportModalOpen(false);
         setExportPassword("");
         setExportPasswordConfirm("");
-        setStatus({ type: "success", message: "Ayarlar başarıyla dışa aktarıldı." });
+        setStatus({ type: "success", message: t("settingsPage.exportSuccess") });
       } else {
-        setExportError(res.error || "Export failed");
+        setExportError(res.error || t("common.error"));
       }
     } catch (err: any) {
-      setExportError(err.message || "Export failed");
+      setExportError(err.message || t("common.error"));
     } finally {
       setExporting(false);
     }
@@ -164,7 +164,7 @@ export default function SettingsPage() {
       try {
         parsed = JSON.parse(text);
       } catch {
-        setStatus({ type: "error", message: "Geçersiz JSON dosyası." });
+        setStatus({ type: "error", message: t("settingsPage.invalidJson") });
         return;
       }
 
@@ -180,7 +180,7 @@ export default function SettingsPage() {
           if (res.success) {
             setStatus({
               type: "success",
-              message: `${res.importedCount} yeni veritabanı bağlantısı başarıyla içe aktarıldı. Sayfa yenileniyor...`
+              message: t("settingsPage.importSuccess", { count: res.importedCount ?? 0 })
             });
             setTimeout(() => window.location.reload(), 1500);
           } else {
@@ -193,7 +193,7 @@ export default function SettingsPage() {
         }
       }
     } catch (err: any) {
-      setStatus({ type: "error", message: "Dosya okunamadı." });
+      setStatus({ type: "error", message: t("settingsPage.fileReadError") });
     }
 
     e.target.value = "";
@@ -212,7 +212,7 @@ export default function SettingsPage() {
         setImportModalOpen(false);
         setStatus({
           type: "success",
-          message: `${res.importedCount} yeni veritabanı bağlantısı başarıyla içe aktarıldı. Sayfa yenileniyor...`
+            message: t("settingsPage.importSuccess", { count: res.importedCount ?? 0 })
         });
         setTimeout(() => window.location.reload(), 1500);
       } else if (res.error === "WRONG_PASSWORD") {
@@ -260,7 +260,7 @@ export default function SettingsPage() {
                 </label>
                 <Select value={timezone} onValueChange={setTimezone} disabled={loading}>
                   <SelectTrigger className="bg-[#141210] border-[#2b2926] text-xs text-white font-mono rounded h-10 w-full">
-                    <SelectValue placeholder="Select Timezone" />
+                    <SelectValue placeholder={t("settingsPage.timezoneSelectLabel")} />
                   </SelectTrigger>
                   <SelectContent position="popper" className="bg-[#141210] border-[#2b2926] text-[#E6E4DD] max-h-75 overflow-y-auto">
                     {timezonesList.map((tz) => {
@@ -352,16 +352,10 @@ export default function SettingsPage() {
 
             {/* Instruction Warning Alert */}
             <div className="p-4 bg-[#141210] border border-[#2b2926] rounded text-xs font-mono text-[#a09e96] space-y-2 leading-relaxed">
-              <span className="text-white font-bold uppercase block">⚠️ NOTLAR:</span>
-              <p>
-                • Dışa aktarma sırasında kullanıcı şifresi belirlerseniz dosya AES-256 ile şifrelenir. İçe aktarırken aynı şifre girilmelidir.
-              </p>
-              <p>
-                • Şifresiz dışa aktarılan dosyalar düz metin içerir ve veritabanı şifreleri dosyada açıkça görünür. Bu dosyaları güvenli olmayan ortamlarda paylaşmayın.
-              </p>
-              <p>
-                • Tüm veritabanı şifreleri yerel SQLite veritabanında <code className="text-white px-1 py-0.5 bg-[#2c2925] rounded">APP_SECRET</code> anahtarı ile şifrelenerek saklanır. İçe aktarma sırasında şifreler otomatik olarak bu sunucunun anahtarı ile yeniden şifrelenir.
-              </p>
+              <span className="text-white font-bold uppercase block">⚠️ {t("settingsPage.noteTitle")}:</span>
+              <p>• {t("settingsPage.noteEncrypted")}</p>
+              <p>• {t("settingsPage.notePlaintext")}</p>
+              <p>• {t("settingsPage.noteStorage")}</p>
             </div>
 
             {/* Action buttons */}

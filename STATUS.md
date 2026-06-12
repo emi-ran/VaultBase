@@ -153,9 +153,9 @@ Aşağıdaki tüm özellikler çalışır durumda:
 ## Git Durumu
 
 ```
-Branch: db_restore
-Son Commit: feat: add restore job logging with BackupJob.type field; add type badge/filter to jobs page (c642224)
-Değiştirilmemiş dosya: Evet (değişiklikler var)
+Branch: master
+Son Commit: c873db6 — feat: update README files for English and Turkish, add visual assets
+Değiştirilmemiş dosya: Hayır (i18n düzeltmeleri hazır - henüz commit edilmedi)
 ```
 
 ---

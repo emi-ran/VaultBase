@@ -101,7 +101,7 @@ export function JobsPageClient({ initialJobs }: JobsPageClientProps) {
         setDeleteLogError(res.error || null);
       }
     } catch (err: any) {
-      setDeleteLogError(err.message || "Failed to delete log entry");
+      setDeleteLogError(err.message || t("common.error"));
     } finally {
       setDeletingLog(false);
     }
@@ -124,7 +124,7 @@ export function JobsPageClient({ initialJobs }: JobsPageClientProps) {
         setClearLogsError(res.error || null);
       }
     } catch (err: any) {
-      setClearLogsError(err.message || "Failed to clear log history");
+      setClearLogsError(err.message || t("common.error"));
     } finally {
       setClearingLogs(false);
     }
@@ -316,7 +316,7 @@ export function JobsPageClient({ initialJobs }: JobsPageClientProps) {
         <Card className="bg-[#0d0c0b] border-[#2b2926] rounded-md font-sans">
           <CardHeader className="p-6 border-b border-[#2b2926] pb-4">
             <CardTitle className="text-sm font-mono tracking-wider text-white uppercase">
-              YEDEK İŞ LOG GEÇMİŞİ
+              {t("jobs.listTitle")}
             </CardTitle>
             <CardDescription className="text-xs text-[#a09e96] pt-1 leading-relaxed">
               {t("jobs.desc")}
@@ -358,7 +358,7 @@ export function JobsPageClient({ initialJobs }: JobsPageClientProps) {
                         <div className="flex flex-wrap items-center gap-2">
                           <span className="text-xs font-mono font-bold text-white flex items-center gap-1.5">
                             <IconDatabase size={12} className="text-[#605e58]" />
-                            {job.database?.name || "Bilinmeyen DB"}
+                            {job.database?.name || t("jobs.unknownDb")}
                           </span>
                           <span className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded border ${
                             job.triggerType === "manual"
@@ -372,7 +372,7 @@ export function JobsPageClient({ initialJobs }: JobsPageClientProps) {
                               ? "bg-[#2b2310]/30 border-[#4c3b1a] text-[#e6b04e]"
                               : "bg-[#132219]/30 border-[#1b3f2a] text-[#55f289]"
                           }`}>
-                            {job.type === "restore" ? (t("jobs.typeRestore") || "RESTORE").toUpperCase() : (t("jobs.typeBackup") || "BACKUP").toUpperCase()}
+                            {job.type === "restore" ? t("jobs.typeRestore").toUpperCase() : t("jobs.typeBackup").toUpperCase()}
                           </span>
                         </div>
 
@@ -380,7 +380,7 @@ export function JobsPageClient({ initialJobs }: JobsPageClientProps) {
                           {job.status === "success" ? (
                             <span>{job.filename} <span className="text-[#605e58]">({formatSize(job.sizeBytes)})</span></span>
                           ) : job.status === "failed" ? (
-                            <span className="text-[#f25c55]/80 italic">{job.errorMessage || "System failed to run pg_dump"}</span>
+                            <span className="text-[#f25c55]/80 italic">{job.errorMessage || t("backup.failedMsg")}</span>
                           ) : (
                             <span className="text-[#e6b04e]">{t("jobs.processing")}...</span>
                           )}
@@ -446,7 +446,11 @@ export function JobsPageClient({ initialJobs }: JobsPageClientProps) {
         {totalPages > 1 && (
           <div className="flex items-center justify-between font-mono text-[10px] text-[#605e58] pt-2">
             <span>
-              Gösterilen: {startIndex + 1} - {Math.min(startIndex + pageSize, filteredJobs.length)} / Toplam: {filteredJobs.length}
+              {t("backup.paginationInfo", {
+                start: startIndex + 1,
+                end: Math.min(startIndex + pageSize, filteredJobs.length),
+                total: filteredJobs.length,
+              })}
             </span>
             <div className="flex gap-2">
               <Button
@@ -477,10 +481,10 @@ export function JobsPageClient({ initialJobs }: JobsPageClientProps) {
           <DialogHeader className="border-b border-[#2b2926] pb-4 mb-4">
             <DialogTitle className="text-sm font-mono tracking-wider text-white uppercase flex items-center gap-2">
               <IconAlertCircle size={16} className="text-[#f25c55]" />
-              {t("common.delete")?.toUpperCase() || "SİL"}
+              {t("common.delete")?.toUpperCase()}
             </DialogTitle>
             <DialogDescription className="text-xs text-[#a09e96] pt-1">
-              {t("jobs.deleteConfirm") || "Bu log kaydını silmek istediğinize emin misiniz?"}
+              {t("jobs.deleteConfirm")}
             </DialogDescription>
           </DialogHeader>
 
@@ -516,10 +520,10 @@ export function JobsPageClient({ initialJobs }: JobsPageClientProps) {
           <DialogHeader className="border-b border-[#2b2926] pb-4 mb-4">
             <DialogTitle className="text-sm font-mono tracking-wider text-white uppercase flex items-center gap-2">
               <IconAlertCircle size={16} className="text-[#f25c55]" />
-              {t("jobs.clearLogs")?.toUpperCase() || "TÜM LOGLARI TEMİZLE"}
+              {t("jobs.clearLogsTitle")}
             </DialogTitle>
             <DialogDescription className="text-xs text-[#a09e96] pt-1">
-              {t("jobs.clearLogsConfirm") || "Bu işlem tüm log kayıtlarını kalıcı olarak silecektir. Emin misiniz?"}
+              {t("jobs.clearLogsConfirm")}
             </DialogDescription>
           </DialogHeader>
 

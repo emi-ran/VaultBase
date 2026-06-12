@@ -78,7 +78,7 @@ export function DatabaseModal({ onSuccess, trigger, database: editingDb }: Datab
         setMessage({ type: "error", text: `${t("database.testFailed")}${res.error}` });
       }
     } catch (err: any) {
-      setMessage({ type: "error", text: err.message || "Failed to test connection" });
+      setMessage({ type: "error", text: err.message || t("database.testFailed") });
     } finally {
       setTesting(false);
     }
@@ -87,7 +87,7 @@ export function DatabaseModal({ onSuccess, trigger, database: editingDb }: Datab
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name) {
-      setMessage({ type: "error", text: "Kısa ad (Short name) zorunludur." });
+      setMessage({ type: "error", text: t("database.validationNameRequired") });
       return;
     }
 
@@ -129,7 +129,7 @@ export function DatabaseModal({ onSuccess, trigger, database: editingDb }: Datab
         setMessage({ 
           type: "success", 
           text: isEdit 
-            ? (t("database.updateSuccess") || "Veritabanı başarıyla güncellendi.") 
+            ? t("database.updateSuccess") 
             : t("database.saveSuccess") 
         });
         setTimeout(() => {
@@ -142,11 +142,11 @@ export function DatabaseModal({ onSuccess, trigger, database: editingDb }: Datab
       } else {
         setMessage({ 
           type: "error", 
-          text: `${isEdit ? (t("database.updateFailed") || "Güncelleme hatası") : t("database.saveFailed")}: ${res.error}` 
+          text: `${isEdit ? t("database.updateFailed") : t("database.saveFailed")}: ${res.error}` 
         });
       }
     } catch (err: any) {
-      setMessage({ type: "error", text: err.message || "Failed to save database" });
+      setMessage({ type: "error", text: err.message || t("database.saveFailed") });
     } finally {
       setSaving(false);
     }
@@ -165,10 +165,10 @@ export function DatabaseModal({ onSuccess, trigger, database: editingDb }: Datab
       <DialogContent className="max-w-150 sm:max-w-150 w-full bg-[#0d0c0b] text-[#E6E4DD] border border-[#2b2926] p-0 overflow-hidden rounded-md shadow-2xl font-sans">
         <DialogHeader className="p-6 border-b border-[#2b2926]">
           <DialogTitle className="text-sm font-mono tracking-wider uppercase text-white">
-            {isEdit ? (t("database.editDbTitle") || "VERİTABANI BAĞLANTISINI DÜZENLE") : t("database.newDbTitle")}
+            {isEdit ? t("database.editDbTitle") : t("database.newDbTitle")}
           </DialogTitle>
           <DialogDescription className="text-xs text-[#a09e96] pt-1.5">
-            {isEdit ? (t("database.editDbDesc") || "PostgreSQL veritabanı bağlantı detaylarını güncelleyin.") : t("database.newDbDesc")}
+            {isEdit ? t("database.editDbDesc") : t("database.newDbDesc")}
           </DialogDescription>
         </DialogHeader>
 
@@ -256,7 +256,7 @@ export function DatabaseModal({ onSuccess, trigger, database: editingDb }: Datab
                   <Input
                     id="password"
                     type="password"
-                    placeholder={isEdit ? (t("database.passwordPlaceholderEdit") || "•••••••• (değiştirmek için)") : "••••••••"}
+                    placeholder={isEdit ? t("database.passwordPlaceholderEdit") : t("common.passwordPlaceholder")}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="bg-[#141210] border-[#2b2926] text-sm text-white font-mono rounded h-9 w-full"
@@ -287,7 +287,7 @@ export function DatabaseModal({ onSuccess, trigger, database: editingDb }: Datab
               </Label>
               <Input
                 id="name"
-                placeholder="e.g. core-db"
+                placeholder={t("common.placeholderName")}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 className="bg-[#141210] border-[#2b2926] text-sm text-white font-mono rounded h-9 w-full"
@@ -301,7 +301,7 @@ export function DatabaseModal({ onSuccess, trigger, database: editingDb }: Datab
               </Label>
               <Select value={ssl} onValueChange={setSsl}>
                 <SelectTrigger className="bg-[#141210] border-[#2b2926] text-sm text-white font-mono rounded h-9 w-full">
-                  <SelectValue placeholder="Select SSL Mode" />
+                  <SelectValue placeholder={t("database.selectSsl")} />
                 </SelectTrigger>
                 <SelectContent className="bg-[#141210] border-[#2b2926] text-[#E6E4DD]">
                   <SelectItem value="prefer" className="hover:bg-[#2b2926]">prefer</SelectItem>
@@ -320,7 +320,7 @@ export function DatabaseModal({ onSuccess, trigger, database: editingDb }: Datab
               </Label>
               <Select value={environment} onValueChange={setEnvironment}>
                 <SelectTrigger className="bg-[#141210] border-[#2b2926] text-sm text-white font-mono rounded h-9 w-full">
-                  <SelectValue placeholder="Ortam seçin" />
+                  <SelectValue placeholder={t("database.selectEnv")} />
                 </SelectTrigger>
                 <SelectContent className="bg-[#141210] border-[#2b2926] text-[#E6E4DD]">
                   <SelectItem value="production">{t("database.envProduction")}</SelectItem>
