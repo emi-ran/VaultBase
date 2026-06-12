@@ -65,7 +65,17 @@ VaultBase; birden fazla PostgreSQL (ilerleyen sürümlerde MongoDB) veritabanın
 
 ## Phase 2 – Zamanlanmış Yedekler (TAMAMLANDI)
 
-### 2.1 Cron Sistemi
+### 2.1 Veritabanı Yönetimi İyileştirmeleri
+- [x] PostgreSQL tür logosu (kart/tablo/explorer başlıklarında)
+- [x] Tüm bağlantıları tek butonla test etme
+- [x] Otomatik sağlık kontrolü (15sn/30sn/1dk polling, ayarlardan yapılandırılır)
+
+### 2.2 Export/Import İyileştirmeleri
+- [x] Export modalı: isteğe bağlı şifre (PBKDF2+AES-256) veya düz metin (uyarı ile)
+- [x] Import: şifreli dosyalar için modal ile şifre girişi
+- [x] Ayarlar (timezone, healthCheckInterval) da export/import kapsamına alındı
+
+### 2.3 Cron Sistemi
 - [x] node-cron entegrasyonu (background worker)
 - [x] Veritabanı başına cron ifadesi tanımlama UI'ı
 - [x] SQLite'ta zamanlama kaydı
@@ -73,7 +83,7 @@ VaultBase; birden fazla PostgreSQL (ilerleyen sürümlerde MongoDB) veritabanın
 - [x] Dashboard'da "Sıradaki Zamanlama" kartını gerçek veriye bağlama
 - [x] Zamanlanmış yedek geçmişi logları
 
-### 2.2 Bildirimler (İlerleyen Fazlarda Ele Alınacak / Devre Dışı Bırakıldı)
+### 2.4 Bildirimler (İlerleyen Fazlarda Ele Alınacak / Devre Dışı Bırakıldı)
 - [ ] Başarılı/başarısız yedek sonrası e-posta bildirimi
 - [ ] Webhook desteği (Slack, Discord, vb.)
 
@@ -152,5 +162,5 @@ VaultBase; birden fazla PostgreSQL (ilerleyen sürümlerde MongoDB) veritabanın
 
 | Sürüm | Tarih | Açıklama |
 |---|---|---|
-| 1.0.0 | 12 Haziran 2026 | Phase 2 tamamlandı – Zamanlanmış otomatik yedekler, sistem saati ve zaman dilimi ayarı, tüm bağlantıları test et, otomatik sağlık kontrolü, şifreli export/import |
+| 1.0.0 | 12 Haziran 2026 | Phase 2 tamamlandı – Zamanlanmış otomatik yedekler, sistem saati, zaman dilimi ayarı, tüm bağlantıları test et, otomatik sağlık kontrolü, PostgreSQL logosu, şifreli export/import (ayarlar dahil) |
 | 0.1.0-alpha | Haziran 2026 | Phase 1 tamamlandı – temel yedekleme ve dashboard |

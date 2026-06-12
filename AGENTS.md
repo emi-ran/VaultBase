@@ -55,7 +55,7 @@ Next.js 16 (App Router), Tailwind CSS v4, Shadcn UI, SQLite (Prisma 7 + Better-S
 
 ### Güvenlik
 - Tüm veritabanı şifreleri AES-256-CBC ile APP_SECRET env değişkeni kullanılarak şifrelenir.
-- Ayarlar export/import sırasında şifreler şifreli biçimde taşınır.
+- Ayarlar export: isteğe bağlı kullanıcı şifresiyle PBKDF2+AES-256 veya düz metin (uyarı ile). Import'ta şifreli dosyalar için modal ile şifre sorulur.
 - SQL injection koruması: lib/db-client.ts içinde identifier validation mevcut.
 
 ---
@@ -63,7 +63,7 @@ Next.js 16 (App Router), Tailwind CSS v4, Shadcn UI, SQLite (Prisma 7 + Better-S
 ## Dosya Haritası
 
 ```
-db-backuper/
+.
 ├── app/
 │   ├── actions.ts                  # Tüm Server Actions
 │   ├── page.tsx                    # Ana dashboard (Genel Bakış)

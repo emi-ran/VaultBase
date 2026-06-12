@@ -50,7 +50,9 @@ VaultBase, birden fazla PostgreSQL veritabanını tek bir panelden güvenli şek
 ### Veritabanı Yönetimi
 - ✅ URL veya alan bazlı bağlantı ekleme
 - ✅ Gerçek zamanlı bağlantı testi
+- ✅ Tüm bağlantıları tek butonla test etme
 - ✅ Çevrimiçi / Çevrimdışı durum takibi
+- ✅ PostgreSQL tür logosu (kart/tablo/explorer başlıklarında)
 - ✅ Birden fazla ortam (development, staging, production)
 
 ### Yedekleme
@@ -67,9 +69,11 @@ VaultBase, birden fazla PostgreSQL veritabanını tek bir panelden güvenli şek
 - ✅ SQL injection koruması
 
 ### Ayarlar
-- ✅ Tüm yapılandırmayı JSON olarak dışa aktar
+- ✅ Tüm yapılandırmayı JSON olarak dışa aktar (isteğe bağlı şifre korumalı)
 - ✅ JSON'dan yapılandırma içe aktar (sunucular arası taşıma)
-- ✅ Şifreler şifreli halde taşınır
+- ✅ Şifreli export: kullanıcı şifresiyle AES-256-CBC koruma
+- ✅ Sağlık kontrolü aralığı ayarı (15sn / 30sn / 1dk)
+- ✅ Otomatik sağlık kontrolü (sayfa açıkken periyodik polling)
 
 ### Genel
 - ✅ Dashboard istatistik kartları
@@ -180,14 +184,15 @@ STORAGE_LIMIT_MB=5120
 Ayarlar → Yapılandırmayı Dışa Aktar → vaultbase_config.json
 ```
 
-Bu JSON dosyasını başka bir VaultBase instance'ında **"İçe Aktar"** ile yükleyebilirsiniz. Veritabanı şifreleri şifreli olarak taşınır.
+Bu JSON dosyasını başka bir VaultBase instance'ında **"İçe Aktar"** ile yükleyebilirsiniz.
+Export sırasında isteğe bağlı bir şifre belirleyebilirsiniz (AES-256-CBC koruma) veya uyarıyı kabul ederek şifresiz dışa aktarabilirsiniz.
 
 ---
 
 ## 📁 Proje Yapısı
 
 ```
-db-backuper/
+.
 ├── app/
 │   ├── actions.ts                  # Tüm Server Actions
 │   ├── page.tsx                    # Ana dashboard
