@@ -512,7 +512,7 @@ export function DatabasesPageClient({ databases }: DatabasesPageClientProps) {
                       <div className="flex items-start justify-between">
                           <div className="space-y-1 max-w-[70%]">
                             <div className="flex items-center gap-2">
-                              <DatabaseTypeMark />
+<DatabaseTypeMark type={db.type as "postgresql" | "mongodb"} />
                               <h4 className="min-w-0 truncate text-xs font-mono font-bold uppercase text-white" title={db.name}>
                                 {db.name}
                               </h4>
@@ -682,10 +682,9 @@ export function DatabasesPageClient({ databases }: DatabasesPageClientProps) {
         )}
       </div>
 
-      {/* Manual Backup Dialog Confirmation */}
       <Dialog open={backupOpen} onOpenChange={setBackupOpen}>
-        <DialogContent className="max-w-125 bg-[#0d0c0b] text-[#E6E4DD] border border-[#2b2926] font-sans rounded-md">
-          <DialogHeader>
+        <DialogContent className="max-w-125 sm:max-w-125 w-full bg-[#0d0c0b] text-[#E6E4DD] border border-[#2b2926] p-6 font-sans rounded-md shadow-2xl">
+          <DialogHeader className="pb-3 border-b border-[#2b2926]">
             <DialogTitle className="text-sm font-mono tracking-wider uppercase text-white flex items-center gap-2">
               <IconDatabase size={16} className="text-[#55f289]" />
               {t("backup.backupNow").toUpperCase()}
@@ -738,13 +737,13 @@ export function DatabasesPageClient({ databases }: DatabasesPageClientProps) {
             )}
           </div>
 
-          <DialogFooter className="gap-2">
+          <DialogFooter className="pt-3 border-t border-[#2b2926] flex flex-row justify-end gap-3">
             <Button
               type="button"
               variant="outline"
               disabled={backingUp}
               onClick={() => { setBackupOpen(false); setSelectedDb(null); }}
-              className="border-[#2b2926] text-[#E6E4DD] hover:bg-[#1c1a17] hover:text-white font-mono text-xs cursor-pointer rounded"
+              className="border-[#2b2926] text-[#E6E4DD] hover:bg-[#1c1a17] hover:text-white font-mono text-xs cursor-pointer rounded h-8 px-4"
             >
               {t("common.cancel")}
             </Button>
@@ -752,7 +751,7 @@ export function DatabasesPageClient({ databases }: DatabasesPageClientProps) {
               type="button"
               disabled={backingUp}
               onClick={handleStartBackup}
-              className="bg-[#1b3224] hover:bg-[#223f2d] text-white border border-[#2b4c37] font-mono text-xs cursor-pointer rounded"
+              className="bg-[#1b3224] hover:bg-[#223f2d] text-white border border-[#2b4c37] font-mono text-xs cursor-pointer rounded h-8 px-4 flex items-center gap-1.5"
             >
               {backingUp ? (
                 <span className="flex items-center gap-1">
@@ -769,8 +768,8 @@ export function DatabasesPageClient({ databases }: DatabasesPageClientProps) {
 
       {/* Restore Database Dialog */}
       <Dialog open={restoreOpen} onOpenChange={(v) => { if (!restoring) { setRestoreOpen(v); setRestoreResult(null); } }}>
-        <DialogContent className="max-w-125 bg-[#0d0c0b] text-[#E6E4DD] border border-[#2b2926] font-sans rounded-md">
-          <DialogHeader>
+        <DialogContent className="max-w-125 sm:max-w-125 w-full bg-[#0d0c0b] text-[#E6E4DD] border border-[#2b2926] p-6 font-sans rounded-md shadow-2xl">
+          <DialogHeader className="pb-3 border-b border-[#2b2926]">
             <DialogTitle className="text-sm font-mono tracking-wider uppercase text-white flex items-center gap-2">
               <IconUpload size={16} className="text-[#e6b04e]" />
               {t("restore.title")?.toUpperCase()}
@@ -785,7 +784,7 @@ export function DatabasesPageClient({ databases }: DatabasesPageClientProps) {
             <div className="bg-[#141210] border border-[#2b2926] rounded p-3 space-y-1.5">
               <span className="text-[9px] text-[#605e58] tracking-wider uppercase">{t("restore.targetDb")}</span>
               <div className="flex items-center gap-2">
-                <DatabaseTypeMark />
+                <DatabaseTypeMark type={dbToRestore?.type as "postgresql" | "mongodb"} />
                 <span className="text-white font-bold text-sm">{dbToRestore?.name}</span>
                 <span className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded border ${
                   dbToRestore?.environment === "production"
@@ -797,7 +796,7 @@ export function DatabasesPageClient({ databases }: DatabasesPageClientProps) {
                   {dbToRestore?.environment?.toUpperCase()}
                 </span>
               </div>
-              <span className="text-[#a09e96] text-[10px]">{dbToRestore?.host}:{dbToRestore?.port}/{dbToRestore?.database}</span>
+              <span className="text-[#a09e96] text-[10px]">{dbToRestore?.host}:{dbToRestore?.port}{dbToRestore?.database ? `/${dbToRestore.database}` : ""}</span>
             </div>
 
             {/* File Picker */}
@@ -856,7 +855,7 @@ export function DatabasesPageClient({ databases }: DatabasesPageClientProps) {
                 </span>
               </div>
               <p className="text-[11px] text-[#f25c55]/90 leading-relaxed">
-                {t("restore.warningText")}
+                {dbToRestore?.type === "mongodb" ? t("restore.warningTextMongo") : t("restore.warningText")}
               </p>
             </div>
 
@@ -886,13 +885,13 @@ export function DatabasesPageClient({ databases }: DatabasesPageClientProps) {
             )}
           </div>
 
-          <DialogFooter className="gap-2">
+          <DialogFooter className="pt-3 border-t border-[#2b2926] flex flex-row justify-end gap-3">
             <Button
               type="button"
               variant="outline"
               disabled={restoring}
               onClick={() => { setRestoreOpen(false); setDbToRestore(null); setRestoreResult(null); }}
-              className="border-[#2b2926] text-[#E6E4DD] hover:bg-[#1c1a17] hover:text-white font-mono text-xs cursor-pointer rounded"
+              className="border-[#2b2926] text-[#E6E4DD] hover:bg-[#1c1a17] hover:text-white font-mono text-xs cursor-pointer rounded h-8 px-4"
             >
               {t("common.cancel")}
             </Button>
@@ -900,7 +899,7 @@ export function DatabasesPageClient({ databases }: DatabasesPageClientProps) {
               type="button"
               disabled={!restoreFile || !restoreAcknowledged || restoring}
               onClick={handleStartRestore}
-              className={`font-mono text-xs cursor-pointer rounded flex items-center gap-2 ${
+              className={`font-mono text-xs cursor-pointer rounded flex items-center gap-2 h-8 px-4 ${
                 !restoreFile || !restoreAcknowledged
                   ? "bg-[#2b2926] text-[#605e58] cursor-not-allowed"
                   : "bg-[#2d1210] hover:bg-[#4b1b1a] text-[#f25c55] border border-[#4b1b1a]"
@@ -921,8 +920,8 @@ export function DatabasesPageClient({ databases }: DatabasesPageClientProps) {
 
       {/* Delete Database Dialog Confirmation */}
       <Dialog open={deleteDbOpen} onOpenChange={setDeleteDbOpen}>
-        <DialogContent className="max-w-112.5 bg-[#0d0c0b] text-[#E6E4DD] border border-[#2b2926] font-sans rounded-md">
-          <DialogHeader>
+        <DialogContent className="max-w-112.5 sm:max-w-112.5 w-full bg-[#0d0c0b] text-[#E6E4DD] border border-[#2b2926] p-6 font-sans rounded-md shadow-2xl">
+          <DialogHeader className="pb-3 border-b border-[#2b2926]">
             <DialogTitle className="text-sm font-mono tracking-wider uppercase text-white flex items-center gap-2">
               <IconAlertCircle size={16} className="text-[#f25c55]" />
               {t("common.delete")?.toUpperCase()}
@@ -947,13 +946,13 @@ export function DatabasesPageClient({ databases }: DatabasesPageClientProps) {
             </div>
           </div>
 
-          <DialogFooter className="gap-2">
+          <DialogFooter className="pt-3 border-t border-[#2b2926] flex flex-row justify-end gap-3">
             <Button
               type="button"
               variant="outline"
               disabled={deletingDb}
               onClick={() => { setDeleteDbOpen(false); setDbToDelete(null); }}
-              className="border-[#2b2926] text-[#E6E4DD] hover:bg-[#1c1a17] hover:text-white font-mono text-xs cursor-pointer rounded"
+              className="border-[#2b2926] text-[#E6E4DD] hover:bg-[#1c1a17] hover:text-white font-mono text-xs cursor-pointer rounded h-8 px-4"
             >
               {t("common.cancel")}
             </Button>
@@ -961,7 +960,7 @@ export function DatabasesPageClient({ databases }: DatabasesPageClientProps) {
               type="button"
               disabled={deletingDb}
               onClick={handleDeleteDb}
-              className="bg-[#2d1210] hover:bg-[#3f1614] text-[#f25c55] border border-[#4b1b1a] font-mono text-xs cursor-pointer rounded"
+              className="bg-[#2d1210] hover:bg-[#3f1614] text-[#f25c55] border border-[#4b1b1a] font-mono text-xs cursor-pointer rounded h-8 px-4"
             >
               {deletingDb ? (
                 <span className="flex items-center gap-1">

@@ -1,0 +1,4 @@
+.moat/*.json text eol=lf
+.moat/*.md text eol=lf
+.opencode/**/*.md text eol=lf
+.agents/**/*.md text eol=lf

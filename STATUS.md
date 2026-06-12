@@ -1,20 +1,20 @@
 # VaultBase – Geliştirme Durumu
 
-Son güncelleme: 12 Haziran 2026
+Son güncelleme: 13 Haziran 2026
 
 ---
 
 ## Anlık Durum
 
-**Aktif Sürüm:** 1.1.0  
+**Aktif Sürüm:** 1.0.0  
 **Genel Durum:** ✅ Kararlı (Geliştirme & Production Ortamı)  
-**Aktif Phase:** Phase 4 (Geri Yükleme) – KISMEN TAMAMLANDI
+**Aktif Phase:** Phase 5 (MongoDB Desteği) – TAMAMLANDI
 
 ---
 
 ## Phase 1 & 2 Tamamlama Özeti
 
-Phase 1 ve Phase 2 özellikleri eksiksiz tamamlandı, test edildi ve kararlı hale getirildi.  
+Phase 1-5 özellikleri eksiksiz tamamlandı, test edildi ve kararlı hale getirildi.  
 Aşağıdaki tüm özellikler çalışır durumda:
 
 ### Çalışan Özellikler
@@ -50,6 +50,13 @@ Aşağıdaki tüm özellikler çalışır durumda:
 | Depolama göstergesi | ✅ Çalışıyor | Limit takibi |
 | /jobs Sayfası | ✅ Çalışıyor | Yedek işlem geçmişi listeleme, durum/tetikleyici filtreleri, hata modalı |
 | PostgreSQL Tür Logosu | ✅ Çalışıyor | Kart/tablo/explorer başlıklarında PostgreSQL logosu |
+| MongoDB Tür Logosu | ✅ Çalışıyor | DatabaseTypeMark bileşeni, yeşil SVG logo |
+| MongoDB Bağlantı & Test | ✅ Çalışıyor | mongodb driver ile URI parsing, ping, auth source/SSL/TLS |
+| MongoDB Explorer | ✅ Çalışıyor | Collection listesi + döküman tablosu (dinamik kolonlar, sayfalama) |
+| MongoDB Yedekleme | ✅ Çalışıyor | mongodump --archive | gzip, type routing ile |
+| MongoDB Geri Yükleme | ✅ Çalışıyor | gunzip | mongorestore --archive --drop |
+| Veritabanı Tür Seçici | ✅ Çalışıyor | Modal'da PostgreSQL/MongoDB toggle, otomatik port/placeholder değişimi |
+| Otomatik Tür Algılama | ✅ Çalışıyor | mongodb:// prefix → MongoDB routing |
 | Tüm Bağlantıları Test Et | ✅ Çalışıyor | /databases sayfasında tek butonla tüm bağlantıları test etme |
 | Otomatik Sağlık Kontrolü | ✅ Çalışıyor | Ayarlardan 15sn/30sn/1dk aralıkla otomatik polling, sayfa açıkken çalışır |
 | Kullanıcı Girişi | ✅ Çalışıyor | .env tabanlı admin (ADMIN_USERNAME/PASSWORD), HMAC-imzalı session cookie, proxy.ts ile route koruması |
@@ -61,6 +68,21 @@ Aşağıdaki tüm özellikler çalışır durumda:
 ---
 
 ## Sürüm Notları
+
+### v1.0.0 — MongoDB Desteği, i18n Polisajı
+
+- MongoDB bağlantı: lib/db-mongo-client.ts (ping, collections, documents, size)
+- MongoDB yedekleme: lib/backup-mongo-service.ts (mongodump --archive | gzip)
+- MongoDB geri yükleme: lib/restore-mongo-service.ts (gunzip | mongorestore --archive --drop)
+- database-modal.tsx: PostgreSQL/MongoDB type toggle, otomatik port/placeholder
+- database-type-mark.tsx: MongoDB SVG logo
+- app/databases/[id]/page.tsx: MongoDB collection/document explorer (dinamik kolonlar)
+- actions.ts: type-aware CRUD, parseMongoUrl, test/backup/restore routing by type
+- backup-service.ts: type routing (postgresql → pg_dump, mongodb → mongodump)
+- components tür göstergesi (dashboard-tables, databases-page-client)
+- Dockerfile: mongodb-database-tools (Ubuntu MongoDB 8.0 apt repo)
+- esbuild güvenlik fix (CVE override → ^0.28.1)
+- i18n polisajı: 200+ sabit string temizliği, translate() interpolasyon, schedules Dialog migration
 
 ### v1.1.0 — Geri Yükleme, Proxy Migration, Performans İyileştirmeleri
 
@@ -110,6 +132,12 @@ Aşağıdaki tüm özellikler çalışır durumda:
 ### Açık
 - pg_dump Windows'ta PATH'de yoksa hata mesajı bazen belirsiz olabiliyor
 
+### Çözüldü
+- **[ÇÖZÜLDÜ]** testAndUpdateDatabaseStatusAction yalnızca PostgreSQL test ediyordu
+  - Düzeltme: db.type kontrolü eklendi, MongoDB için testMongoConnection'a yönlendirir
+- **[ÇÖZÜLDÜ]** testAllConnectionsAction yalnızca PostgreSQL test ediyordu
+  - Düzeltme: db.type kontrolü eklendi, MongoDB için testMongoConnection'a yönlendirir
+
 ---
 
 ## Bağımlılıklar
@@ -122,6 +150,7 @@ Aşağıdaki tüm özellikler çalışır durumda:
   "@prisma/adapter-better-sqlite3": "7.x",
   "better-sqlite3": "latest",
   "pg": "latest",
+  "mongodb": "7.3.0",
   "tailwindcss": "4.x",
   "@tabler/icons-react": "latest"
 }
@@ -136,26 +165,28 @@ Aşağıdaki tüm özellikler çalışır durumda:
 | Node.js | v20 | v22 LTS |
 | pnpm | v8 | v9 |
 | pg_dump | 14+ | 18 (Docker ile gelir) |
+| mongodump / mongorestore | 7.0+ | 8.0 (Docker ile gelir) |
 | Disk (yedekler) | 1 GB | 10+ GB |
 
 ---
 
-## Sonraki Adımlar (Phase 3 & 4)
+## Sonraki Adımlar (Phase 3 & 6)
 
 Öncelik sırasına göre:
 
 1. **Bulut depolama entegrasyonu** — Amazon S3, Cloudflare R2, Google Cloud Storage, MinIO entegrasyonları
-4. **Otomatik bulut senkronizasyonu** — yedek tamamlandığında otomatik olarak bulut depolamaya kopyalanması
-5. **Bulut yedekleri yönetimi** — bulut üzerindeki yedek dosyalarını arama, indirme ve silme arayüzleri
+2. **Otomatik bulut senkronizasyonu** — yedek tamamlandığında otomatik olarak bulut depolamaya kopyalanması
+3. **Bulut yedekleri yönetimi** — bulut üzerindeki yedek dosyalarını arama, indirme ve silme arayüzleri
+4. **Çok kullanıcılı erişim yönetimi** — 2FA, roller (Admin / Viewer)
 
 ---
 
 ## Git Durumu
 
 ```
-Branch: master
-Son Commit: c873db6 — feat: update README files for English and Turkish, add visual assets
-Değiştirilmemiş dosya: Hayır (i18n düzeltmeleri hazır - henüz commit edilmedi)
+Branch: mongo_support (master'e merge edilmedi)
+Son Commit: 5509df8 — refactor: backup job handling and UI improvements
+Durum: Unstaged değişiklikler — login page i18n + dil seçici, dashboard restore activity fix, "See All" link, clear logs modal detail box, jobs clear button styling, locale key eklemeleri
 ```
 
 ---

@@ -447,7 +447,7 @@ export function ArchivePageClient({ initialBackups, databases, locale }: Archive
                     <TableRow key={job.id} className="border-b border-[#2b2926]/40 hover:bg-[#141210]/40">
                       
                       {/* Filename & Status */}
-                      <TableCell className="font-mono text-xs text-white max-w-[280px] truncate px-6" title={job.filename}>
+                      <TableCell className="font-mono text-xs text-white max-w-70 truncate px-6" title={job.filename}>
                         <div className="flex items-center gap-2">
                           <span className={`w-2 h-2 rounded-full shrink-0 ${
                             job.status === "success" 
@@ -459,7 +459,7 @@ export function ArchivePageClient({ initialBackups, databases, locale }: Archive
                           <span className="truncate">{job.filename}</span>
                         </div>
                         {job.errorMessage && (
-                          <span className="text-[9px] text-[#f25c55] block font-mono pl-4 truncate max-w-[260px] mt-0.5" title={job.errorMessage}>
+                          <span className="text-[9px] text-[#f25c55] block font-mono pl-4 truncate max-w-65 mt-0.5" title={job.errorMessage}>
                             {job.errorMessage}
                           </span>
                         )}
@@ -576,7 +576,7 @@ export function ArchivePageClient({ initialBackups, databases, locale }: Archive
 
       {/* CONFIRMATION DIALOG: Delete Backup */}
       <Dialog open={deleteBackupOpen} onOpenChange={(v) => { if (!deletingBackup) setDeleteBackupOpen(v); }}>
-        <DialogContent className="max-w-[450px] sm:max-w-[450px] w-full bg-[#0d0c0b] text-[#E6E4DD] border border-[#2b2926] rounded-md shadow-2xl p-6 font-sans">
+        <DialogContent className="max-w-112.5 sm:max-w-112.5 w-full bg-[#0d0c0b] text-[#E6E4DD] border border-[#2b2926] rounded-md shadow-2xl p-6 font-sans">
           <DialogHeader className="pb-3 border-b border-[#2b2926]">
             <DialogTitle className="text-sm font-mono tracking-wider uppercase text-white flex items-center gap-2">
               <IconAlertCircle size={16} className="text-[#f25c55]" />
@@ -604,7 +604,7 @@ export function ArchivePageClient({ initialBackups, databases, locale }: Archive
             </div>
           )}
 
-          <DialogFooter className="pt-3 border-t border-[#2b2926] gap-2 sm:gap-0">
+          <DialogFooter className="pt-3 border-t border-[#2b2926] flex flex-row justify-end gap-3">
             <Button
               onClick={() => { setDeleteBackupOpen(false); setBackupToDelete(null); }}
               disabled={deletingBackup}
@@ -627,7 +627,7 @@ export function ArchivePageClient({ initialBackups, databases, locale }: Archive
 
       {/* CONFIRMATION DIALOG: Clear Archive */}
       <Dialog open={clearArchiveOpen} onOpenChange={(v) => { if (!clearingArchive) setClearArchiveOpen(v); }}>
-        <DialogContent className="max-w-[450px] sm:max-w-[450px] w-full bg-[#0d0c0b] text-[#E6E4DD] border border-[#2b2926] rounded-md shadow-2xl p-6 font-sans">
+        <DialogContent className="max-w-112.5 sm:max-w-112.5 w-full bg-[#0d0c0b] text-[#E6E4DD] border border-[#2b2926] rounded-md shadow-2xl p-6 font-sans">
           <DialogHeader className="pb-3 border-b border-[#2b2926]">
             <DialogTitle className="text-sm font-mono tracking-wider uppercase text-white flex items-center gap-2">
               <IconAlertCircle size={16} className="text-[#f25c55]" />
@@ -638,7 +638,7 @@ export function ArchivePageClient({ initialBackups, databases, locale }: Archive
             </DialogDescription>
           </DialogHeader>
 
-          <DialogFooter className="pt-3 border-t border-[#2b2926] gap-2 sm:gap-0">
+          <DialogFooter className="pt-3 border-t border-[#2b2926] flex flex-row justify-end gap-3">
             <Button
               onClick={() => setClearArchiveOpen(false)}
               disabled={clearingArchive}
@@ -661,7 +661,7 @@ export function ArchivePageClient({ initialBackups, databases, locale }: Archive
 
       {/* CONFIRMATION DIALOG: Restore from Archive */}
       <Dialog open={restoreOpen} onOpenChange={(v) => { if (!restoring) { setRestoreOpen(v); setRestoreResult(null); } }}>
-        <DialogContent className="max-w-[500px] sm:max-w-[500px] w-full bg-[#0d0c0b] text-[#E6E4DD] border border-[#2b2926] rounded-md shadow-2xl p-6 font-sans">
+        <DialogContent className="max-w-125 sm:max-w-125 w-full bg-[#0d0c0b] text-[#E6E4DD] border border-[#2b2926] rounded-md shadow-2xl p-6 font-sans">
           <DialogHeader className="pb-3 border-b border-[#2b2926]">
             <DialogTitle className="text-sm font-mono tracking-wider uppercase text-white flex items-center gap-2">
               <IconUpload size={16} className="text-[#e6b04e]" />
@@ -673,12 +673,12 @@ export function ArchivePageClient({ initialBackups, databases, locale }: Archive
           </DialogHeader>
 
           {backupToRestore && (
-            <div className="py-4 space-y-4 font-mono text-xs">
+            <div className="py-4 space-y-4 font-mono text-xs min-w-0">
               {/* Backup Info */}
-              <div className="bg-[#141210] border border-[#2b2926] rounded p-3 space-y-1.5">
+              <div className="bg-[#141210] border border-[#2b2926] rounded p-3 space-y-1.5 min-w-0">
                 <span className="text-[9px] text-[#605e58] tracking-wider uppercase">{t("restore.backupInfo")}</span>
-                <div className="flex items-center gap-2">
-                  <IconDatabase size={14} className="text-[#55f289]" />
+                <div className="flex items-center gap-2 min-w-0">
+                  <IconDatabase size={14} className="text-[#55f289] shrink-0" />
                   <span className="text-white font-bold text-sm truncate">{backupToRestore.filename}</span>
                 </div>
                 <div className="flex justify-between text-[10px]">
@@ -702,7 +702,7 @@ export function ArchivePageClient({ initialBackups, databases, locale }: Archive
                   <SelectContent position="popper" className="bg-[#141210] border-[#2b2926] text-[#E6E4DD]">
                     {databases.map((db) => (
                       <SelectItem key={db.id} value={db.id}>
-                        {db.name} ({db.host}:{db.port}/{db.database})
+                        {db.name} ({db.host}:{db.port}{db.database ? `/${db.database}` : ""})
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -714,7 +714,7 @@ export function ArchivePageClient({ initialBackups, databases, locale }: Archive
                 const targetDb = databases.find((d: any) => d.id === restoreTargetId)
                 if (!targetDb) return null
                 return (
-                  <>
+                  <div className="space-y-4">
                     {targetDb.environment === "production" && (
                       <div className="bg-[#2d1210] border border-[#4b1b1a] rounded p-3 flex items-start gap-2">
                         <IconAlertCircle size={14} className="text-[#f25c55] shrink-0 mt-0.5" />
@@ -733,7 +733,7 @@ export function ArchivePageClient({ initialBackups, databases, locale }: Archive
                         </span>
                       </div>
                       <p className="text-[11px] text-[#f25c55]/90 leading-relaxed">
-                        {t("restore.warningText")}
+                        {targetDb.type === "mongodb" ? t("restore.warningTextMongo") : t("restore.warningText")}
                       </p>
                     </div>
 
@@ -750,7 +750,7 @@ export function ArchivePageClient({ initialBackups, databases, locale }: Archive
                         {t("restore.confirmLabel")}
                       </span>
                     </label>
-                  </>
+                  </div>
                 )
               })()}
 
@@ -767,7 +767,7 @@ export function ArchivePageClient({ initialBackups, databases, locale }: Archive
             </div>
           )}
 
-          <DialogFooter className="pt-3 border-t border-[#2b2926] gap-2 sm:gap-0">
+          <DialogFooter className="pt-3 border-t border-[#2b2926] flex flex-row justify-end gap-3">
             <Button
               onClick={() => { setRestoreOpen(false); setBackupToRestore(null); setRestoreResult(null); }}
               disabled={restoring}

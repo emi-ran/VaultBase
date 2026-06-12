@@ -221,7 +221,7 @@ export function SchedulesPageClient({ initialDatabases, initialSchedules, timezo
 
   // Delete schedule dialog
   const [deleteOpen, setDeleteOpen] = useState(false);
-  const [scheduleToDelete, setScheduleToDelete] = useState<string | null>(null);
+  const [scheduleToDelete, setScheduleToDelete] = useState<Schedule | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
@@ -384,8 +384,8 @@ export function SchedulesPageClient({ initialDatabases, initialSchedules, timezo
     }
   };
 
-  const openDeleteDialog = (id: string) => {
-    setScheduleToDelete(id);
+  const openDeleteDialog = (sch: Schedule) => {
+    setScheduleToDelete(sch);
     setDeleteError(null);
     setDeleteOpen(true);
   };
@@ -395,11 +395,11 @@ export function SchedulesPageClient({ initialDatabases, initialSchedules, timezo
     setDeleting(true);
     setDeleteError(null);
     try {
-      const res = await deleteScheduleAction(scheduleToDelete);
+      const res = await deleteScheduleAction(scheduleToDelete.id);
       if (res.success) {
         setDeleteOpen(false);
         setScheduleToDelete(null);
-        setSchedules(prev => prev.filter(s => s.id !== scheduleToDelete));
+        setSchedules(prev => prev.filter(s => s.id !== scheduleToDelete!.id));
       } else {
         setDeleteError(res.error || t("common.error"));
       }
@@ -535,8 +535,8 @@ export function SchedulesPageClient({ initialDatabases, initialSchedules, timezo
           </Button>
 
           {/* Dialog Width constrained to max-w-[600px] sm:max-w-[600px] explicitly as per AGENTS.md */}
-          <DialogContent className="max-w-150 sm:max-w-150 bg-[#0d0c0b] border-[#2b2926] text-[#E6E4DD] rounded-md font-sans p-6 overflow-y-auto max-h-[90vh]">
-            <DialogHeader className="border-b border-[#2b2926] pb-4 mb-4">
+          <DialogContent className="max-w-150 sm:max-w-150 w-full bg-[#0d0c0b] border-[#2b2926] text-[#E6E4DD] rounded-md font-sans p-6 overflow-y-auto max-h-[90vh]">
+            <DialogHeader className="pb-3 border-b border-[#2b2926]">
               <DialogTitle className="text-sm font-mono tracking-wider text-white uppercase flex items-center gap-2">
                 <IconCalendarStats size={16} className="text-[#55f289]" />
                 {editingSchedule ? t("schedules.editSchedule") : t("schedules.newScheduleTitle")}
@@ -975,7 +975,7 @@ export function SchedulesPageClient({ initialDatabases, initialSchedules, timezo
                         </Button>
                         <Button
                           variant="ghost"
-                          onClick={() => openDeleteDialog(sch.id)}
+                          onClick={() => openDeleteDialog(sch)}
                           className="h-8 w-8 p-0 border border-transparent hover:border-[#2b2926] hover:bg-[#2d1210]/30 text-[#a09e96] hover:text-[#f25c55] rounded cursor-pointer flex items-center justify-center"
                           title={t("common.delete")}
                         >
@@ -995,8 +995,8 @@ export function SchedulesPageClient({ initialDatabases, initialSchedules, timezo
 
         {/* Delete Schedule Confirmation Dialog */}
         <Dialog open={deleteOpen} onOpenChange={(v) => { if (!deleting) { setDeleteOpen(v); setDeleteError(null); } }}>
-          <DialogContent className="max-w-112.5 sm:max-w-112.5 bg-[#0d0c0b] border-[#2b2926] text-[#E6E4DD] rounded-md font-sans p-6">
-            <DialogHeader className="border-b border-[#2b2926] pb-4 mb-4">
+          <DialogContent className="max-w-112.5 sm:max-w-112.5 w-full bg-[#0d0c0b] border-[#2b2926] text-[#E6E4DD] rounded-md font-sans p-6 shadow-2xl">
+            <DialogHeader className="pb-3 border-b border-[#2b2926]">
               <DialogTitle className="text-sm font-mono tracking-wider text-white uppercase flex items-center gap-2">
                 <IconAlertCircle size={16} className="text-[#f25c55]" />
                 {t("common.delete")?.toUpperCase()}
@@ -1006,13 +1006,34 @@ export function SchedulesPageClient({ initialDatabases, initialSchedules, timezo
               </DialogDescription>
             </DialogHeader>
 
+            {scheduleToDelete && (
+              <div className="py-4 space-y-2 font-mono text-xs">
+                <div className="bg-[#141210] border border-[#2b2926] rounded p-3 space-y-1.5">
+                  <div className="flex justify-between">
+                    <span className="text-[#605e58]">{t("common.shortName")}:</span>
+                    <span className="text-white font-bold">{scheduleToDelete.database.name}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-[#605e58]">{t("schedules.cronExpr")}:</span>
+                    <code className="text-[#55f289] bg-[#1b3224]/40 px-1.5 py-0.5 rounded text-[10px] font-mono">{scheduleToDelete.cron}</code>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-[#605e58]">{t("common.status")}:</span>
+                    <span className={scheduleToDelete.enabled ? "text-[#55f289]" : "text-[#605e58]"}>
+                      {scheduleToDelete.enabled ? t("common.enabled") : t("common.disabled")}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {deleteError && (
               <div className="mb-4 p-3 bg-[#2d1210] border border-[#4b1b1a] rounded text-[11px] font-mono text-[#f25c55]">
                 {deleteError}
               </div>
             )}
 
-            <DialogFooter className="gap-2">
+            <DialogFooter className="pt-3 border-t border-[#2b2926] flex flex-row justify-end gap-3">
               <Button
                 onClick={() => { setDeleteOpen(false); setScheduleToDelete(null); setDeleteError(null); }}
                 disabled={deleting}

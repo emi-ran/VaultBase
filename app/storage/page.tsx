@@ -15,6 +15,7 @@ export default async function StoragePage() {
       backups: {
         where: {
           status: "success",
+          type: "backup",
         },
       },
     },
@@ -27,6 +28,7 @@ export default async function StoragePage() {
   const backups = await prisma.backupJob.findMany({
     where: {
       status: "success",
+      type: "backup",
     },
     include: {
       database: true,

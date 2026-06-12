@@ -24,11 +24,12 @@ export function DatabaseModal({ onSuccess, trigger, database: editingDb }: Datab
   const isEdit = !!editingDb;
 
   // Form state
+  const [dbType, setDbType] = useState<"postgresql" | "mongodb">(editingDb?.type || "postgresql");
   const [name, setName] = useState(editingDb?.name || "");
   const [mode, setMode] = useState<"url" | "fields">(editingDb ? "fields" : "url");
   const [connectionString, setConnectionString] = useState("");
   const [host, setHost] = useState(editingDb?.host || "");
-  const [port, setPort] = useState(editingDb?.port ? String(editingDb.port) : "5432");
+  const [port, setPort] = useState(editingDb?.port ? String(editingDb.port) : (editingDb?.type === "mongodb" ? "27017" : "5432"));
   const [user, setUser] = useState(editingDb?.user || "");
   const [password, setPassword] = useState("");
   const [database, setDatabase] = useState(editingDb?.database || "");
@@ -42,6 +43,7 @@ export function DatabaseModal({ onSuccess, trigger, database: editingDb }: Datab
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   const resetForm = () => {
+    setDbType(editingDb?.type || "postgresql");
     setName(editingDb?.name || "");
     setMode(editingDb ? "fields" : "url");
     setConnectionString("");
@@ -62,6 +64,7 @@ export function DatabaseModal({ onSuccess, trigger, database: editingDb }: Datab
     try {
       const res = await testConnectionAction({
         mode,
+        type: dbType,
         connectionString,
         host,
         port: port ? parseInt(port, 10) : undefined,
@@ -99,6 +102,7 @@ export function DatabaseModal({ onSuccess, trigger, database: editingDb }: Datab
         res = await updateDatabaseAction(editingDb.id, {
           name,
           mode,
+          type: dbType,
           connectionString,
           host,
           port: port ? parseInt(port, 10) : undefined,
@@ -113,6 +117,7 @@ export function DatabaseModal({ onSuccess, trigger, database: editingDb }: Datab
         res = await addDatabaseAction({
           name,
           mode,
+          type: dbType,
           connectionString,
           host,
           port: port ? parseInt(port, 10) : undefined,
@@ -173,6 +178,37 @@ export function DatabaseModal({ onSuccess, trigger, database: editingDb }: Datab
         </DialogHeader>
 
         <form onSubmit={handleSave} className="p-6 space-y-6">
+          {/* Database Type Selector */}
+          <div className="flex items-center gap-3 pb-3 border-b border-[#2b2926]">
+            <span className="text-[10px] font-mono tracking-wider uppercase text-[#a09e96]">
+              {t("database.type")}
+            </span>
+            <div className="flex gap-1 bg-[#1c1a17] border border-[#2b2926] p-0.5 rounded">
+              <button
+                type="button"
+                onClick={() => { setDbType("postgresql"); if (!isEdit) setPort("5432"); }}
+                className={`px-3 py-1 text-xs font-mono rounded cursor-pointer transition-all ${
+                  dbType === "postgresql"
+                    ? "bg-[#16324b] text-white border border-[#355f83]/60"
+                    : "text-[#a09e96] hover:text-white"
+                }`}
+              >
+                PostgreSQL
+              </button>
+              <button
+                type="button"
+                onClick={() => { setDbType("mongodb"); if (!isEdit) setPort("27017"); }}
+                className={`px-3 py-1 text-xs font-mono rounded cursor-pointer transition-all ${
+                  dbType === "mongodb"
+                    ? "bg-[#0d260d] text-white border border-[#2d5a2d]/60"
+                    : "text-[#a09e96] hover:text-white"
+                }`}
+              >
+                MongoDB
+              </button>
+            </div>
+          </div>
+
           <Tabs value={mode} onValueChange={(v) => setMode(v as any)} className="w-full">
             <TabsList className="grid w-full grid-cols-2 bg-[#1c1a17] border border-[#2b2926] p-0.5 rounded">
               <TabsTrigger 
@@ -196,7 +232,7 @@ export function DatabaseModal({ onSuccess, trigger, database: editingDb }: Datab
                 </Label>
                 <Input
                   id="url"
-                  placeholder="postgresql://user:password@host:5432/database"
+                  placeholder={dbType === "mongodb" ? "mongodb://user:password@host:27017/database" : "postgresql://user:password@host:5432/database"}
                   value={connectionString}
                   onChange={(e) => setConnectionString(e.target.value)}
                   className="bg-[#141210] border-[#2b2926] focus:border-[#d2541c] focus:ring-1 focus:ring-[#d2541c] text-sm text-white font-mono rounded h-9 w-full"
@@ -226,7 +262,7 @@ export function DatabaseModal({ onSuccess, trigger, database: editingDb }: Datab
                   </Label>
                   <Input
                     id="port"
-                    placeholder="5432"
+                    placeholder={dbType === "mongodb" ? "27017" : "5432"}
                     value={port}
                     onChange={(e) => setPort(e.target.value)}
                     className="bg-[#141210] border-[#2b2926] text-sm text-white font-mono rounded h-9 w-full"
@@ -242,7 +278,7 @@ export function DatabaseModal({ onSuccess, trigger, database: editingDb }: Datab
                   </Label>
                   <Input
                     id="user"
-                    placeholder="postgres"
+                    placeholder={dbType === "mongodb" ? "admin" : "postgres"}
                     value={user}
                     onChange={(e) => setUser(e.target.value)}
                     className="bg-[#141210] border-[#2b2926] text-sm text-white font-mono rounded h-9 w-full"
@@ -270,7 +306,7 @@ export function DatabaseModal({ onSuccess, trigger, database: editingDb }: Datab
                 </Label>
                 <Input
                   id="database"
-                  placeholder="my_database"
+                    placeholder={dbType === "mongodb" ? "my_database" : "my_database"}
                   value={database}
                   onChange={(e) => setDatabase(e.target.value)}
                   className="bg-[#141210] border-[#2b2926] text-sm text-white font-mono rounded h-9 w-full"

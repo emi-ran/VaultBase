@@ -4,6 +4,7 @@ import { prisma } from "../../../lib/db"
 import { decrypt } from "../../../lib/encryption"
 import { verifySession } from "../../../lib/auth"
 import { runRestore } from "../../../lib/restore-service"
+import { runMongoRestore } from "../../../lib/restore-mongo-service"
 
 export async function POST(request: NextRequest) {
   try {
@@ -34,13 +35,26 @@ export async function POST(request: NextRequest) {
 
     const nodeStream = Readable.fromWeb(request.body as any)
 
-    const result = await runRestore(nodeStream, {
-      host: db.host,
-      port: db.port,
-      user: db.user,
-      password: decryptedPassword,
-      database: db.database,
-    })
+    let result: { success: boolean; error?: string }
+
+    if (db.type === "mongodb") {
+      result = await runMongoRestore(nodeStream, {
+        host: db.host,
+        port: db.port,
+        user: db.user,
+        password: decryptedPassword,
+        database: db.database,
+        ssl: db.ssl,
+      })
+    } else {
+      result = await runRestore(nodeStream, {
+        host: db.host,
+        port: db.port,
+        user: db.user,
+        password: decryptedPassword,
+        database: db.database,
+      })
+    }
 
     if (result.success) {
       return NextResponse.json({ success: true })

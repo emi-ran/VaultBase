@@ -34,6 +34,12 @@ export async function runBackup(dbId: string, triggerType: "manual" | "scheduled
     return { success: false, error: "Database connection not found" };
   }
 
+  // Route to MongoDB backup if type is mongodb
+  if (dbConfig.type === "mongodb") {
+    const { runMongoBackup } = await import("./backup-mongo-service");
+    return runMongoBackup(dbId, triggerType, customFilename);
+  }
+
   const decryptedPassword = decrypt(dbConfig.password);
   const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
   let filename = `${dbConfig.name}_backup_${timestamp}.sql.gz`;

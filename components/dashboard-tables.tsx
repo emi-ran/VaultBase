@@ -209,7 +209,7 @@ export function DashboardTables({ databases, backups, locale }: DashboardTablesP
                     <TableCell className="font-mono font-bold text-xs text-white px-6">
                       <div className="flex flex-col gap-1">
                         <div className="flex items-center gap-2">
-                          <DatabaseTypeMark />
+                          <DatabaseTypeMark type={db.type as "postgresql" | "mongodb"} />
                           <span className="min-w-0 truncate">{db.name}</span>
                         </div>
                         <span className="text-[9px] text-[#605e58] font-normal">{db.database}</span>
@@ -305,7 +305,7 @@ export function DashboardTables({ databases, backups, locale }: DashboardTablesP
               <TableBody>
                 {backups.map((job) => (
                   <TableRow key={job.id} className="border-b border-[#2b2926]/40 hover:bg-[#141210]/40">
-                    <TableCell className="font-mono text-xs text-white max-w-[200px] truncate px-6" title={job.filename}>
+                    <TableCell className="font-mono text-xs text-white max-w-50 truncate px-6" title={job.filename}>
                       <div className="flex items-center gap-2">
                         <span className={`w-2 h-2 rounded-full shrink-0 ${
                           job.status === "success" ? "bg-[#55f289]" : job.status === "failed" ? "bg-[#f25c55]" : "bg-[#f2b855] animate-pulse"
@@ -313,7 +313,7 @@ export function DashboardTables({ databases, backups, locale }: DashboardTablesP
                         <span>{job.filename}</span>
                       </div>
                       {job.errorMessage && (
-                        <span className="text-[9px] text-[#f25c55] block font-mono pl-4 truncate max-w-[180px]" title={job.errorMessage}>
+                        <span className="text-[9px] text-[#f25c55] block font-mono pl-4 truncate max-w-45" title={job.errorMessage}>
                           {job.errorMessage}
                         </span>
                       )}
@@ -358,7 +358,7 @@ export function DashboardTables({ databases, backups, locale }: DashboardTablesP
 
       {/* CONFIRMATION DIALOG 1: Database Backup Confirmation */}
       <Dialog open={backupOpen} onOpenChange={(v) => { if (!backingUp) setBackupOpen(v); }}>
-        <DialogContent className="max-w-[450px] sm:max-w-[450px] w-full bg-[#0d0c0b] text-[#E6E4DD] border border-[#2b2926] rounded-md shadow-2xl p-6 font-sans">
+        <DialogContent className="max-w-112.5 sm:max-w-112.5 w-full bg-[#0d0c0b] text-[#E6E4DD] border border-[#2b2926] rounded-md shadow-2xl p-6 font-sans">
           <DialogHeader className="pb-3 border-b border-[#2b2926]">
             <DialogTitle className="text-sm font-mono tracking-wider uppercase text-white flex items-center gap-2">
               <IconDatabaseExport size={16} className="text-[#55f289]" />
@@ -448,14 +448,14 @@ export function DashboardTables({ databases, backups, locale }: DashboardTablesP
 
       {/* CONFIRMATION DIALOG 2: Delete Database Confirmation */}
       <Dialog open={deleteDbOpen} onOpenChange={setDeleteDbOpen}>
-        <DialogContent className="max-w-[450px] sm:max-w-[450px] w-full bg-[#0d0c0b] text-[#E6E4DD] border border-[#2b2926] rounded-md shadow-2xl p-6 font-sans">
+        <DialogContent className="max-w-112.5 sm:max-w-112.5 w-full bg-[#0d0c0b] text-[#E6E4DD] border border-[#2b2926] rounded-md shadow-2xl p-6 font-sans">
           <DialogHeader className="pb-3 border-b border-[#2b2926]">
             <DialogTitle className="text-sm font-mono tracking-wider uppercase text-white flex items-center gap-2">
               <IconAlertCircle size={16} className="text-[#f25c55]" />
-              {t("database.deleteConfirm")}
+              {t("common.delete")?.toUpperCase()}
             </DialogTitle>
             <DialogDescription className="text-xs text-[#a09e96] pt-1 leading-relaxed">
-              {t("database.deleteConfirm", { name: dbToDelete?.name || "" })}
+              {t("database.deleteConfirm")}
             </DialogDescription>
           </DialogHeader>
 
@@ -481,7 +481,7 @@ export function DashboardTables({ databases, backups, locale }: DashboardTablesP
 
       {/* CONFIRMATION DIALOG 3: Delete Backup Confirmation */}
       <Dialog open={deleteBackupOpen} onOpenChange={setDeleteBackupOpen}>
-        <DialogContent className="max-w-[450px] sm:max-w-[450px] w-full bg-[#0d0c0b] text-[#E6E4DD] border border-[#2b2926] rounded-md shadow-2xl p-6 font-sans">
+        <DialogContent className="max-w-112.5 sm:max-w-112.5 w-full bg-[#0d0c0b] text-[#E6E4DD] border border-[#2b2926] rounded-md shadow-2xl p-6 font-sans">
           <DialogHeader className="pb-3 border-b border-[#2b2926]">
             <DialogTitle className="text-sm font-mono tracking-wider uppercase text-white flex items-center gap-2">
               <IconAlertCircle size={16} className="text-[#f25c55]" />
@@ -514,7 +514,7 @@ export function DashboardTables({ databases, backups, locale }: DashboardTablesP
 
       {/* CONFIRMATION DIALOG 4: Clear Archive Confirmation */}
       <Dialog open={clearArchiveOpen} onOpenChange={setClearArchiveOpen}>
-        <DialogContent className="max-w-[450px] sm:max-w-[450px] w-full bg-[#0d0c0b] text-[#E6E4DD] border border-[#2b2926] rounded-md shadow-2xl p-6 font-sans">
+        <DialogContent className="max-w-112.5 sm:max-w-112.5 w-full bg-[#0d0c0b] text-[#E6E4DD] border border-[#2b2926] rounded-md shadow-2xl p-6 font-sans">
           <DialogHeader className="pb-3 border-b border-[#2b2926]">
             <DialogTitle className="text-sm font-mono tracking-wider uppercase text-white flex items-center gap-2">
               <IconAlertCircle size={16} className="text-[#f25c55]" />

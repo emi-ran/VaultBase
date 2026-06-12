@@ -6,7 +6,7 @@ Bu dosya, yapay zeka (AI) ajanların VaultBase projesinde çalışırken uyması
 
 ## Proje Özeti
 
-**VaultBase**, self-hosted bir PostgreSQL veritabanı yedekleme yöneticisi ve salt okunur veritabanı gezginidir.  
+**VaultBase**, self-hosted bir PostgreSQL ve MongoDB veritabanı yedekleme yöneticisi ve salt okunur veritabanı gezginidir.  
 Next.js 16 (App Router), Tailwind CSS v4, Shadcn UI, SQLite (Prisma 7 + Better-SQLite3) ve Docker ile inşa edilmiştir.
 
 ---
@@ -19,8 +19,8 @@ Next.js 16 (App Router), Tailwind CSS v4, Shadcn UI, SQLite (Prisma 7 + Better-S
 | UI Bileşenleri | Shadcn UI (preset: b2CPlgBHs), Tabler Icons |
 | Backend | Next.js Server Actions (app/actions.ts) |
 | Veritabanı (Ayarlar) | SQLite via Prisma 7 + @prisma/adapter-better-sqlite3 |
-| Veritabanı (Hedef) | PostgreSQL via pg paketi |
-| Yedekleme | pg_dump (sistem binary), gzip sıkıştırma |
+| Veritabanı (Hedef) | PostgreSQL via pg paketi / MongoDB via mongodb driver |
+| Yedekleme | pg_dump / mongodump (sistem binary), gzip sıkıştırma |
 | Şifreleme | AES-256-CBC (lib/encryption.ts) |
 | i18n | Türkçe/İngilizce (lib/locales/) |
 | Container | Docker + Docker Compose |
@@ -36,11 +36,12 @@ Next.js 16 (App Router), Tailwind CSS v4, Shadcn UI, SQLite (Prisma 7 + Better-S
 
 ### Server Actions
 - Tüm form ve tetikleyici işlemler app/actions.ts içindedir.
-- Backup işlemi lib/backup-service.ts içindeki runBackup() fonksiyonundan geçer.
-- Veritabanı bağlantı testleri lib/db-client.ts içindeki testConnection() ile yapılır.
+- Backup işlemi lib/backup-service.ts içindeki runBackup() fonksiyonundan geçer. `db.type` alanına göre PostgreSQL (`pg_dump`) veya MongoDB (`mongodump`) binary'sine yönlendirir.
+- Veritabanı bağlantı testleri lib/db-client.ts (PostgreSQL) veya lib/db-mongo-client.ts (MongoDB) içindeki fonksiyonlarla yapılır.
+- type alanı: `"postgresql"` veya `"mongodb"`. URL'den otomatik algılanır (`mongodb://` prefix).
 
 ### Hata Yönetimi
-- pg_dump bulunamazsa (ENOENT) gerçek hatayı kullanıcıya ilet; "başarılı gibi davran" YASAK.
+- pg_dump / mongodump bulunamazsa (ENOENT) gerçek hatayı kullanıcıya ilet; "başarılı gibi davran" YASAK.
 - Yedek başarısızlığı veritabanını otomatik "Çevrimdışı" yapmamalı. Bağlantı durumu ayrıca kontrol edilmeli.
 - spawn hatalarında hasErrorOccurred flag ile error + close çift tetiklemesi önlenmeli.
 
@@ -58,6 +59,7 @@ Next.js 16 (App Router), Tailwind CSS v4, Shadcn UI, SQLite (Prisma 7 + Better-S
 - Tüm veritabanı şifreleri AES-256-CBC ile APP_SECRET env değişkeni kullanılarak şifrelenir.
 - Ayarlar export: isteğe bağlı kullanıcı şifresiyle PBKDF2+AES-256 veya düz metin (uyarı ile). Import'ta şifreli dosyalar için modal ile şifre sorulur.
 - SQL injection koruması: lib/db-client.ts içinde identifier validation mevcut.
+- MongoDB NoSQL injection: driver parameterized API kullanılır (string concatenation yok).
 
 ---
 
@@ -99,12 +101,15 @@ Next.js 16 (App Router), Tailwind CSS v4, Shadcn UI, SQLite (Prisma 7 + Better-S
 │   └── ui/                         # Shadcn UI bileşenleri
 ├── lib/
 │   ├── auth.ts                     # Session yönetimi (HMAC-SHA256 imzalı cookie)
-│   ├── backup-service.ts           # pg_dump spawn executor
+│   ├── backup-mongo-service.ts     # mongodump spawn executor (MongoDB)
+│   ├── backup-service.ts           # pg_dump spawn executor + type routing
 │   ├── cron-service.ts             # Zamanlanmış yedek cron yöneticisi
+│   ├── db-mongo-client.ts          # MongoDB dinamik bağlantı
 │   ├── db.ts                       # Prisma client (SQLite)
 │   ├── db-client.ts                # PostgreSQL dinamik bağlantı
 │   ├── encryption.ts               # AES-256-CBC şifreleme
 │   ├── i18n.ts                     # i18n yardımcıları
+│   ├── restore-mongo-service.ts    # Geri yükleme (gunzip → mongorestore)
 │   ├── restore-service.ts          # Geri yükleme (gunzip → psql)
 │   ├── utils.ts                    # cn() yardımcısı (tailwind-merge)
 │   └── locales/
@@ -115,7 +120,7 @@ Next.js 16 (App Router), Tailwind CSS v4, Shadcn UI, SQLite (Prisma 7 + Better-S
 ├── prisma.config.ts                # Prisma 7 konfigürasyonu
 ├── scripts/
 │   └── test-core.ts                # Şifreleme ve Ayarlar export/import test senaryoları
-├── Dockerfile                      # postgresql-client-18 içerir
+├── Dockerfile                      # postgresql-client-18 + mongodb-database-tools içerir
 ├── docker-compose.yml              # Docker Compose konfigürasyonu
 ├── .env.example                    # Örnek ortam değişkenleri
 ├── AGENTS.md                       # Bu dosya
@@ -144,6 +149,8 @@ Next.js 16 (App Router), Tailwind CSS v4, Shadcn UI, SQLite (Prisma 7 + Better-S
 pnpm install        # Bağımlılıkları yükle
 pnpm dev            # Geliştirme sunucusu (port 3000)
 pnpm build          # Production build
+pnpm format         # Prettier ile kod formatlama
+pnpm typecheck      # TypeScript tip kontrolü (tsc --noEmit)
 pnpm prisma db push # Veritabanı şemasını uygula (geliştirme)
 pnpm prisma migrate deploy # Mevcut migration'ları uygula (Docker/üretim)
 pnpm prisma studio  # Prisma Studio ile SQLite görüntüle
@@ -157,7 +164,16 @@ docker compose down           # Durdur
 docker compose logs -f app    # Log takibi
 ```
 
-Test veritabanı: postgresql://vaultuser:vaultpass@localhost:5432/vaulttest
+Test veritabanı (PG): postgresql://vaultuser:vaultpass@localhost:5432/vaulttest
+Test veritabanı (Mongo): mongodb://vaultuser:vaultpass@localhost:27017/vaulttest
+
+---
+
+## Commit Politikası
+
+**ABSOLUTE:** Commit, push, amend veya PR yalnızca kullanıcının açık yazılı talebiyle yapılır. Kullanıcı "commit et", "komit et", "gönder" veya benzeri bir ifade kullanmadığı sürece asla commit atılmaz.
+
+Commit öncesinde zorunlu kontroller yine de yapılır, ancak commit işlemi kullanıcıya sorulur.
 
 ---
 
