@@ -10,6 +10,9 @@ export default async function ArchivePage() {
 
   // Fetch all completed/processing/failed backup jobs with database name relation
   const backups = await prisma.backupJob.findMany({
+    where: {
+      type: "backup",
+    },
     include: {
       database: true,
     },

@@ -16,7 +16,8 @@ import {
   IconFileText, 
   IconChevronLeft, 
   IconChevronRight,
-  IconUpload
+  IconUpload,
+  IconCopy,
 } from "@tabler/icons-react";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
@@ -63,7 +64,7 @@ export function JobsPageClient({ initialJobs }: JobsPageClientProps) {
 
   // Delete log dialog
   const [deleteLogOpen, setDeleteLogOpen] = useState(false);
-  const [logToDelete, setLogToDelete] = useState<string | null>(null);
+  const [logToDelete, setLogToDelete] = useState<BackupJob | null>(null);
   const [deletingLog, setDeletingLog] = useState(false);
   const [deleteLogError, setDeleteLogError] = useState<string | null>(null);
 
@@ -74,6 +75,7 @@ export function JobsPageClient({ initialJobs }: JobsPageClientProps) {
 
   // Error modal details
   const [selectedError, setSelectedError] = useState<string | null>(null);
+  const [errorCopied, setErrorCopied] = useState(false);
 
   // Statistics
   const totalLogs = jobs.length;
@@ -81,8 +83,8 @@ export function JobsPageClient({ initialJobs }: JobsPageClientProps) {
   const failedLogs = jobs.filter(j => j.status === "failed").length;
   const restoreLogs = jobs.filter(j => j.type === "restore").length;
 
-  const openDeleteLogDialog = (id: string) => {
-    setLogToDelete(id);
+  const openDeleteLogDialog = (job: BackupJob) => {
+    setLogToDelete(job);
     setDeleteLogError(null);
     setDeleteLogOpen(true);
   };
@@ -92,11 +94,11 @@ export function JobsPageClient({ initialJobs }: JobsPageClientProps) {
     setDeletingLog(true);
     setDeleteLogError(null);
     try {
-      const res = await deleteBackupAction(logToDelete);
+      const res = await deleteBackupAction(logToDelete.id);
       if (res.success) {
         setDeleteLogOpen(false);
         setLogToDelete(null);
-        setJobs(prev => prev.filter(j => j.id !== logToDelete));
+        setJobs(prev => prev.filter(j => j.id !== logToDelete!.id));
       } else {
         setDeleteLogError(res.error || null);
       }
@@ -425,7 +427,7 @@ export function JobsPageClient({ initialJobs }: JobsPageClientProps) {
 
                         <Button
                           variant="ghost"
-                          onClick={() => openDeleteLogDialog(job.id)}
+                          onClick={() => openDeleteLogDialog(job)}
                           className="h-8 w-8 p-0 border border-transparent hover:border-[#2b2926] hover:bg-[#2d1210]/30 text-[#a09e96] hover:text-[#f25c55] rounded cursor-pointer flex items-center justify-center transition-colors"
                           title={t("common.delete")}
                         >
@@ -477,8 +479,8 @@ export function JobsPageClient({ initialJobs }: JobsPageClientProps) {
 
       {/* Delete Log Confirmation Modal */}
       <Dialog open={deleteLogOpen} onOpenChange={(v) => { if (!deletingLog) { setDeleteLogOpen(v); setDeleteLogError(null); } }}>
-        <DialogContent className="max-w-112.5 sm:max-w-112.5 bg-[#0d0c0b] border-[#2b2926] text-[#E6E4DD] rounded-md font-sans p-6">
-          <DialogHeader className="border-b border-[#2b2926] pb-4 mb-4">
+        <DialogContent className="max-w-112.5 sm:max-w-112.5 w-full bg-[#0d0c0b] border-[#2b2926] text-[#E6E4DD] rounded-md font-sans p-6 shadow-2xl">
+          <DialogHeader className="pb-3 border-b border-[#2b2926]">
             <DialogTitle className="text-sm font-mono tracking-wider text-white uppercase flex items-center gap-2">
               <IconAlertCircle size={16} className="text-[#f25c55]" />
               {t("common.delete")?.toUpperCase()}
@@ -488,13 +490,42 @@ export function JobsPageClient({ initialJobs }: JobsPageClientProps) {
             </DialogDescription>
           </DialogHeader>
 
+          {logToDelete && (
+            <div className="py-4 space-y-2 font-mono text-xs">
+              <div className="bg-[#141210] border border-[#2b2926] rounded p-3 space-y-1.5">
+                <div className="flex justify-between">
+                  <span className="text-[#605e58]">{t("common.database")}:</span>
+                  <span className="text-white font-bold">{logToDelete.database.name}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-[#605e58]">{t("common.filename")}:</span>
+                  <span className="text-white truncate max-w-[200px] text-right">{logToDelete.filename}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-[#605e58]">{t("common.status")}:</span>
+                  <span className={logToDelete.status === "success" ? "text-[#55f289]" : logToDelete.status === "failed" ? "text-[#f25c55]" : "text-[#f2b855]"}>
+                    {logToDelete.status === "success" ? t("common.success") : logToDelete.status === "failed" ? t("common.error") : t("common.processingShort")}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-[#605e58]">{t("common.type")}:</span>
+                  <span className="text-white">{logToDelete.type === "restore" ? t("restore.title") : t("backup.backupNow")}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-[#605e58]">{t("common.date")}:</span>
+                  <span className="text-[#a09e96]">{new Date(logToDelete.createdAt).toLocaleString(locale === "tr" ? "tr-TR" : "en-US")}</span>
+                </div>
+              </div>
+            </div>
+          )}
+
           {deleteLogError && (
             <div className="mb-4 p-3 bg-[#2d1210] border border-[#4b1b1a] rounded text-[11px] font-mono text-[#f25c55]">
               {deleteLogError}
             </div>
           )}
 
-          <DialogFooter className="gap-2">
+          <DialogFooter className="pt-3 border-t border-[#2b2926] flex flex-row justify-end gap-3">
             <Button
               onClick={() => { setDeleteLogOpen(false); setLogToDelete(null); setDeleteLogError(null); }}
               disabled={deletingLog}
@@ -516,8 +547,8 @@ export function JobsPageClient({ initialJobs }: JobsPageClientProps) {
 
       {/* Clear All Logs Confirmation Modal */}
       <Dialog open={clearLogsOpen} onOpenChange={(v) => { if (!clearingLogs) { setClearLogsOpen(v); setClearLogsError(null); } }}>
-        <DialogContent className="max-w-112.5 sm:max-w-112.5 bg-[#0d0c0b] border-[#2b2926] text-[#E6E4DD] rounded-md font-sans p-6">
-          <DialogHeader className="border-b border-[#2b2926] pb-4 mb-4">
+        <DialogContent className="max-w-112.5 sm:max-w-112.5 w-full bg-[#0d0c0b] border-[#2b2926] text-[#E6E4DD] rounded-md font-sans p-6 shadow-2xl">
+          <DialogHeader className="pb-3 border-b border-[#2b2926]">
             <DialogTitle className="text-sm font-mono tracking-wider text-white uppercase flex items-center gap-2">
               <IconAlertCircle size={16} className="text-[#f25c55]" />
               {t("jobs.clearLogsTitle")}
@@ -533,7 +564,7 @@ export function JobsPageClient({ initialJobs }: JobsPageClientProps) {
             </div>
           )}
 
-          <DialogFooter className="gap-2">
+          <DialogFooter className="pt-3 border-t border-[#2b2926] flex flex-row justify-end gap-3">
             <Button
               onClick={() => { setClearLogsOpen(false); setClearLogsError(null); }}
               disabled={clearingLogs}
@@ -555,8 +586,8 @@ export function JobsPageClient({ initialJobs }: JobsPageClientProps) {
 
       {/* Error Details Modal */}
       <Dialog open={!!selectedError} onOpenChange={(open) => !open && setSelectedError(null)}>
-        <DialogContent className="max-w-150 sm:max-w-150 bg-[#0d0c0b] border-[#2b2926] text-[#E6E4DD] rounded-md font-sans p-6">
-          <DialogHeader className="border-b border-[#2b2926] pb-4 mb-4">
+        <DialogContent className="max-w-150 sm:max-w-150 w-full bg-[#0d0c0b] border-[#2b2926] text-[#E6E4DD] rounded-md font-sans p-6 shadow-2xl">
+          <DialogHeader className="pb-3 border-b border-[#2b2926]">
             <DialogTitle className="text-sm font-mono tracking-wider text-white uppercase flex items-center gap-2">
               <IconTerminal size={16} className="text-[#f25c55]" />
               {t("jobs.errorModalTitle")}
@@ -566,13 +597,26 @@ export function JobsPageClient({ initialJobs }: JobsPageClientProps) {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="bg-[#141210] border border-[#2b2926] rounded p-4 overflow-auto max-h-75">
+          <div className="bg-[#141210] border border-[#2b2926] rounded p-4 overflow-auto max-h-75 relative group">
             <pre className="font-mono text-xs text-[#f25c55] leading-relaxed whitespace-pre-wrap break-all">
               {selectedError}
             </pre>
+            <button
+              onClick={() => {
+                if (selectedError) {
+                  navigator.clipboard.writeText(selectedError);
+                  setErrorCopied(true);
+                  setTimeout(() => setErrorCopied(false), 2000);
+                }
+              }}
+              className="absolute bottom-2 right-2 p-1.5 rounded bg-[#1c1a17] border border-[#2b2926] text-[#a09e96] hover:text-white hover:border-[#55f289] transition-all opacity-0 group-hover:opacity-100 cursor-pointer"
+              title="Copy error"
+            >
+              {errorCopied ? <IconCheck size={14} className="text-[#55f289]" /> : <IconCopy size={14} />}
+            </button>
           </div>
 
-          <div className="flex justify-end pt-2">
+          <div className="flex justify-end pt-4 border-t border-[#2b2926]">
             <Button
               onClick={() => setSelectedError(null)}
               className="bg-[#1b3224] hover:bg-[#223f2d] text-white border border-[#2b4c37] font-mono text-xs cursor-pointer rounded px-6 h-9"

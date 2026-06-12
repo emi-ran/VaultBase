@@ -385,8 +385,8 @@ export async function deleteBackupAction(id: string) {
   try {
     const job = await prisma.backupJob.findUnique({ where: { id } });
     if (job) {
-      // Delete file if exists
-      if (fs.existsSync(job.filepath)) {
+      // Delete file if exists and this is a backup job, not a restore log
+      if (job.type === "backup" && fs.existsSync(job.filepath)) {
         fs.unlinkSync(job.filepath);
       }
       // Delete database record

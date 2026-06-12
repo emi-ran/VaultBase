@@ -44,3 +44,5 @@ next-env.d.ts
 /data/
 
 .opencode-playwright/
+# Moat task system
+.moat/

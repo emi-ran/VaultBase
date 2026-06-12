@@ -34,6 +34,9 @@ export default async function DashboardPage() {
   });
 
   const backups = await prisma.backupJob.findMany({
+    where: {
+      type: "backup",
+    },
     orderBy: { createdAt: "desc" },
     include: { database: true },
   });
