@@ -13,7 +13,6 @@ import {
   IconArchive, 
   IconServer, 
   IconSettings,
-  IconShield,
   IconCircleFilled,
   IconLanguage,
   IconLogout
@@ -114,8 +113,8 @@ export function Sidebar() {
       <div>
         {/* Branding header */}
         <div className="p-6 border-b border-[#2b2926] flex items-center gap-3">
-          <div className="h-9 w-9 bg-[#1b3224] border border-[#2b4c37] rounded flex items-center justify-center text-[#55f289]">
-            <IconShield size={20} />
+          <div className="h-12 w-12 bg-[#1b3224] border border-[#2b4c37] rounded flex items-center justify-center">
+            <img src="/icon.svg" alt="VaultBase" className="h-9 w-9" />
           </div>
           <div>
             <h1 className="font-mono text-xs tracking-wider text-white font-bold uppercase">VAULTBASE</h1>

@@ -1,0 +1,101 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="124 112 776 776"
+  role="img"
+  aria-labelledby="title desc"
+  preserveAspectRatio="xMidYMid meet"
+>
+  <title id="title">VaultBase icon</title>
+  <desc id="desc">
+    A protected database cylinder with a compact vault shield.
+  </desc>
+
+  <!-- Database cylinder -->
+  <path
+    d="M230 304C230 216 356 148 512 148s282 68 282 156v382c0 90-126 162-282 162S230 776 230 686V304Z"
+    fill="#3275A6"
+  />
+
+  <!-- Database top -->
+  <ellipse
+    cx="512"
+    cy="304"
+    rx="282"
+    ry="156"
+    fill="#DCE3E8"
+  />
+
+  <ellipse
+    cx="512"
+    cy="304"
+    rx="228"
+    ry="108"
+    fill="#173F5C"
+  />
+
+  <path
+    d="M300 316c18-49 106-86 212-86s194 37 212 86c-30-37-111-64-212-64s-182 27-212 64Z"
+    fill="#5E96BD"
+    opacity=".52"
+  />
+
+  <!-- Database layers -->
+  <path
+    d="M246 482c15 75 127 134 266 134s251-59 266-134"
+    fill="none"
+    stroke="#DCE3E8"
+    stroke-width="24"
+    stroke-linecap="round"
+    opacity=".9"
+  />
+
+  <path
+    d="M246 632c15 75 127 134 266 134s251-59 266-134"
+    fill="none"
+    stroke="#DCE3E8"
+    stroke-width="24"
+    stroke-linecap="round"
+    opacity=".9"
+  />
+
+  <!-- Shield -->
+  <path
+    d="M512 350 690 416v154c0 126-70 228-178 292-108-64-178-166-178-292V416Z"
+    fill="#11161C"
+    stroke="#F1F4F6"
+    stroke-width="30"
+    stroke-linejoin="round"
+  />
+
+  <path
+    d="M512 398 648 448v120c0 93-49 172-136 225-87-53-136-132-136-225V448Z"
+    fill="#245878"
+  />
+
+  <!-- Vault dial -->
+  <circle
+    cx="512"
+    cy="566"
+    r="82"
+    fill="#11161C"
+    stroke="#F1F4F6"
+    stroke-width="22"
+  />
+
+  <g
+    stroke="#F1F4F6"
+    stroke-width="17"
+    stroke-linecap="round"
+  >
+    <path d="M512 508v116" />
+    <path d="m462 537 100 58" />
+    <path d="m462 595 100-58" />
+  </g>
+
+  <circle
+    cx="512"
+    cy="566"
+    r="19"
+    fill="#66A64B"
+  />
+</svg>
