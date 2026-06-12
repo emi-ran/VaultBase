@@ -14,7 +14,8 @@ import {
   IconRefresh, 
   IconDatabase, 
   IconChevronLeft, 
-  IconChevronRight
+  IconChevronRight,
+  IconUpload
 } from "@tabler/icons-react";
 import { useTranslation } from "./i18n-provider";
 import { Button } from "./ui/button";
@@ -38,7 +39,7 @@ import {
   TableHeader, 
   TableRow 
 } from "./ui/table";
-import { deleteBackupAction, clearAllBackupsAction } from "../app/actions";
+import { deleteBackupAction, clearAllBackupsAction, restoreFromArchiveAction } from "../app/actions";
 
 // Format bytes helper
 function formatBytes(bytes: number, decimals = 2) {
@@ -85,6 +86,14 @@ export function ArchivePageClient({ initialBackups, databases, locale }: Archive
 
   const [clearArchiveOpen, setClearArchiveOpen] = useState(false);
   const [clearingArchive, setClearingArchive] = useState(false);
+
+  // Restore dialog state
+  const [restoreOpen, setRestoreOpen] = useState(false);
+  const [backupToRestore, setBackupToRestore] = useState<any>(null);
+  const [restoreTargetId, setRestoreTargetId] = useState<string>("");
+  const [restoreAcknowledged, setRestoreAcknowledged] = useState(false);
+  const [restoring, setRestoring] = useState(false);
+  const [restoreResult, setRestoreResult] = useState<{ success: boolean; message: string } | null>(null);
 
   // Reset page number when filters change
   useEffect(() => {
@@ -168,6 +177,38 @@ export function ArchivePageClient({ initialBackups, databases, locale }: Archive
       console.error("Failed to clear archive:", err);
     } finally {
       setClearingArchive(false);
+    }
+  };
+
+  // Restore handlers
+  const openRestoreDialog = (job: any) => {
+    setBackupToRestore(job);
+    setRestoreTargetId(job.databaseId || "");
+    setRestoreAcknowledged(false);
+    setRestoreResult(null);
+    setRestoreOpen(true);
+  };
+
+  const handleStartRestore = async () => {
+    if (!backupToRestore || !restoreTargetId) return;
+    setRestoring(true);
+    setRestoreResult(null);
+    try {
+      const res = await restoreFromArchiveAction(backupToRestore.id, restoreTargetId);
+      if (res.success) {
+        setRestoreResult({ success: true, message: t("restore.success") });
+        setTimeout(() => {
+          setRestoreOpen(false);
+          setBackupToRestore(null);
+          router.refresh();
+        }, 2000);
+      } else {
+        setRestoreResult({ success: false, message: t("restore.failed") + (res.error || "") });
+      }
+    } catch (err: any) {
+      setRestoreResult({ success: false, message: t("restore.failed") + (err.message || "") });
+    } finally {
+      setRestoring(false);
     }
   };
 
@@ -456,16 +497,27 @@ export function ArchivePageClient({ initialBackups, databases, locale }: Archive
                       {/* Actions */}
                       <TableCell className="text-right px-6 space-x-1.5">
                         {job.status === "success" && (
-                          <a href={`/api/backups/${job.id}`} download>
+                          <>
+                            <a href={`/api/backups/${job.id}`} download>
+                              <Button 
+                                size="icon" 
+                                variant="ghost" 
+                                className="h-8 w-8 text-[#55f289] hover:bg-[#1b3224]/30 rounded cursor-pointer transition-colors" 
+                                title={t("backup.download")}
+                              >
+                                <IconDownload size={14} />
+                              </Button>
+                            </a>
                             <Button 
+                              onClick={() => openRestoreDialog(job)}
                               size="icon" 
                               variant="ghost" 
-                              className="h-8 w-8 text-[#55f289] hover:bg-[#1b3224]/30 rounded cursor-pointer transition-colors" 
-                              title={t("backup.download")}
+                              className="h-8 w-8 text-[#e6b04e] hover:bg-[#2b2310]/30 rounded cursor-pointer transition-colors" 
+                              title={t("restore.fromArchive")}
                             >
-                              <IconDownload size={14} />
+                              <IconUpload size={14} />
                             </Button>
-                          </a>
+                          </>
                         )}
                         
                         <Button 
@@ -602,6 +654,139 @@ export function ArchivePageClient({ initialBackups, databases, locale }: Archive
             >
               {clearingArchive && <IconLoader2 size={12} className="animate-spin" />}
               {t("common.clear").toUpperCase()}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* CONFIRMATION DIALOG: Restore from Archive */}
+      <Dialog open={restoreOpen} onOpenChange={(v) => { if (!restoring) { setRestoreOpen(v); setRestoreResult(null); } }}>
+        <DialogContent className="max-w-[500px] sm:max-w-[500px] w-full bg-[#0d0c0b] text-[#E6E4DD] border border-[#2b2926] rounded-md shadow-2xl p-6 font-sans">
+          <DialogHeader className="pb-3 border-b border-[#2b2926]">
+            <DialogTitle className="text-sm font-mono tracking-wider uppercase text-white flex items-center gap-2">
+              <IconUpload size={16} className="text-[#e6b04e]" />
+              {t("restore.fromArchive")?.toUpperCase() || "ARŞİVDEN GERİ YÜKLE"}
+            </DialogTitle>
+            <DialogDescription className="text-xs text-[#a09e96] pt-1 leading-relaxed">
+              {t("restore.archiveDesc") || "Arşivdeki bir yedek dosyasını seçerek hedef veritabanına geri yükleyin."}
+            </DialogDescription>
+          </DialogHeader>
+
+          {backupToRestore && (
+            <div className="py-4 space-y-4 font-mono text-xs">
+              {/* Backup Info */}
+              <div className="bg-[#141210] border border-[#2b2926] rounded p-3 space-y-1.5">
+                <span className="text-[9px] text-[#605e58] tracking-wider uppercase">{t("restore.backupInfo") || "YEDEK BİLGİSİ"}</span>
+                <div className="flex items-center gap-2">
+                  <IconDatabase size={14} className="text-[#55f289]" />
+                  <span className="text-white font-bold text-sm truncate">{backupToRestore.filename}</span>
+                </div>
+                <div className="flex justify-between text-[10px]">
+                  <span className="text-[#605e58]">{t("restore.sourceDb") || "Kaynak DB"}: {backupToRestore.database?.name || t("common.none")}</span>
+                  <span className="text-[#a09e96]">{t("restore.fileSize") || "Boyut"}: {formatBytes(backupToRestore.sizeBytes)}</span>
+                </div>
+                <div className="text-[10px] text-[#605e58]">
+                  {t("restore.archivedDate") || "Tarih"}: {new Date(backupToRestore.createdAt).toLocaleString(locale === "tr" ? "tr-TR" : "en-US")}
+                </div>
+              </div>
+
+              {/* Target Database Selector */}
+              <div className="space-y-1.5">
+                <Label className="text-[10px] tracking-wider uppercase text-[#a09e96]">
+                  {t("restore.selectTargetDb") || "Hedef Veritabanı Seç"}
+                </Label>
+                <Select value={restoreTargetId} onValueChange={setRestoreTargetId}>
+                  <SelectTrigger className="bg-[#141210] border-[#2b2926] text-xs text-white font-mono rounded h-9 w-full">
+                    <SelectValue placeholder={t("restore.selectTargetDb") || "Hedef Veritabanı Seç"} />
+                  </SelectTrigger>
+                  <SelectContent position="popper" className="bg-[#141210] border-[#2b2926] text-[#E6E4DD]">
+                    {databases.map((db) => (
+                      <SelectItem key={db.id} value={db.id}>
+                        {db.name} ({db.host}:{db.port}/{db.database})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Target DB Environment Warning */}
+              {restoreTargetId && (() => {
+                const targetDb = databases.find((d: any) => d.id === restoreTargetId)
+                if (!targetDb) return null
+                return (
+                  <>
+                    {targetDb.environment === "production" && (
+                      <div className="bg-[#2d1210] border border-[#4b1b1a] rounded p-3 flex items-start gap-2">
+                        <IconAlertCircle size={14} className="text-[#f25c55] shrink-0 mt-0.5" />
+                        <span className="text-[11px] text-[#f25c55]">
+                          {t("restore.productionWarning") || "Bu bir PRODUCTION veritabanıdır!"}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Critical Warning */}
+                    <div className="bg-[#1a0e0e] border border-[#3a1818] rounded p-3 space-y-2">
+                      <div className="flex items-center gap-2">
+                        <IconAlertCircle size={14} className="text-[#f25c55]" />
+                        <span className="text-[11px] font-bold text-[#f25c55] tracking-wider uppercase">
+                          {t("restore.warningTitle") || "VERİ KAYBI UYARISI"}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-[#f25c55]/90 leading-relaxed">
+                        {(t("restore.warningText") || "Bu işlem hedef veritabanındaki tüm mevcut tabloları ve verileri SİLECEKTİR. İşlem geri alınamaz.")}
+                      </p>
+                    </div>
+
+                    {/* Acknowledgement Checkbox */}
+                    <label className="flex items-start gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={restoreAcknowledged}
+                        disabled={restoring}
+                        onChange={(e) => setRestoreAcknowledged(e.target.checked)}
+                        className="mt-0.5 accent-[#e6b04e]"
+                      />
+                      <span className="text-[11px] leading-relaxed text-[#a09e96]">
+                        {(t("restore.confirmLabel") || "Veri kaybı riskini anlıyorum ve geri yüklemeyi başlatmak istiyorum.")}
+                      </span>
+                    </label>
+                  </>
+                )
+              })()}
+
+              {/* Result alert */}
+              {restoreResult && (
+                <div className={`p-3 rounded border text-xs ${
+                  restoreResult.success
+                    ? "bg-[#132219] border-[#1b3f2a] text-[#55f289]"
+                    : "bg-[#2d1210] border-[#4b1b1a] text-[#f25c55]"
+                }`}>
+                  {restoreResult.message}
+                </div>
+              )}
+            </div>
+          )}
+
+          <DialogFooter className="pt-3 border-t border-[#2b2926] gap-2 sm:gap-0">
+            <Button
+              onClick={() => { setRestoreOpen(false); setBackupToRestore(null); setRestoreResult(null); }}
+              disabled={restoring}
+              variant="ghost"
+              className="border border-[#2b2926] text-xs font-mono rounded h-8 px-4 text-[#a09e96] hover:bg-[#141210] hover:text-white cursor-pointer"
+            >
+              {t("common.cancel")}
+            </Button>
+            <Button
+              onClick={handleStartRestore}
+              disabled={!restoreTargetId || !restoreAcknowledged || restoring}
+              className={`text-xs font-mono rounded h-8 px-4 cursor-pointer flex items-center gap-1.5 ${
+                !restoreTargetId || !restoreAcknowledged
+                  ? "bg-[#2b2926] text-[#605e58] cursor-not-allowed"
+                  : "bg-[#2d1210] border border-[#f25c55]/30 text-[#f25c55] hover:bg-[#2d1210]/60"
+              }`}
+            >
+              {restoring && <IconLoader2 size={12} className="animate-spin" />}
+              {restoring ? t("restore.processing") : t("restore.startButton")?.toUpperCase() || "GERİ YÜKLE"}
             </Button>
           </DialogFooter>
         </DialogContent>

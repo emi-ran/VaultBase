@@ -273,7 +273,7 @@ export default async function DatabaseExplorerPage({ params, searchParams }: Dat
                             return (
                               <TableCell 
                                 key={col} 
-                                className={`font-mono text-xs max-w-[250px] truncate py-3 px-4 ${
+                                className={`font-mono text-xs max-w-62.5 truncate py-3 px-4 ${
                                   isNull ? "text-[#605e58] italic" : "text-[#E6E4DD]"
                                 }`}
                                 title={displayVal}
@@ -297,7 +297,7 @@ export default async function DatabaseExplorerPage({ params, searchParams }: Dat
               <IconTable size={24} />
             </div>
             <h3 className="font-bold text-white text-sm uppercase">{t("database.explorerTitle")}</h3>
-            <p className="mt-1.5 text-center max-w-[300px] leading-relaxed">
+            <p className="mt-1.5 text-center max-w-75 leading-relaxed">
               {t("database.explorerDesc")} Sol menüden incelemek istediğiniz bir tabloyu seçin.
             </p>
           </div>

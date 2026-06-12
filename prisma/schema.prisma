@@ -36,6 +36,7 @@ model BackupJob {
   status       String             // "success", "failed", "processing"
   errorMessage String?
   triggerType  String             // "manual", "scheduled"
+  type         String             @default("backup") // "backup", "restore"
   createdAt    DateTime           @default(now())
 }
 

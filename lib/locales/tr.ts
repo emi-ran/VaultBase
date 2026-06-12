@@ -149,6 +149,14 @@ export const tr = {
     success: "Veritabanı başarıyla geri yüklendi.",
     failed: "Geri yükleme başarısız: ",
     invalidFile: "Lütfen geçerli bir .sql.gz dosyası seçin.",
+    fromArchive: "Arşivden Geri Yükle",
+    archiveDesc: "Arşivdeki bir yedek dosyasını seçerek hedef veritabanına geri yükleyin.",
+    selectTargetDb: "Hedef Veritabanı Seç",
+    backupInfo: "Yedek Bilgisi",
+    sourceDb: "Kaynak Veritabanı",
+    targetDbLabel: "HEDEF VERİTABANI",
+    archivedDate: "Arşivlenme Tarihi",
+    fileSize: "Dosya Boyutu",
   },
   schedules: {
     title: "ZAMANLAMALAR",
@@ -281,5 +289,10 @@ export const tr = {
     clearLogsConfirm: "Tüm yedekleme geçmişi loglarını silmek istediğinize emin misiniz?",
     errorModalTitle: "YEDEKLEME HATA DETAYI",
     errorModalDesc: "Yedekleme işlemi sırasında sistem tarafından döndürülen hata çıktısı.",
+    restore: "Geri Yükleme",
+    filterType: "Tüm İşlem Türleri",
+    typeBackup: "Yedek",
+    typeRestore: "Geri Yükleme",
+    statsRestore: "GERİ YÜKLEME",
   }
 };

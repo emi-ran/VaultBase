@@ -243,6 +243,74 @@ export async function triggerBackupAction(dbId: string, customFilename?: string)
   }
 }
 
+// Restore from Archive Action
+export async function restoreFromArchiveAction(backupId: string, targetDatabaseId: string) {
+  try {
+    const backup = await prisma.backupJob.findUnique({ where: { id: backupId } })
+    if (!backup) return { success: false, error: "Backup record not found" }
+
+    if (!fs.existsSync(backup.filepath)) {
+      return { success: false, error: "Backup file not found on disk" }
+    }
+
+    const db = await prisma.databaseConnection.findUnique({ where: { id: targetDatabaseId } })
+    if (!db) return { success: false, error: "Target database not found" }
+
+    const { runRestore } = await import("../lib/restore-service")
+    const decrypt = (await import("../lib/encryption")).decrypt
+    const decryptedPassword = decrypt(db.password)
+
+    // Create a processing log entry
+    const restoreLog = await prisma.backupJob.create({
+      data: {
+        databaseId: db.id,
+        filename: `restore_${backup.filename}`,
+        filepath: backup.filepath,
+        sizeBytes: 0,
+        status: "processing",
+        triggerType: "manual",
+        type: "restore",
+      },
+    })
+
+    const fileStream = fs.createReadStream(backup.filepath)
+
+    const result = await runRestore(fileStream, {
+      host: db.host,
+      port: db.port,
+      user: db.user,
+      password: decryptedPassword,
+      database: db.database,
+    })
+
+    if (result.success) {
+      try {
+        const stats = fs.statSync(backup.filepath)
+        await prisma.backupJob.update({
+          where: { id: restoreLog.id },
+          data: { status: "success", sizeBytes: stats.size },
+        })
+      } catch {
+        await prisma.backupJob.update({
+          where: { id: restoreLog.id },
+          data: { status: "success" },
+        })
+      }
+      revalidatePath("/")
+      return { success: true }
+    } else {
+      await prisma.backupJob.update({
+        where: { id: restoreLog.id },
+        data: { status: "failed", errorMessage: result.error },
+      })
+      revalidatePath("/")
+      return { success: false, error: result.error }
+    }
+  } catch (error: any) {
+    return { success: false, error: error.message || "Restore failed" }
+  }
+}
+
 // Delete Backup Archive Action
 export async function deleteBackupAction(id: string) {
   try {

@@ -149,6 +149,14 @@ export const en = {
     success: "Database restored successfully.",
     failed: "Restore failed: ",
     invalidFile: "Please select a valid .sql.gz file.",
+    fromArchive: "Restore from Archive",
+    archiveDesc: "Select a backup file from the archive to restore to a target database.",
+    selectTargetDb: "Select Target Database",
+    backupInfo: "Backup Info",
+    sourceDb: "Source Database",
+    targetDbLabel: "TARGET DATABASE",
+    archivedDate: "Archive Date",
+    fileSize: "File Size",
   },
   schedules: {
     title: "SCHEDULES",
@@ -281,5 +289,10 @@ export const en = {
     clearLogsConfirm: "Are you sure you want to clear all backup execution logs?",
     errorModalTitle: "BACKUP ERROR DETAILS",
     errorModalDesc: "System error output returned during the backup process.",
+    restore: "Restore",
+    filterType: "All Job Types",
+    typeBackup: "Backup",
+    typeRestore: "Restore",
+    statsRestore: "RESTORE",
   }
 };
