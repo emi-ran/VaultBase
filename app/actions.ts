@@ -94,6 +94,7 @@ export async function testConnectionAction(formData: {
   password?: string;
   database?: string;
   ssl?: string;
+  dbId?: string;
 }) {
   try {
     let config: DBConfig = {};
@@ -112,11 +113,18 @@ export async function testConnectionAction(formData: {
         ssl: formData.ssl || parsed.ssl,
       };
     } else {
+      let password = formData.password || "";
+      if (!password && formData.dbId) {
+        const db = await prisma.databaseConnection.findUnique({ where: { id: formData.dbId } });
+        if (db) {
+          password = decrypt(db.password);
+        }
+      }
       config = {
         host: formData.host || "localhost",
         port: formData.port || 5432,
         user: formData.user || "",
-        password: formData.password || "",
+        password,
         database: formData.database || "",
         ssl: formData.ssl || "prefer",
       };

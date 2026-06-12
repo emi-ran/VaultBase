@@ -69,6 +69,7 @@ export function DatabaseModal({ onSuccess, trigger, database: editingDb }: Datab
         password,
         database,
         ssl,
+        ...(isEdit ? { dbId: editingDb.id } : {}),
       });
 
       if (res.success) {
