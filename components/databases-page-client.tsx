@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { 
@@ -31,7 +31,9 @@ import {
   triggerBackupAction, 
   deleteDatabaseAction, 
   getDatabaseSizeAction,
-  testAndUpdateDatabaseStatusAction 
+  testAndUpdateDatabaseStatusAction,
+  testAllConnectionsAction,
+  getSettingsAction
 } from "../app/actions";
 
 // Format bytes helper
@@ -59,6 +61,9 @@ export function DatabasesPageClient({ databases }: DatabasesPageClientProps) {
 
   // Connection Testing states
   const [testingDbs, setTestingDbs] = useState<Record<string, boolean>>({});
+  const [testingAll, setTestingAll] = useState(false);
+  const [healthCheckInterval, setHealthCheckInterval] = useState(0);
+  const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Backup dialog states
   const [backupOpen, setBackupOpen] = useState(false);
@@ -132,6 +137,55 @@ export function DatabasesPageClient({ databases }: DatabasesPageClientProps) {
       setTestingDbs((prev) => ({ ...prev, [id]: false }));
     }
   };
+
+  // Handle test all connections
+  const handleTestAllConnections = async () => {
+    setTestingAll(true);
+    try {
+      await testAllConnectionsAction();
+      router.refresh();
+    } catch (err) {
+      console.error("Test all connections failed:", err);
+    } finally {
+      setTestingAll(false);
+    }
+  };
+
+  // Load health check interval on mount
+  useEffect(() => {
+    const loadInterval = async () => {
+      try {
+        const res = await getSettingsAction();
+        if (res.success) {
+          setHealthCheckInterval(parseInt(res.healthCheckInterval || "0", 10));
+        }
+      } catch {}
+    };
+    loadInterval();
+  }, []);
+
+  // Auto-polling effect
+  useEffect(() => {
+    if (pollingRef.current) {
+      clearInterval(pollingRef.current);
+      pollingRef.current = null;
+    }
+
+    if (healthCheckInterval > 0) {
+      pollingRef.current = setInterval(async () => {
+        try {
+          await testAllConnectionsAction();
+          router.refresh();
+        } catch {}
+      }, healthCheckInterval * 1000);
+    }
+
+    return () => {
+      if (pollingRef.current) {
+        clearInterval(pollingRef.current);
+      }
+    };
+  }, [healthCheckInterval, router]);
 
   // Open Backup Modal
   const openBackupDialog = async (db: any) => {
@@ -214,6 +268,26 @@ export function DatabasesPageClient({ databases }: DatabasesPageClientProps) {
         </div>
 
         <div className="flex items-center gap-3">
+          {healthCheckInterval > 0 && (
+            <span className="text-[9px] font-mono text-[#55f289] border border-[#1b3f2a] bg-[#132219] px-2 py-1 rounded flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#55f289] animate-pulse" />
+              {t("database.autoCheckActive")}
+            </span>
+          )}
+          <Button
+            size="xs"
+            variant="outline"
+            disabled={testingAll}
+            onClick={handleTestAllConnections}
+            className="h-8 border-[#2b2926] text-[10px] text-[#E6E4DD] hover:bg-[#1c1a17] hover:text-white font-mono flex items-center gap-1.5 cursor-pointer rounded"
+          >
+            {testingAll ? (
+              <IconLoader2 size={12} className="animate-spin" />
+            ) : (
+              <IconRefresh size={12} />
+            )}
+            {testingAll ? t("database.testingAll") : t("database.testAll")}
+          </Button>
           <DatabaseModal onSuccess={() => router.refresh()} />
         </div>
       </header>

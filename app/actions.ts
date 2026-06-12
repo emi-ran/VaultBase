@@ -13,7 +13,7 @@ import { cookies } from "next/headers";
 import fs from "fs";
 import path from "path";
 import { prisma, DatabaseConnection, Schedule } from "../lib/db";
-import { encrypt, decrypt } from "../lib/encryption";
+import { encrypt, decrypt, encryptWithPassword, decryptWithPassword } from "../lib/encryption";
 import { testPostgresConnection, fetchPostgresTables, fetchTableData, fetchDatabaseSize, DBConfig } from "../lib/db-client";
 import { runBackup, getBackupDirectory } from "../lib/backup-service";
 import { Locale } from "../lib/i18n";
@@ -591,23 +591,36 @@ export async function testAndUpdateDatabaseStatusAction(id: string) {
 // Get Settings Action
 export async function getSettingsAction() {
   try {
-    const timezoneSetting = await prisma.setting.findUnique({
-      where: { key: "timezone" },
-    });
-    return { success: true, timezone: timezoneSetting?.value || "Europe/Istanbul" };
+    const [timezoneSetting, healthCheckIntervalSetting] = await Promise.all([
+      prisma.setting.findUnique({ where: { key: "timezone" } }),
+      prisma.setting.findUnique({ where: { key: "healthCheckInterval" } }),
+    ]);
+    return {
+      success: true,
+      timezone: timezoneSetting?.value || "Europe/Istanbul",
+      healthCheckInterval: healthCheckIntervalSetting?.value || "30",
+    };
   } catch (error: any) {
     return { success: false, error: error.message || "Failed to load settings" };
   }
 }
 
 // Save Settings Action
-export async function saveSettingsAction(timezone: string) {
+export async function saveSettingsAction(timezone: string, healthCheckInterval?: string) {
   try {
     await prisma.setting.upsert({
       where: { key: "timezone" },
       update: { value: timezone },
       create: { key: "timezone", value: timezone },
     });
+
+    if (healthCheckInterval !== undefined) {
+      await prisma.setting.upsert({
+        where: { key: "healthCheckInterval" },
+        update: { value: healthCheckInterval },
+        create: { key: "healthCheckInterval", value: healthCheckInterval },
+      });
+    }
     
     // Dynamically import reloadSchedules to prevent circular dependency
     const { reloadSchedules } = await import("../lib/cron-service");
@@ -618,6 +631,45 @@ export async function saveSettingsAction(timezone: string) {
     return { success: true };
   } catch (error: any) {
     return { success: false, error: error.message || "Failed to save settings" };
+  }
+}
+
+// Test All Connections Action
+export async function testAllConnectionsAction() {
+  try {
+    const databases = await prisma.databaseConnection.findMany();
+    const results: { id: string; name: string; status: string; error?: string }[] = [];
+
+    await Promise.all(
+      databases.map(async (db: DatabaseConnection) => {
+        try {
+          const decryptedPassword = decrypt(db.password);
+          const testResult = await testPostgresConnection({
+            host: db.host,
+            port: db.port,
+            user: db.user,
+            password: decryptedPassword,
+            database: db.database,
+            ssl: db.ssl,
+          });
+
+          const status = testResult.success ? "healthy" : "offline";
+
+          await prisma.databaseConnection.update({
+            where: { id: db.id },
+            data: { status, lastTestedAt: new Date() },
+          });
+
+          results.push({ id: db.id, name: db.name, status, error: testResult.error });
+        } catch (err: any) {
+          results.push({ id: db.id, name: db.name, status: "offline", error: err.message });
+        }
+      })
+    );
+
+    return { success: true, results };
+  } catch (error: any) {
+    return { success: false, error: error.message || "Failed to test all connections" };
   }
 }
 

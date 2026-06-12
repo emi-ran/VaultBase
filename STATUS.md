@@ -47,6 +47,8 @@ Aşağıdaki tüm özellikler çalışır durumda:
 | Depolama göstergesi | ✅ Çalışıyor | Limit takibi |
 | /jobs Sayfası | ✅ Çalışıyor | Yedek işlem geçmişi listeleme, durum/tetikleyici filtreleri, hata modalı |
 | PostgreSQL Tür Logosu | ✅ Çalışıyor | Kart/tablo/explorer başlıklarında PostgreSQL logosu |
+| Tüm Bağlantıları Test Et | ✅ Çalışıyor | /databases sayfasında tek butonla tüm bağlantıları test etme |
+| Otomatik Sağlık Kontrolü | ✅ Çalışıyor | Ayarlardan 15sn/30sn/1dk aralıkla otomatik polling, sayfa açıkken çalışır |
 
 ---
 

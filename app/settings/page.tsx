@@ -45,6 +45,7 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const [timezone, setTimezone] = useState("Europe/Istanbul");
+  const [healthCheckInterval, setHealthCheckInterval] = useState("30");
   const [timezonesList, setTimezonesList] = useState<string[]>(COMMON_TIMEZONES);
 
   React.useEffect(() => {
@@ -52,6 +53,7 @@ export default function SettingsPage() {
       const res = await getSettingsAction();
       if (res.success && res.timezone) {
         setTimezone(res.timezone);
+        setHealthCheckInterval(res.healthCheckInterval || "0");
       }
     };
     loadSettings();
@@ -67,12 +69,12 @@ export default function SettingsPage() {
     }
   }, []);
 
-  const handleSaveTimezone = async (e: React.FormEvent) => {
+  const handleSaveSettings = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setStatus(null);
     try {
-      const res = await saveSettingsAction(timezone);
+      const res = await saveSettingsAction(timezone, healthCheckInterval);
       if (res.success) {
         setStatus({ type: "success", message: t("settingsPage.saveSuccess") });
         setTimeout(() => {
@@ -82,7 +84,7 @@ export default function SettingsPage() {
         setStatus({ type: "error", message: res.error || "Failed to save settings." });
       }
     } catch (err: any) {
-      setStatus({ type: "error", message: err.message || "Failed to save timezone." });
+      setStatus({ type: "error", message: err.message || "Failed to save settings." });
     } finally {
       setLoading(false);
     }
@@ -182,7 +184,7 @@ export default function SettingsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="p-6">
-            <form onSubmit={handleSaveTimezone} className="space-y-4">
+            <form onSubmit={handleSaveSettings} className="space-y-4">
               <div className="space-y-2">
                 <label className="block text-[10px] font-mono tracking-wider text-[#a09e96] uppercase">
                   {t("settingsPage.timezoneSelectLabel")}
@@ -211,6 +213,32 @@ export default function SettingsPage() {
                     })}
                   </SelectContent>
                 </Select>
+              </div>
+
+              {/* Health check interval */}
+              <div className="space-y-2 pt-4 border-t border-[#2b2926]">
+                <label className="block text-[10px] font-mono tracking-wider text-[#55f289] uppercase">
+                  {t("settingsPage.healthCheckTitle")}
+                </label>
+                <p className="text-[10px] font-mono text-[#605e58] leading-relaxed">
+                  {t("settingsPage.healthCheckDesc")}
+                </p>
+                <div className="pt-1 space-y-2">
+                  <label className="block text-[10px] font-mono tracking-wider text-[#a09e96] uppercase">
+                    {t("settingsPage.healthCheckInterval")}
+                  </label>
+                  <Select value={healthCheckInterval} onValueChange={setHealthCheckInterval} disabled={loading}>
+                    <SelectTrigger className="bg-[#141210] border-[#2b2926] text-xs text-white font-mono rounded h-10 w-full">
+                      <SelectValue placeholder={t("settingsPage.healthCheckDisabled")} />
+                    </SelectTrigger>
+                    <SelectContent position="popper" className="bg-[#141210] border-[#2b2926] text-[#E6E4DD]">
+                      <SelectItem value="0" className="hover:bg-[#2b2926] text-xs font-mono">{t("settingsPage.healthCheckDisabled")}</SelectItem>
+                      <SelectItem value="15" className="hover:bg-[#2b2926] text-xs font-mono">{t("settingsPage.healthCheck15s")}</SelectItem>
+                      <SelectItem value="30" className="hover:bg-[#2b2926] text-xs font-mono">{t("settingsPage.healthCheck30s")}</SelectItem>
+                      <SelectItem value="60" className="hover:bg-[#2b2926] text-xs font-mono">{t("settingsPage.healthCheck60s")}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
               <div className="pt-2">
