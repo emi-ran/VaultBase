@@ -191,7 +191,7 @@ export default function SettingsPage() {
                   <SelectTrigger className="bg-[#141210] border-[#2b2926] text-xs text-white font-mono rounded h-10 w-full">
                     <SelectValue placeholder="Select Timezone" />
                   </SelectTrigger>
-                  <SelectContent position="popper" className="bg-[#141210] border-[#2b2926] text-[#E6E4DD] max-h-[300px] overflow-y-auto">
+                  <SelectContent position="popper" className="bg-[#141210] border-[#2b2926] text-[#E6E4DD] max-h-75 overflow-y-auto">
                     {timezonesList.map((tz) => {
                       let offsetStr = "";
                       try {

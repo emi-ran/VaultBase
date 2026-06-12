@@ -178,7 +178,7 @@ export function Sidebar() {
         <div className="flex flex-col gap-1 text-[10px] font-mono border-t border-[#2b2926]/40 pt-3">
           <div className="flex items-center justify-between">
             <span className="text-[#605e58]">SYSTEM CLOCK</span>
-            <span className="text-[#a09e96] truncate max-w-[120px] text-right" title={timezone}>
+            <span className="text-[#a09e96] truncate max-w-30 text-right" title={timezone}>
               {timezone.split("/").pop()?.replace("_", " ")}
             </span>
           </div>

@@ -302,7 +302,7 @@ export function DatabasesPageClient({ databases }: DatabasesPageClientProps) {
             <div className="flex items-center gap-2">
               <span className="text-[9px] font-mono text-[#605e58] tracking-wider uppercase whitespace-nowrap">{t("database.filterEnv") || "ORTAM"}:</span>
               <Select value={selectedEnv} onValueChange={setSelectedEnv}>
-                <SelectTrigger className="bg-[#141210] border-[#2b2926] text-xs text-white font-mono rounded h-8 min-w-[110px] w-auto">
+                <SelectTrigger className="bg-[#141210] border-[#2b2926] text-xs text-white font-mono rounded h-8 min-w-27.5 w-auto">
                   <SelectValue placeholder={locale === "tr" ? "Tümü" : "All"} />
                 </SelectTrigger>
                 <SelectContent position="popper" className="bg-[#141210] border-[#2b2926] text-[#E6E4DD]">
@@ -319,7 +319,7 @@ export function DatabasesPageClient({ databases }: DatabasesPageClientProps) {
               <div className="flex items-center gap-2">
                 <span className="text-[9px] font-mono text-[#605e58] tracking-wider uppercase whitespace-nowrap">{t("database.filterLabel") || "ETİKET"}:</span>
                 <Select value={selectedLabel} onValueChange={setSelectedLabel}>
-                  <SelectTrigger className="bg-[#141210] border-[#2b2926] text-xs text-white font-mono rounded h-8 min-w-[110px] w-auto">
+                  <SelectTrigger className="bg-[#141210] border-[#2b2926] text-xs text-white font-mono rounded h-8 min-w-27.5 w-auto">
                     <SelectValue placeholder={locale === "tr" ? "Tümü" : "All"} />
                   </SelectTrigger>
                   <SelectContent position="popper" className="bg-[#141210] border-[#2b2926] text-[#E6E4DD]">
@@ -418,7 +418,7 @@ export function DatabasesPageClient({ databases }: DatabasesPageClientProps) {
                       <div className="flex justify-between items-center bg-[#141210] border border-[#2b2926]/40 p-2 rounded">
                         <div className="space-y-0.5">
                           <span className="text-[8px] text-[#605e58] block tracking-wider uppercase">{t("database.lastTested") || "SON TEST"}</span>
-                          <span className="text-[10px] text-[#E6E4DD] truncate block max-w-[150px]">{lastTestedStr}</span>
+                          <span className="text-[10px] text-[#E6E4DD] truncate block max-w-37.5">{lastTestedStr}</span>
                         </div>
                         <div className="flex items-center gap-1.5">
                           <span className={`w-2 h-2 rounded-full ${
@@ -453,7 +453,7 @@ export function DatabasesPageClient({ databases }: DatabasesPageClientProps) {
                   {/* Footer (Labels and Actions) */}
                   <div className="p-5 pt-3 border-t border-[#2b2926]/60 space-y-3 bg-[#0c0b0a]/50">
                     {/* Labels row */}
-                    <div className="flex flex-wrap gap-1 min-h-[18px]">
+                    <div className="flex flex-wrap gap-1 min-h-4.5">
                       {labelsArr.length === 0 ? (
                         <span className="text-[9px] text-[#605e58] italic flex items-center gap-1">
                           <IconTag size={10} />
@@ -545,7 +545,7 @@ export function DatabasesPageClient({ databases }: DatabasesPageClientProps) {
 
       {/* Manual Backup Dialog Confirmation */}
       <Dialog open={backupOpen} onOpenChange={setBackupOpen}>
-        <DialogContent className="max-w-[500px] bg-[#0d0c0b] text-[#E6E4DD] border border-[#2b2926] font-sans rounded-md">
+        <DialogContent className="max-w-125 bg-[#0d0c0b] text-[#E6E4DD] border border-[#2b2926] font-sans rounded-md">
           <DialogHeader>
             <DialogTitle className="text-sm font-mono tracking-wider uppercase text-white flex items-center gap-2">
               <IconDatabase size={16} className="text-[#55f289]" />
@@ -630,7 +630,7 @@ export function DatabasesPageClient({ databases }: DatabasesPageClientProps) {
 
       {/* Delete Database Dialog Confirmation */}
       <Dialog open={deleteDbOpen} onOpenChange={setDeleteDbOpen}>
-        <DialogContent className="max-w-[450px] bg-[#0d0c0b] text-[#E6E4DD] border border-[#2b2926] font-sans rounded-md">
+        <DialogContent className="max-w-112.5 bg-[#0d0c0b] text-[#E6E4DD] border border-[#2b2926] font-sans rounded-md">
           <DialogHeader>
             <DialogTitle className="text-sm font-mono tracking-wider uppercase text-white flex items-center gap-2">
               <IconAlertCircle size={16} className="text-[#f25c55]" />

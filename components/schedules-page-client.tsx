@@ -421,7 +421,7 @@ export function SchedulesPageClient({ initialDatabases, initialSchedules, timezo
           </Button>
 
           {/* Dialog Width constrained to max-w-[600px] sm:max-w-[600px] explicitly as per AGENTS.md */}
-          <DialogContent className="max-w-[600px] sm:max-w-[600px] bg-[#0d0c0b] border-[#2b2926] text-[#E6E4DD] rounded-md font-sans p-6 overflow-y-auto max-h-[90vh]">
+          <DialogContent className="max-w-150 sm:max-w-150 bg-[#0d0c0b] border-[#2b2926] text-[#E6E4DD] rounded-md font-sans p-6 overflow-y-auto max-h-[90vh]">
             <DialogHeader className="border-b border-[#2b2926] pb-4 mb-4">
               <DialogTitle className="text-sm font-mono tracking-wider text-white uppercase flex items-center gap-2">
                 <IconCalendarStats size={16} className="text-[#55f289]" />
@@ -829,7 +829,7 @@ export function SchedulesPageClient({ initialDatabases, initialSchedules, timezo
                         </button>
                       </div>
 
-                      <div className="h-4 w-[1px] bg-[#2b2926]" />
+                      <div className="h-4 w-px bg-[#2b2926]" />
 
                       {/* Edit / Delete action buttons */}
                       <div className="flex items-center gap-2">

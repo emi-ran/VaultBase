@@ -188,7 +188,7 @@ export default async function DashboardPage() {
 
           {/* Right Side: Activity Log Feed */}
           <div className="space-y-6">
-            <Card className="bg-[#0d0c0b] border-[#2b2926] rounded-md h-full min-h-[400px]">
+            <Card className="bg-[#0d0c0b] border-[#2b2926] rounded-md h-full min-h-100">
               <CardHeader className="p-6 border-b border-[#2b2926] flex flex-row items-center justify-between">
                 <CardTitle className="text-xs font-mono font-bold tracking-wider text-white uppercase">
                   {t("common.recentActivities")}
