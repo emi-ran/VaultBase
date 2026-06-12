@@ -1,8 +1,6 @@
 services:
   vaultbase:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: 3mirun/vaultbase:latest
     container_name: vaultbase-app
     ports:
       - "3000:3000"
@@ -13,9 +11,9 @@ services:
       - ./backups:/app/backups
     environment:
       - DATABASE_URL=file:/app/data/dev.db
-      - APP_SECRET=${APP_SECRET:-your-vaultbase-production-secret-key-change-this}
-      - ADMIN_USERNAME=${ADMIN_USERNAME:-admin}
-      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-vaultbase}
+      - APP_SECRET=${APP_SECRET:?APP_SECRET is required}
+      - ADMIN_USERNAME=${ADMIN_USERNAME:?ADMIN_USERNAME is required}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:?ADMIN_PASSWORD is required}
       - PORT=${PORT:-3000}
       - STORAGE_LIMIT_MB=${STORAGE_LIMIT_MB:-5120}
       - BACKUP_DIR=/app/backups

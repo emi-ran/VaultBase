@@ -112,12 +112,36 @@ Open your browser at: **http://localhost:3000**
 
 ## 🐳 Docker Deployment
 
-The simplest way to run VaultBase is with Docker Compose:
+The simplest way to run VaultBase is with the prebuilt Docker image:
 
 ```bash
-# Copy and configure environment variables
-cp .env.example .env
+docker pull 3mirun/vaultbase:latest
+```
 
+Create a `.env` file from the example before starting the container:
+
+```bash
+cp .env.example .env
+```
+
+Edit the required values in `.env`:
+
+```env
+# Required: use a strong, random value. Keep it stable after first setup.
+APP_SECRET=replace-with-a-secure-random-secret-key-at-least-32-chars
+
+# Required: web UI administrator credentials.
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD=replace-with-a-strong-password
+
+# Optional
+PORT=3000
+STORAGE_LIMIT_MB=5120
+```
+
+Then start VaultBase with Docker Compose:
+
+```bash
 # Spin up the container in detached mode
 docker compose up -d
 
@@ -129,6 +153,23 @@ docker compose down
 ```
 
 SQLite databases and backup dumps will be persisted inside local volumes pointing to `/app/data` and `/app/backups`.
+
+If you run the image manually instead of Docker Compose, pass the same required environment variables and mount persistent volumes:
+
+```bash
+docker run -d \
+  --name vaultbase \
+  -p 3000:3000 \
+  -e APP_SECRET="replace-with-a-secure-random-secret-key-at-least-32-chars" \
+  -e ADMIN_USERNAME="admin" \
+  -e ADMIN_PASSWORD="replace-with-a-strong-password" \
+  -e DATABASE_URL="file:/app/data/dev.db" \
+  -e BACKUP_DIR="/app/backups" \
+  -e STORAGE_LIMIT_MB="5120" \
+  -v vaultbase-data:/app/data \
+  -v vaultbase-backups:/app/backups \
+  3mirun/vaultbase:latest
+```
 
 ---
 

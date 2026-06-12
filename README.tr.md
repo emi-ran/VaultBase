@@ -112,12 +112,36 @@ Uygulamayı tarayıcınızda açın: **http://localhost:3000**
 
 ## 🐳 Docker ile Çalıştırma
 
-VaultBase'i çalıştırmanın en kolay yolu Docker Compose kullanmaktır:
+VaultBase'i çalıştırmanın en kolay yolu hazır Docker image'ını kullanmaktır:
 
 ```bash
-# .env dosyasını kopyalayın ve yapılandırın
-cp .env.example .env
+docker pull 3mirun/vaultbase:latest
+```
 
+Container'ı başlatmadan önce örnek dosyadan bir `.env` dosyası oluşturun:
+
+```bash
+cp .env.example .env
+```
+
+`.env` içindeki zorunlu değerleri düzenleyin:
+
+```env
+# Zorunlu: güçlü ve rastgele bir değer kullanın. İlk kurulumdan sonra sabit tutun.
+APP_SECRET=replace-with-a-secure-random-secret-key-at-least-32-chars
+
+# Zorunlu: web arayüzü yönetici giriş bilgileri.
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD=replace-with-a-strong-password
+
+# Opsiyonel
+PORT=3000
+STORAGE_LIMIT_MB=5120
+```
+
+Ardından Docker Compose ile başlatın:
+
+```bash
 # Container'ları arka planda başlatın
 docker compose up -d
 
@@ -129,6 +153,23 @@ docker compose down
 ```
 
 SQLite ayar veritabanı ve yedek dosyalarınız sırasıyla container içindeki `/app/data` ve `/app/backups` kalıcı disk alanlarına (volume) kaydedilir.
+
+Docker Compose yerine image'ı elle çalıştırmak isterseniz aynı zorunlu ortam değişkenlerini verin ve kalıcı volume bağlayın:
+
+```bash
+docker run -d \
+  --name vaultbase \
+  -p 3000:3000 \
+  -e APP_SECRET="replace-with-a-secure-random-secret-key-at-least-32-chars" \
+  -e ADMIN_USERNAME="admin" \
+  -e ADMIN_PASSWORD="replace-with-a-strong-password" \
+  -e DATABASE_URL="file:/app/data/dev.db" \
+  -e BACKUP_DIR="/app/backups" \
+  -e STORAGE_LIMIT_MB="5120" \
+  -v vaultbase-data:/app/data \
+  -v vaultbase-backups:/app/backups \
+  3mirun/vaultbase:latest
+```
 
 ---
 
