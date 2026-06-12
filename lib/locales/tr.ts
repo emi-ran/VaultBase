@@ -352,6 +352,7 @@ export const tr = {
     login: "GİRİŞ YAP",
     loggingIn: "GİRİŞ YAPILIYOR...",
     invalidCredentials: "Hatalı kullanıcı adı veya şifre.",
+    rateLimited: "Çok fazla başarısız giriş denemesi. Lütfen {minutes} dakika sonra tekrar deneyin.",
     logout: "ÇIKIŞ YAP",
     sessionExpired: "Oturum süreniz doldu. Lütfen tekrar giriş yapın.",
     welcome: "VaultBase'e Hoş Geldiniz",

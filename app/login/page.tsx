@@ -27,9 +27,12 @@ function LoginForm() {
       router.push("/");
       router.refresh();
     } else {
+      const retryMinutes = result.retryAfterSeconds ? Math.ceil(result.retryAfterSeconds / 60) : 15;
       setError(
         result.error === "INVALID_CREDENTIALS"
           ? t("auth.invalidCredentials")
+          : result.error === "RATE_LIMITED"
+            ? t("auth.rateLimited", { minutes: retryMinutes })
           : result.error
       );
       setLoading(false);

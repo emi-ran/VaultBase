@@ -352,6 +352,7 @@ export const en = {
     login: "SIGN IN",
     loggingIn: "SIGNING IN...",
     invalidCredentials: "Invalid username or password.",
+    rateLimited: "Too many failed sign-in attempts. Please try again in {minutes} minutes.",
     logout: "SIGN OUT",
     sessionExpired: "Your session has expired. Please sign in again.",
     welcome: "Welcome to VaultBase",

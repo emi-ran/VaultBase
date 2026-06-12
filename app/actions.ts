@@ -9,7 +9,7 @@ function revalidatePath(path: string) {
     // Ignore error when run outside Next.js request context (e.g. in test scripts or background cron workers)
   }
 }
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import fs from "fs";
 import path from "path";
 import { prisma, DatabaseConnection, Schedule } from "../lib/db";
@@ -18,6 +18,59 @@ import { testPostgresConnection, fetchPostgresTables, fetchTableData, fetchDatab
 import { testMongoConnection } from "../lib/db-mongo-client";
 import { runBackup, getBackupDirectory } from "../lib/backup-service";
 import { Locale } from "../lib/i18n";
+
+const LOGIN_RATE_LIMIT_MAX_ATTEMPTS = 5;
+const LOGIN_RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
+const LOGIN_RATE_LIMIT_LOCK_MS = 15 * 60 * 1000;
+
+type LoginAttempt = {
+  count: number;
+  firstAttemptAt: number;
+  lockedUntil?: number;
+};
+
+const loginAttempts = new Map<string, LoginAttempt>();
+
+async function getLoginRateLimitKey() {
+  const headerStore = await headers();
+  const forwardedFor = headerStore.get("x-forwarded-for")?.split(",")[0]?.trim();
+  const realIp = headerStore.get("x-real-ip")?.trim();
+  return forwardedFor || realIp || "unknown";
+}
+
+function getLoginRateLimitState(key: string) {
+  const now = Date.now();
+  const attempt = loginAttempts.get(key);
+
+  if (!attempt) return { limited: false };
+
+  if (attempt.lockedUntil && attempt.lockedUntil > now) {
+    return {
+      limited: true,
+      retryAfterSeconds: Math.ceil((attempt.lockedUntil - now) / 1000),
+    };
+  }
+
+  if (now - attempt.firstAttemptAt > LOGIN_RATE_LIMIT_WINDOW_MS) {
+    loginAttempts.delete(key);
+  }
+
+  return { limited: false };
+}
+
+function recordFailedLogin(key: string) {
+  const now = Date.now();
+  const current = loginAttempts.get(key);
+  const attempt = !current || now - current.firstAttemptAt > LOGIN_RATE_LIMIT_WINDOW_MS
+    ? { count: 1, firstAttemptAt: now }
+    : { ...current, count: current.count + 1 };
+
+  if (attempt.count >= LOGIN_RATE_LIMIT_MAX_ATTEMPTS) {
+    attempt.lockedUntil = now + LOGIN_RATE_LIMIT_LOCK_MS;
+  }
+
+  loginAttempts.set(key, attempt);
+}
 
 // Parse PostgreSQL URL into connection fields
 function parsePostgresUrl(urlStr: string) {
@@ -74,10 +127,18 @@ export async function setLanguageAction(locale: Locale) {
 // Login Action
 export async function loginAction(username: string, password: string) {
   try {
+    const rateLimitKey = await getLoginRateLimitKey();
+    const rateLimit = getLoginRateLimitState(rateLimitKey);
+    if (rateLimit.limited) {
+      return { success: false, error: "RATE_LIMITED", retryAfterSeconds: rateLimit.retryAfterSeconds };
+    }
+
     const { verifyCredentials, createSession } = await import("../lib/auth");
     if (!verifyCredentials(username, password)) {
+      recordFailedLogin(rateLimitKey);
       return { success: false, error: "INVALID_CREDENTIALS" };
     }
+    loginAttempts.delete(rateLimitKey);
     const token = await createSession(username);
     const cookieStore = await cookies();
     cookieStore.set("session", token, {
