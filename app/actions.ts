@@ -340,7 +340,7 @@ export async function restoreFromArchiveAction(backupId: string, targetDatabaseI
         password: decryptedPassword,
         database: db.database,
         ssl: db.ssl,
-      })
+      }, backup.filepath)
     } else {
       const { runRestore } = await import("../lib/restore-service")
       result = await runRestore(fileStream, {
@@ -477,6 +477,7 @@ export async function exportSettingsAction(password?: string) {
       version: "1.0.0",
       timestamp: new Date().toISOString(),
       databases: databases.map((db: DatabaseConnection) => ({
+        type: db.type || "postgresql",
         name: db.name,
         host: db.host,
         port: db.port,
@@ -579,11 +580,14 @@ export async function importSettingsAction(jsonString: string, password?: string
 
       const dbPassword = encrypt(dbInfo.password || "");
 
+      const dbType = dbInfo.type || "postgresql";
+
       if (existing) {
         // Update credentials and info
         const updated = await prisma.databaseConnection.update({
           where: { id: existing.id },
           data: {
+            type: dbType,
             host: dbInfo.host,
             port: dbInfo.port,
             user: dbInfo.user,
@@ -598,6 +602,7 @@ export async function importSettingsAction(jsonString: string, password?: string
         // Create new
         const created = await prisma.databaseConnection.create({
           data: {
+            type: dbType,
             name: dbInfo.name,
             host: dbInfo.host,
             port: dbInfo.port,
@@ -808,14 +813,23 @@ export async function testAndUpdateDatabaseStatusAction(id: string) {
     
     let status = "offline";
     try {
-      const testResult = await testPostgresConnection({
-        host: db.host,
-        port: db.port,
-        user: db.user,
-        password: decryptedPassword,
-        database: db.database,
-        ssl: db.ssl,
-      });
+      const testResult = db.type === "mongodb"
+        ? await testMongoConnection({
+            host: db.host,
+            port: db.port,
+            user: db.user,
+            password: decryptedPassword,
+            database: db.database,
+            ssl: db.ssl,
+          })
+        : await testPostgresConnection({
+            host: db.host,
+            port: db.port,
+            user: db.user,
+            password: decryptedPassword,
+            database: db.database,
+            ssl: db.ssl,
+          });
       status = testResult.success ? "healthy" : "offline";
     } catch {}
 
@@ -891,14 +905,23 @@ export async function testAllConnectionsAction() {
       databases.map(async (db: DatabaseConnection) => {
         try {
           const decryptedPassword = decrypt(db.password);
-          const testResult = await testPostgresConnection({
-            host: db.host,
-            port: db.port,
-            user: db.user,
-            password: decryptedPassword,
-            database: db.database,
-            ssl: db.ssl,
-          });
+          const testResult = db.type === "mongodb"
+            ? await testMongoConnection({
+                host: db.host,
+                port: db.port,
+                user: db.user,
+                password: decryptedPassword,
+                database: db.database,
+                ssl: db.ssl,
+              })
+            : await testPostgresConnection({
+                host: db.host,
+                port: db.port,
+                user: db.user,
+                password: decryptedPassword,
+                database: db.database,
+                ssl: db.ssl,
+              });
 
           const status = testResult.success ? "healthy" : "offline";
 

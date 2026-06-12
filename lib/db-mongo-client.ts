@@ -48,12 +48,35 @@ export async function testMongoConnection(config: MongoDBConfig): Promise<{ succ
   }
 }
 
-export async function fetchMongoCollections(config: MongoDBConfig): Promise<string[]> {
+export async function fetchMongoDatabases(config: MongoDBConfig): Promise<string[]> {
   let client: MongoClient | undefined;
   try {
     client = getClient(config);
     await client.connect();
-    const db = client.db(config.database || "admin");
+    const adminDb = client.db("admin");
+    const dbs = await adminDb.admin().listDatabases();
+    const names = dbs.databases.map((d: any) => d.name).sort();
+    if (names.length === 0 && config.database) {
+      return [config.database];
+    }
+    return names;
+  } catch (error) {
+    console.error("Failed to fetch databases via listDatabases, falling back to configured database:", error);
+    if (config.database) {
+      return [config.database];
+    }
+    throw error;
+  } finally {
+    if (client) await client.close().catch(() => {});
+  }
+}
+
+export async function fetchMongoCollections(config: MongoDBConfig, dbName?: string): Promise<string[]> {
+  let client: MongoClient | undefined;
+  try {
+    client = getClient(config);
+    await client.connect();
+    const db = client.db(dbName || config.database || "admin");
     const collections = await db.listCollections().toArray();
     return collections.map((c) => c.name).sort();
   } catch (error) {
@@ -68,13 +91,14 @@ export async function fetchCollectionDocuments(
   config: MongoDBConfig,
   collectionName: string,
   page: number = 1,
-  pageSize: number = 50
+  pageSize: number = 50,
+  dbName?: string
 ): Promise<{ columns: string[]; rows: any[]; totalCount: number }> {
   let client: MongoClient | undefined;
   try {
     client = getClient(config);
     await client.connect();
-    const db = client.db(config.database || "admin");
+    const db = client.db(dbName || config.database || "admin");
     const collection = db.collection(collectionName);
 
     const totalCount = await collection.countDocuments();

@@ -2,7 +2,7 @@
 
 # 🗄️ VaultBase
 
-**Şık, self-hosted PostgreSQL yedekleme yöneticisi ve salt okunur veritabanı gezgini.**
+**Şık, self-hosted PostgreSQL ve MongoDB yedekleme yöneticisi ve salt okunur veritabanı gezgini.**
 
 [![EN / English](https://img.shields.io/badge/Language-EN%20%2F%20English-blue?style=flat-square)](README.md)
 [![Next.js](https://img.shields.io/badge/Next.js-16-black?style=flat-square&logo=next.js)](https://nextjs.org/)
@@ -19,7 +19,7 @@
 
 ## 🔍 Genel Bakış
 
-VaultBase; yedeklerinizi yönetmenizi, geri yükleme işlemlerini gerçekleştirmenizi ve birden fazla PostgreSQL veritabanını tek bir modern panelden güvenle incelemenizi sağlayan, hafif ve **tamamen self-hosted** bir web uygulamasıdır. Arka planda zamanlanmış yedekleri çalıştırır, gerçek zamanlı bağlantı durumlarını izler ve veritabanı erişim şifrelerinizi güvenli bir şekilde şifreler.
+VaultBase; yedeklerinizi yönetmenizi, geri yükleme işlemlerini gerçekleştirmenizi ve birden fazla PostgreSQL ve MongoDB veritabanını tek bir modern panelden güvenle incelemenizi sağlayan, hafif ve **tamamen self-hosted** bir web uygulamasıdır. Arka planda zamanlanmış yedekleri çalıştırır, gerçek zamanlı bağlantı durumlarını izler ve veritabanı erişim şifrelerinizi güvenli bir şekilde şifreler.
 
 ---
 
@@ -34,11 +34,16 @@ VaultBase; yedeklerinizi yönetmenizi, geri yükleme işlemlerini gerçekleştir
 * **Manuel Yedekleme**: Tek tıkla yedek oluşturun, işlem öncesinde tahmini yedek dosya boyutunu görün.
 * **Zamanlanmış Görevler**: Her veritabanı için panel üzerinden özel `node-cron` zamanlaması atayın.
 * **Gzip Sıkıştırma**: Tüm yedekler diskte yer kaplamaması için `.sql.gz` formatında sıkıştırılarak saklanır.
-* **Geri Yükleme Akışı**: Hedef şemayı otomatik sıfırlayarak (drop/create schema) `.sql.gz` yedeğini psql üzerinden geri yükler ve işlem günlüklerini gerçek zamanlı ekrana yansıtır.
+* **Geri Yükleme Akışı**: Hedef şemayı otomatik sıfırlayarak `.sql.gz` yedeğini psql üzerinden geri yükler ve işlem günlüklerini gerçek zamanlı ekrana yansıtır.
+* **PostgreSQL**: `pg_dump` ile `--clean --if-exists` bayraklarıyla temiz yedekleme ve geri yükleme.
+* **MongoDB**: `mongodump` / `mongorestore` ile `--gzip --archive --drop` bayraklarıyla tutarlı anlık görüntüler.
+* **Tür Yönlendirmesi**: Bağlantı URL'sinden otomatik veritabanı türü algılama (`postgresql://` vs `mongodb://`).
 
 ### 🔍 Salt Okunur Gezgin
-* **Tablo Tarayıcı**: Tabloları listeleyin, şemaları inceleyin ve sayfalanmış tablo satırlarını temiz, modern bir arayüzde gezinin.
-* **Ortam & Tür Logoları**: Veritabanının hangi ortamda olduğunu (Geliştirme, Staging, Production) ve türünü kolayca ayırt edin.
+* **Tablo/Collection Tarayıcı**: Tabloları/collection'ları listeleyin, şemaları/dökümanları inceleyin ve sayfalanmış veriyi temiz, modern bir arayüzde gezinin.
+* **PostgreSQL Gezgini**: Tablolara göz atın, satırlar arasında sayfalama yapın, SQL injection korumalı salt okunur sorgular.
+* **MongoDB Gezgini**: Instance üzerindeki tüm veritabanlarındaki collection'lara göz atın, dinamik kolon düzleştirme ile dökümanları görüntüleyin, sayfalama yapın.
+* **Veritabanı Türü Rozetleri**: PostgreSQL mavi / MongoDB yeşil logo ile anında görsel tanıma.
 
 ### ⚙️ Ayarlar & Taşınabilirlik
 * **Yapılandırma Senkronizasyonu**: Ayarları JSON dosyası olarak dışa aktarın veya içe aktarın. İsteğe bağlı olarak yapılandırma dosyalarınızı şifreyle koruyabilirsiniz.
@@ -71,13 +76,14 @@ Yedekleme başlatmadan önce tahmini boyutu görün, geçmiş yedeklerinizi yön
 ### Gereksinimler
 
 | Araç | Minimum Sürüm |
-|---|---|
+|---|---|---|
 | Node.js | v20+ |
 | pnpm | v8+ |
 | PostgreSQL İstemcisi (`pg_dump`) | v14+ |
+| MongoDB Araçları (`mongodump`, `mongorestore`) | v7.0+ |
 
 > [!NOTE]
-> VaultBase uygulamasını Docker ile çalıştırıyorsanız, `pg_dump` aracını bilgisayarınıza kurmanız gerekmez; container içerisinde `postgresql-client-18` sürümü hazır gelmektedir.
+> VaultBase uygulamasını Docker ile çalıştırıyorsanız, `pg_dump` (postgresql-client-18) ve `mongodump`/`mongorestore` (MongoDB Database Tools 8.0) container içinde hazır gelmektedir.
 
 ### Yerel Kurulum
 
@@ -155,27 +161,43 @@ SQLite ayar veritabanı ve yedek dosyalarınız sırasıyla container içindeki 
 │   ├── page.tsx                    # Dashboard (Genel Bakış)
 │   ├── login/                      # Giriş sayfası formu
 │   ├── archive/                    # Yedek arşivi tablosu
-│   ├── databases/                  # Veritabanı bağlantı yönetimi & Explorer
+│   ├── databases/                  # Veritabanı bağlantı yönetimi & çoklu-DB Explorer
 │   ├── jobs/                       # İşlem logları & geçmişi
 │   ├── schedules/                  # Otomatik yedekleme cron yöneticisi
 │   ├── settings/                   # Yapılandırma içe/dışa aktarım sayfası
 │   ├── storage/                    # Disk alanı analiz sayfası
-│   └── api/                        # Yedek indirme ve geri yükleme SSE rotaları
+│   └── api/                        # Yedek indirme ve geri yükleme rotaları
 ├── components/
 │   ├── ui/                         # Shadcn UI ortak bileşenleri
-│   └── *.tsx                       # Sayfa bazlı istemci bileşenleri
+│   ├── archive-page-client.tsx     # Arşiv arayüzü
+│   ├── dashboard-tables.tsx        # Dashboard veritabanı ve yedek listesi
+│   ├── database-modal.tsx          # Bağlantı ekleme & düzenleme modalı
+│   ├── database-type-mark.tsx      # PostgreSQL/MongoDB tür rozeti
+│   ├── databases-page-client.tsx   # Bağlantı listeleme (test/backup/restore)
+│   ├── i18n-provider.tsx           # İstemci tarafı dil contexti
+│   ├── jobs-page-client.tsx        # İşlem geçmişi arayüzü
+│   ├── schedules-page-client.tsx   # Zamanlama arayüzü
+│   ├── sidebar.tsx                 # Yan navigasyon
+│   ├── storage-page-client.tsx     # Depolama analiz arayüzü
+│   └── theme-provider.tsx          # Tema sağlayıcı
 ├── lib/
 │   ├── auth.ts                     # Session oturum yönetimi (HMAC-SHA256)
-│   ├── backup-service.ts           # pg_dump alt süreçlerini tetikler
+│   ├── backup-mongo-service.ts     # mongodump spawn executor (MongoDB)
+│   ├── backup-service.ts           # pg_dump spawn executor + tür yönlendirmesi
 │   ├── cron-service.ts             # node-cron zamanlayıcılarını yönetir
+│   ├── db-mongo-client.ts          # MongoDB dinamik bağlantı & sorgular
 │   ├── db.ts                       # SQLite Prisma bağlantı istemcisi
 │   ├── db-client.ts                # PostgreSQL dinamik bağlantı havuzu
 │   ├── encryption.ts               # AES-256-CBC şifreleme yardımcısı
 │   ├── i18n.ts                     # Dil çeviri yardımcıları
+│   ├── restore-mongo-service.ts    # gunzip → mongorestore geri yükleme
+│   ├── restore-service.ts          # gunzip → psql geri yükleme
+│   ├── utils.ts                    # cn() tailwind-merge yardımcısı
 │   └── locales/                    # İngilizce (en) ve Türkçe (tr) dil paketleri
 ├── prisma/                         # Veritabanı şeması ve migrasyon tanımları
+├── prisma.config.ts                # Prisma 7 konfigürasyonu
 ├── scripts/                        # Geliştirici test betikleri
-└── Dockerfile                      # Next.js ve postgresql-client-18 paketini barındırır
+└── Dockerfile                      # Next.js + postgresql-client-18 + mongodb-database-tools paketlerini barındırır
 ```
 
 ---

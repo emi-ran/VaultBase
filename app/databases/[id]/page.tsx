@@ -5,7 +5,7 @@ import { prisma } from "../../../lib/db";
 import { decrypt } from "../../../lib/encryption";
 import { getT, Locale } from "../../../lib/i18n";
 import { fetchPostgresTables, fetchTableData } from "../../../lib/db-client";
-import { fetchMongoCollections, fetchCollectionDocuments } from "../../../lib/db-mongo-client";
+import { fetchMongoDatabases, fetchMongoCollections, fetchCollectionDocuments } from "../../../lib/db-mongo-client";
 import { 
   IconDatabase, 
   IconTable, 
@@ -13,7 +13,8 @@ import {
   IconChevronLeft, 
   IconChevronRight, 
   IconAlertCircle,
-  IconTableShare
+  IconTableShare,
+  IconCircleFilled
 } from "@tabler/icons-react";
 import { Button } from "../../../components/ui/button";
 import { Badge } from "../../../components/ui/badge";
@@ -29,14 +30,20 @@ import {
 
 interface DatabaseExplorerPageProps {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ table?: string; page?: string; pageSize?: string }>;
+  searchParams: Promise<{ table?: string; page?: string; pageSize?: string; db?: string }>;
 }
 
 const PAGE_SIZE_OPTIONS = [25, 50, 100] as const;
+const SYSTEM_DATABASES = new Set(["admin", "local", "config"]);
+
+interface DbGroup {
+  name: string;
+  collections: string[];
+}
 
 export default async function DatabaseExplorerPage({ params, searchParams }: DatabaseExplorerPageProps) {
   const { id } = await params;
-  const { table: activeTable, page: pageStr, pageSize: pageSizeStr } = await searchParams;
+  const { table: activeTable, page: pageStr, pageSize: pageSizeStr, db: selectedDb } = await searchParams;
   
   const cookieStore = await cookies();
   const locale = (cookieStore.get("locale")?.value as Locale) || "tr";
@@ -67,12 +74,13 @@ export default async function DatabaseExplorerPage({ params, searchParams }: Dat
   const decryptedPassword = decrypt(db.password);
   const isMongoDb = db.type === "mongodb";
   
-  let tables: string[] = [];
+  let dbGroups: DbGroup[] = [];
   let collectionsError = "";
-  
-  try {
-    if (isMongoDb) {
-      tables = await fetchMongoCollections({
+  let mongoError = "";
+
+  if (isMongoDb) {
+    try {
+      const allDbs = await fetchMongoDatabases({
         host: db.host,
         port: db.port,
         user: db.user,
@@ -80,24 +88,60 @@ export default async function DatabaseExplorerPage({ params, searchParams }: Dat
         database: db.database,
         ssl: db.ssl,
       });
-    } else {
-      tables = await fetchPostgresTables({
-        host: db.host,
-        port: db.port,
-        user: db.user,
-        password: decryptedPassword,
-        database: db.database,
-        ssl: db.ssl,
-      });
+
+      for (const dbName of allDbs) {
+        try {
+          const collections = await fetchMongoCollections({
+            host: db.host,
+            port: db.port,
+            user: db.user,
+            password: decryptedPassword,
+            database: db.database,
+            ssl: db.ssl,
+          }, dbName);
+          if (collections.length > 0) {
+            dbGroups.push({ name: dbName, collections });
+          }
+        } catch {
+          // skip databases that can't be accessed
+        }
+      }
+    } catch (err: any) {
+      mongoError = err.message || t("database.testFailed");
     }
-  } catch (err: any) {
-    collectionsError = err.message || t("database.testFailed");
+  } else {
+    try {
+      const tables = await fetchPostgresTables({
+        host: db.host,
+        port: db.port,
+        user: db.user,
+        password: decryptedPassword,
+        database: db.database,
+        ssl: db.ssl,
+      });
+      dbGroups = [{ name: db.database || "public", collections: tables }];
+    } catch (err: any) {
+      collectionsError = err.message || t("database.testFailed");
+    }
   }
+
+  // Determine active database for MongoDB
+  const effectiveDb = isMongoDb
+    ? selectedDb || dbGroups.find((g) => !SYSTEM_DATABASES.has(g.name))?.name || dbGroups[0]?.name || db.database
+    : db.database || "public";
+
+  // Collect all collection names from the active database group
+  const activeGroup = dbGroups.find((g) => g.name === effectiveDb);
+  const tables = activeGroup?.collections || [];
+  const allCollectionNames = tables;
+
+  // Determine if we need to show db selector
+  const showDbSelector = isMongoDb && dbGroups.length > 1;
 
   let tableData: { columns: string[]; rows: any[]; totalCount: number } | null = null;
   let queryError = "";
 
-  const canQueryActiveTable = Boolean(activeTable) && (isMongoDb || (activeTable ? tables.includes(activeTable) : false));
+  const canQueryActiveTable = Boolean(activeTable) && (isMongoDb || allCollectionNames.includes(activeTable!));
 
   if (canQueryActiveTable && activeTable) {
     try {
@@ -113,7 +157,8 @@ export default async function DatabaseExplorerPage({ params, searchParams }: Dat
           },
           activeTable,
           currentPage,
-          pageSize
+          pageSize,
+          effectiveDb
         );
       } else {
         tableData = await fetchTableData(
@@ -141,7 +186,7 @@ export default async function DatabaseExplorerPage({ params, searchParams }: Dat
   return (
     <div className="flex-1 flex overflow-hidden bg-[#090807] text-[#E6E4DD] font-sans">
       
-      {/* Left Sidebar: Tables List */}
+      {/* Left Sidebar: Tables / Collections List */}
       <div className="w-64 border-r border-[#2b2926] bg-[#0d0c0b] flex flex-col h-full shrink-0">
         <div className="p-4 border-b border-[#2b2926] flex flex-col gap-2">
           <Link href="/" className="flex items-center gap-1 text-[10px] font-mono text-[#605e58] hover:text-white transition-colors">
@@ -159,33 +204,58 @@ export default async function DatabaseExplorerPage({ params, searchParams }: Dat
         </div>
 
         <div className="flex-1 overflow-y-auto p-3 space-y-1">
-          <span className="px-3 py-1.5 block text-[9px] font-mono text-[#605e58] tracking-widest uppercase">
-            {(isMongoDb ? t("mongo.collections") : t("database.tables")).toUpperCase()} ({tables.length})
-          </span>
-          {collectionsError ? (
+          {mongoError ? (
+            <div className="p-3 text-[11px] font-mono text-[#f25c55] bg-[#2d1210]/30 border border-[#4b1b1a]/50 rounded">
+              {mongoError}
+            </div>
+          ) : collectionsError ? (
             <div className="p-3 text-[11px] font-mono text-[#f25c55] bg-[#2d1210]/30 border border-[#4b1b1a]/50 rounded">
               {collectionsError}
             </div>
-          ) : tables.length === 0 ? (
+          ) : dbGroups.length === 0 ? (
             <div className="p-3 text-[11px] font-mono text-[#605e58]">
               {isMongoDb ? t("mongo.noCollections") : t("database.noTables")}
             </div>
           ) : (
-            tables.map((tbl) => {
-              const isSelected = activeTable === tbl;
+            dbGroups.map((group) => {
+              const isActiveDb = isMongoDb && group.name === effectiveDb;
               return (
-                <Link
-                  key={tbl}
-                  href={`/databases/${id}?table=${tbl}`}
-                  className={`flex items-center gap-2 px-3 py-2 rounded text-xs font-mono truncate transition-all ${
-                    isSelected
-                      ? "bg-[#1b3224]/30 text-white border-l-2 border-[#55f289] font-bold"
-                      : "hover:bg-[#141210] text-[#a09e96] hover:text-[#E6E4DD]"
-                  }`}
-                >
-                  <IconTable size={12} className={isSelected ? "text-[#55f289]" : "text-[#605e58]"} />
-                  {tbl}
-                </Link>
+                <div key={group.name} className="mb-2">
+                  {/* Database group header */}
+                  <div className={`flex items-center gap-1.5 px-3 py-1.5 text-[9px] font-mono tracking-widest uppercase ${
+                    isActiveDb ? "text-[#55f289]" : "text-[#605e58]"
+                  }`}>
+                    {isMongoDb && (
+                      <IconCircleFilled size={5} className={isActiveDb ? "text-[#55f289]" : "text-[#605e58]"} />
+                    )}
+                    <span>{group.name}</span>
+                    <span className="text-[#2b2926] ml-0.5">({group.collections.length})</span>
+                  </div>
+
+                  {/* Collections under this database */}
+                  <div className="space-y-0.5">
+                    {group.collections.map((tbl) => {
+                      const isSelected = activeTable === tbl && isActiveDb;
+                      const href = isMongoDb
+                        ? `/databases/${id}?db=${group.name}&table=${tbl}`
+                        : `/databases/${id}?table=${tbl}`;
+                      return (
+                        <Link
+                          key={`${group.name}.${tbl}`}
+                          href={href}
+                          className={`flex items-center gap-2 px-3 py-2 rounded text-xs font-mono truncate transition-all ${
+                            isSelected
+                              ? "bg-[#1b3224]/30 text-white border-l-2 border-[#55f289] font-bold"
+                              : "hover:bg-[#141210] text-[#a09e96] hover:text-[#E6E4DD]"
+                          }`}
+                        >
+                          <IconTable size={12} className={isSelected ? "text-[#55f289]" : "text-[#605e58]"} />
+                          {tbl}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
               );
             })
           )}
@@ -199,7 +269,10 @@ export default async function DatabaseExplorerPage({ params, searchParams }: Dat
             <div className="h-16 border-b border-[#2b2926] bg-[#0d0c0b] px-8 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-3 font-mono">
                 <IconTableShare size={18} className="text-[#55f289]" />
-                <h1 className="text-xs font-bold text-white uppercase">{activeTable}</h1>
+                <h1 className="text-xs font-bold text-white uppercase">
+                  {showDbSelector && <span className="text-[#a09e96] font-normal">{effectiveDb}. </span>}
+                  {activeTable}
+                </h1>
                 {tableData && (
                   <Badge variant="outline" className="bg-[#1c1a17] border-[#2b2926] text-[#a09e96] text-[9px] font-mono py-0.5">
                     {isMongoDb ? `${t("mongo.documents")} ${tableData.totalCount}` : `${t("database.rowsCount")} ${tableData.totalCount}`}
@@ -213,10 +286,13 @@ export default async function DatabaseExplorerPage({ params, searchParams }: Dat
                     <span className="text-[9px] text-[#605e58] tracking-wider uppercase">{isMongoDb ? t("mongo.documentsPerPage") : t("database.rowsPerPage")}</span>
                     {PAGE_SIZE_OPTIONS.map((s) => {
                       const isActive = pageSize === s;
+                      const pageHref = isMongoDb
+                        ? `/databases/${id}?db=${effectiveDb}&table=${activeTable}&pageSize=${s}&page=1`
+                        : `/databases/${id}?table=${activeTable}&pageSize=${s}&page=1`;
                       return (
                         <Link
                           key={s}
-                          href={`/databases/${id}?table=${activeTable}&pageSize=${s}&page=1`}
+                          href={pageHref}
                           className={`px-2 py-0.5 rounded text-[10px] transition-all ${
                             isActive
                               ? "bg-[#1b3224]/30 text-[#55f289] font-bold"
@@ -233,7 +309,9 @@ export default async function DatabaseExplorerPage({ params, searchParams }: Dat
                       <span>{currentPage} / {totalPages}</span>
                       <div className="flex gap-1.5">
                         <Link
-                          href={currentPage > 1 ? `/databases/${id}?table=${activeTable}&page=${currentPage - 1}&pageSize=${pageSize}` : "#"}
+                          href={currentPage > 1 ? (isMongoDb
+                            ? `/databases/${id}?db=${effectiveDb}&table=${activeTable}&page=${currentPage - 1}&pageSize=${pageSize}`
+                            : `/databases/${id}?table=${activeTable}&page=${currentPage - 1}&pageSize=${pageSize}`) : "#"}
                           className={currentPage === 1 ? "pointer-events-none opacity-40" : ""}
                         >
                           <Button size="icon" variant="outline" className="h-7 w-7 border-[#2b2926] hover:bg-[#1c1a17] rounded cursor-pointer">
@@ -241,7 +319,9 @@ export default async function DatabaseExplorerPage({ params, searchParams }: Dat
                           </Button>
                         </Link>
                         <Link
-                          href={currentPage < totalPages ? `/databases/${id}?table=${activeTable}&page=${currentPage + 1}&pageSize=${pageSize}` : "#"}
+                          href={currentPage < totalPages ? (isMongoDb
+                            ? `/databases/${id}?db=${effectiveDb}&table=${activeTable}&page=${currentPage + 1}&pageSize=${pageSize}`
+                            : `/databases/${id}?table=${activeTable}&page=${currentPage + 1}&pageSize=${pageSize}`) : "#"}
                           className={currentPage === totalPages ? "pointer-events-none opacity-40" : ""}
                         >
                           <Button size="icon" variant="outline" className="h-7 w-7 border-[#2b2926] hover:bg-[#1c1a17] rounded cursor-pointer">

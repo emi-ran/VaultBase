@@ -6,7 +6,7 @@ Bu dosya, VaultBase projesinin tüm geliştirme aşamalarını, tamamlananları 
 
 ## Vizyon
 
-VaultBase; birden fazla PostgreSQL (ilerleyen sürümlerde MongoDB) veritabanını tek bir panelden yönetmenizi, düzenli otomatik yedekler almanızı, yedekleri bulut depolamaya (S3/R2/GCS) yüklemenizi ve veritabanlarınızı salt okunur modda gezmenizi sağlayan self-hosted bir çözümdür.
+VaultBase; birden fazla PostgreSQL ve MongoDB veritabanını tek bir panelden yönetmenizi, düzenli otomatik yedekler almanızı, yedekleri bulut depolamaya (S3/R2/GCS) yüklemenizi ve veritabanlarınızı salt okunur modda gezmenizi sağlayan self-hosted bir çözümdür.
 
 ---
 
@@ -116,16 +116,33 @@ VaultBase; birden fazla PostgreSQL (ilerleyen sürümlerde MongoDB) veritabanın
 
 ---
 
-## Phase 5 – MongoDB Desteği (PLANLANDI)
+## Phase 5 – MongoDB Desteği (TAMAMLANDI)
 
 ### 5.1 Bağlantı & Keşif
-- [ ] MongoDB bağlantı desteği (db-client.ts güncelleme)
-- [ ] Collection/Document listesi görüntüleme
-- [ ] Salt okunur document gezgini
+- [x] MongoDB bağlantı desteği (lib/db-mongo-client.ts)
+- [x] Collection/Document listesi görüntüleme (app/databases/[id]/page.tsx)
+- [x] Salt okunur document gezgini (dinamik kolonlar, sayfalama)
+- [x] Bağlantı testi + otomatik URL tür algılama
 
-### 5.2 Yedekleme
-- [ ] mongodump entegrasyonu (backup-service.ts güncelleme)
-- [ ] Dockerfile güncellemesi (mongodump binary ekle)
+### 5.2 Yedekleme & Geri Yükleme
+- [x] mongodump entegrasyonu (lib/backup-mongo-service.ts)
+- [x] mongorestore entegrasyonu (lib/restore-mongo-service.ts, --drop ile)
+- [x] backup-service.ts type routing (postgresql → pg_dump, mongodb → mongodump)
+- [x] Geri yükleme endpoint type routing (API + actions)
+
+### 5.3 Arayüz & Görseller
+- [x] DatabaseConnection.type Prisma alanı + migration
+- [x] type selector (database-modal.tsx: PostgreSQL / MongoDB toggle)
+- [x] MongoDB SVG logo (database-type-mark.tsx)
+- [x] components'ta tür göstergesi (dashboard, liste, restore diyalogları)
+- [x] Locale anahtarları (mongo.*, database.type)
+- [x] Dockerfile: mongodb-database-tools
+
+### 5.4 Eksikler (Çözüldü)
+- [x] /storage sayfasında MongoDB depolama istatistiği (zaten çalışıyor — backup boyutları üzerinden)
+- [x] testAndUpdateDatabaseStatusAction MongoDB routing (actions.ts:811)
+- [x] testAllConnectionsAction MongoDB routing (actions.ts:884)
+- [x] cron-service.ts MongoDB schedule tetikleyici (runBackup zaten type routing yapıyor)
 
 ---
 
@@ -173,6 +190,7 @@ VaultBase; birden fazla PostgreSQL (ilerleyen sürümlerde MongoDB) veritabanın
 
 | Sürüm | Tarih | Açıklama |
 |---|---|---|---|
+| 1.2.0 | 12 Haziran 2026 | MongoDB desteği (bağlantı, explorer, mongodump/mongorestore backup/restore, type selector, SVG logo, tür routing), i18n polisajı (200+ sabit string temizliği), esbuild güvenlik fix |
 | 1.1.0 | 12 Haziran 2026 | Geri yükleme (streaming gunzip → psql), middleware→proxy taşıma, explorer optimizasyonu (pg_class.reltuples, 25/50/100), jobs Shadcn Dialog, pg_dump --if-exists, arşivden restore, restore job logları |
 | 1.0.0 | 12 Haziran 2026 | Phase 2 tamamlandı – Zamanlanmış otomatik yedekler, sistem saati, zaman dilimi ayarı, tüm bağlantıları test et, otomatik sağlık kontrolü, PostgreSQL logosu, şifreli export/import (ayarlar dahil) |
 | 1.0.0 | 12 Haziran 2026 | Phase 6.1 – Kullanıcı girişi (env tabanlı admin, HMAC session, proxy.ts koruma, çıkış) |

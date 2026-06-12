@@ -2,7 +2,7 @@
 
 # 🗄️ VaultBase
 
-**Sleek, self-hosted PostgreSQL backup manager & read-only database explorer.**
+**Sleek, self-hosted PostgreSQL & MongoDB backup manager and read-only database explorer.**
 
 [![TR / Türkçe](https://img.shields.io/badge/Language-TR%20%2F%20T%C3%BCrk%C3%A7e-blue?style=flat-square)](README.tr.md)
 [![Next.js](https://img.shields.io/badge/Next.js-16-black?style=flat-square&logo=next.js)](https://nextjs.org/)
@@ -19,7 +19,7 @@
 
 ## 🔍 Overview
 
-VaultBase is a lightweight, fully self-hosted dashboard that allows you to manage backups, execute restores, and explore multiple PostgreSQL databases from a single modern interface. It handles background cron schedules, displays real-time connection health, and isolates access through custom credentials.
+VaultBase is a lightweight, fully self-hosted dashboard that allows you to manage backups, execute restores, and explore multiple PostgreSQL and MongoDB databases from a single modern interface. It handles background cron schedules, displays real-time connection health, and isolates access through custom credentials.
 
 ---
 
@@ -35,10 +35,15 @@ VaultBase is a lightweight, fully self-hosted dashboard that allows you to manag
 * **Automated Schedules**: Set up per-database `node-cron` schedules directly from the UI.
 * **Gzip Compression**: All backups are securely stored as space-efficient `.sql.gz` files.
 * **Streaming Restores**: Gunzip-and-restore pipeline that handles target DB recovery via clean drops and recreation with real-time UI logging.
+* **PostgreSQL**: `pg_dump` with `--clean --if-exists` for clean backup and restore.
+* **MongoDB**: `mongodump` / `mongorestore` with `--gzip --archive --drop` for consistent snapshots.
+* **Type Routing**: Automatic detection of database type from connection URL prefix (`postgresql://` vs `mongodb://`).
 
 ### 🔍 Read-only Explorer
-* **Database Navigator**: List tables, examine schemas, and view pageable table rows in a clean, modern UI.
-* **Database Brand Badging**: Instant brand visualization for quick recognition.
+* **Database Navigator**: List tables/collections, examine schemas/documents, and view pageable data in a clean, modern UI.
+* **PostgreSQL Explorer**: Browse tables, paginate rows, safe read-only queries with SQL injection prevention.
+* **MongoDB Explorer**: Browse collections across all databases in the instance, view documents with dynamic column flattening, pagination.
+* **Database Type Badging**: Instant brand visualization (PostgreSQL blue / MongoDB green) for quick recognition.
 
 ### ⚙️ Portability & Settings
 * **Configuration Sync**: Export/import settings as JSON files. You can encrypt your configurations with a password for secure backups.
@@ -71,13 +76,14 @@ Start manual backups showing estimated size or manage scheduled jobs, restoring 
 ### Prerequisites
 
 | Component | Minimum Version |
-|---|---|
+|---|---|---|
 | Node.js | v20+ |
 | pnpm | v8+ |
 | PostgreSQL Client (`pg_dump`) | v14+ |
+| MongoDB Tools (`mongodump`, `mongorestore`) | v7.0+ |
 
 > [!NOTE]
-> If you run VaultBase via Docker, `pg_dump` is pre-bundled (PostgreSQL client version 18), so you do not need to install it locally.
+> If you run VaultBase via Docker, `pg_dump` (PostgreSQL client 18) and `mongodump`/`mongorestore` (MongoDB Database Tools 8.0) are pre-bundled.
 
 ### Local Installation
 
@@ -155,27 +161,43 @@ Configure VaultBase using your `.env` file:
 │   ├── page.tsx                    # Dashboard (Overview)
 │   ├── login/                      # Login page client-side form
 │   ├── archive/                    # Backups archive table
-│   ├── databases/                  # Database connections & Explorer
+│   ├── databases/                  # Database connections & multi-DB Explorer
 │   ├── jobs/                       # Job logs & history
 │   ├── schedules/                  # Automated cron schedule manager
 │   ├── settings/                   # Configuration export/import
 │   ├── storage/                    # Disk space analyzer
-│   └── api/                        # Backup download and restore SSE routes
+│   └── api/                        # Backup download and restore routes
 ├── components/
 │   ├── ui/                         # Shadcn UI reusable components
-│   └── *.tsx                       # Feature-specific client pages
+│   ├── archive-page-client.tsx     # Archive page interface
+│   ├── dashboard-tables.tsx        # Dashboard DB and backup list
+│   ├── database-modal.tsx          # Add/edit database connection modal
+│   ├── database-type-mark.tsx      # PostgreSQL/MongoDB brand badge
+│   ├── databases-page-client.tsx   # Database list with test/backup/restore
+│   ├── i18n-provider.tsx           # Client-side locale context
+│   ├── jobs-page-client.tsx        # Job history interface
+│   ├── schedules-page-client.tsx   # Schedule management interface
+│   ├── sidebar.tsx                 # Side navigation
+│   ├── storage-page-client.tsx     # Storage analysis interface
+│   └── theme-provider.tsx          # Theme provider
 ├── lib/
 │   ├── auth.ts                     # Session cookies manager (HMAC-SHA256)
-│   ├── backup-service.ts           # Spawns pg_dump instances
+│   ├── backup-mongo-service.ts     # mongodump spawn executor (MongoDB)
+│   ├── backup-service.ts           # pg_dump spawn executor + type routing
 │   ├── cron-service.ts             # Manages node-cron intervals
+│   ├── db-mongo-client.ts          # MongoDB dynamic connection & queries
 │   ├── db.ts                       # SQLite Prisma connection client
 │   ├── db-client.ts                # Direct PostgreSQL connection pooler
 │   ├── encryption.ts               # AES-256-CBC crypto helper
 │   ├── i18n.ts                     # Localization helpers
+│   ├── restore-mongo-service.ts    # gunzip → mongorestore restore
+│   ├── restore-service.ts          # gunzip → psql restore
+│   ├── utils.ts                    # cn() tailwind-merge helper
 │   └── locales/                    # English (en) & Turkish (tr) translations
-├── prisma/                         # Database schema configuration
+├── prisma/                         # Database schema + migrations
+├── prisma.config.ts                # Prisma 7 configuration
 ├── scripts/                        # Development test runner scripts
-└── Dockerfile                      # Bundles Next.js along with postgresql-client-18
+└── Dockerfile                      # Bundles Next.js + postgresql-client-18 + mongodb-database-tools
 ```
 
 ---

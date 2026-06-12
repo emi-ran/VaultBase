@@ -1,7 +1,6 @@
 import { spawn } from "child_process";
 import fs from "fs";
 import path from "path";
-import zlib from "zlib";
 import { decrypt } from "./encryption";
 import { testMongoConnection } from "./db-mongo-client";
 import { getBackupDirectory } from "./backup-service";
@@ -58,10 +57,6 @@ export async function runMongoBackup(
 
   return new Promise((resolve) => {
     try {
-      const writeStream = fs.createWriteStream(filepath);
-      const gzip = zlib.createGzip();
-      gzip.pipe(writeStream);
-
       const sslParam = dbConfig.ssl !== "disable" ? "&ssl=true&tlsAllowInvalidCertificates=true" : "&ssl=false";
       const uri = `mongodb://${encodeURIComponent(dbConfig.user)}:${encodeURIComponent(decryptedPassword)}@${dbConfig.host}:${dbConfig.port}/${encodeURIComponent(dbConfig.database)}?authSource=admin${sslParam}`;
 
@@ -69,12 +64,12 @@ export async function runMongoBackup(
 
       let hasErrorOccurred = false;
 
-      const mongodump = spawn("mongodump", [
-        `--uri=${uri}`,
-        "--archive",
-      ]);
+      const mongodumpArgs = [`--uri=${uri}`, `--archive=${filepath}`, "--gzip"];
+      if (dbConfig.database) {
+        mongodumpArgs.push(`--db=${dbConfig.database}`);
+      }
 
-      mongodump.stdout.pipe(gzip);
+      const mongodump = spawn("mongodump", mongodumpArgs);
 
       let stderrData = "";
       mongodump.stderr.on("data", (data) => {
@@ -84,8 +79,6 @@ export async function runMongoBackup(
       mongodump.on("error", async (err: any) => {
         hasErrorOccurred = true;
         console.error("mongodump process error:", err);
-        gzip.end();
-        writeStream.end();
         cleanupFailedBackup(filepath);
 
         let errorMessage = err.message || "Process failed";
@@ -124,31 +117,29 @@ export async function runMongoBackup(
       mongodump.on("close", async (code) => {
         if (hasErrorOccurred) return;
         if (code === 0) {
-          writeStream.on("finish", async () => {
-            try {
-              const stats = fs.statSync(filepath);
-              const sizeBytes = stats.size;
+          try {
+            const stats = fs.statSync(filepath);
+            const sizeBytes = stats.size;
 
-              await prisma.backupJob.update({
-                where: { id: job.id },
-                data: { status: "success", sizeBytes },
-              });
+            await prisma.backupJob.update({
+              where: { id: job.id },
+              data: { status: "success", sizeBytes },
+            });
 
-              await prisma.databaseConnection.update({
-                where: { id: dbConfig.id },
-                data: { status: "healthy", lastTestedAt: new Date() },
-              });
+            await prisma.databaseConnection.update({
+              where: { id: dbConfig.id },
+              data: { status: "healthy", lastTestedAt: new Date() },
+            });
 
-              resolve({ success: true, filename, filepath, sizeBytes });
-            } catch (err: any) {
-              cleanupFailedBackup(filepath);
-              await prisma.backupJob.update({
-                where: { id: job.id },
-                data: { status: "failed", errorMessage: `Failed to calculate file size: ${err.message}` },
-              });
-              resolve({ success: false, error: err.message });
-            }
-          });
+            resolve({ success: true, filename, filepath, sizeBytes });
+          } catch (err: any) {
+            cleanupFailedBackup(filepath);
+            await prisma.backupJob.update({
+              where: { id: job.id },
+              data: { status: "failed", errorMessage: `Failed to verify backup file: ${err.message}` },
+            });
+            resolve({ success: false, error: err.message });
+          }
         } else {
           cleanupFailedBackup(filepath);
           console.error(`mongodump failed with exit code ${code}: ${stderrData}`);
