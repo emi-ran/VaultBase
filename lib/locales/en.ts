@@ -105,6 +105,7 @@ export const en = {
     noTables: "No tables found",
     rowsCount: "Total rows:",
     rowsPerPage: "Rows/page",
+    type: "Type",
     queryError: "Query error: ",
     noData: "No data in this table.",
     editDbTitle: "EDIT DATABASE CONNECTION",
@@ -386,5 +387,14 @@ export const en = {
     labelProcessing: "Processing",
     cronPlaceholder: "e.g. 0 2 * * *",
     dayRange: "(1 - 31)",
+  },
+  mongo: {
+    collections: "Collections",
+    documents: "Documents",
+    noCollections: "No collections found",
+    documentsPerPage: "Documents per page",
+    selectCollection: "Select a collection to view",
+    explorerTitle: "Collection Explorer",
+    explorerDesc: "Browse and inspect MongoDB documents.",
   },
 };

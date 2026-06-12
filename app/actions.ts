@@ -15,6 +15,7 @@ import path from "path";
 import { prisma, DatabaseConnection, Schedule } from "../lib/db";
 import { encrypt, decrypt, encryptWithPassword, decryptWithPassword } from "../lib/encryption";
 import { testPostgresConnection, fetchPostgresTables, fetchTableData, fetchDatabaseSize, DBConfig } from "../lib/db-client";
+import { testMongoConnection } from "../lib/db-mongo-client";
 import { runBackup, getBackupDirectory } from "../lib/backup-service";
 import { Locale } from "../lib/i18n";
 
@@ -35,6 +36,27 @@ function parsePostgresUrl(urlStr: string) {
     };
   } catch (error: any) {
     throw new Error(`Invalid PostgreSQL URL: ${error.message}`);
+  }
+}
+
+// Parse MongoDB URL into connection fields
+function parseMongoUrl(urlStr: string) {
+  try {
+    const url = new URL(urlStr);
+    if (url.protocol !== "mongodb:" && url.protocol !== "mongodb+srv:") {
+      throw new Error("Invalid protocol. Must be mongodb:// or mongodb+srv://");
+    }
+    const ssl = url.protocol === "mongodb+srv:" ? "require" : url.searchParams.get("ssl") === "disable" ? "disable" : "prefer";
+    return {
+      host: url.hostname || "localhost",
+      port: url.port ? parseInt(url.port, 10) : (url.protocol === "mongodb+srv:" ? 27017 : 27017),
+      user: decodeURIComponent(url.username) || "",
+      password: decodeURIComponent(url.password) || "",
+      database: decodeURIComponent(url.pathname.substring(1)) || "",
+      ssl,
+    };
+  } catch (error: any) {
+    throw new Error(`Invalid MongoDB URL: ${error.message}`);
   }
 }
 
@@ -87,6 +109,7 @@ export async function logoutAction() {
 // Test Connection Action
 export async function testConnectionAction(formData: {
   mode: "url" | "fields";
+  type?: "postgresql" | "mongodb";
   connectionString?: string;
   host?: string;
   port?: number;
@@ -97,21 +120,35 @@ export async function testConnectionAction(formData: {
   dbId?: string;
 }) {
   try {
+    let dbType = formData.type || "postgresql";
     let config: DBConfig = {};
 
     if (formData.mode === "url") {
       if (!formData.connectionString) {
         return { success: false, error: "Connection URL is required" };
       }
-      const parsed = parsePostgresUrl(formData.connectionString);
-      config = {
-        host: parsed.host,
-        port: parsed.port,
-        user: parsed.user,
-        password: parsed.password,
-        database: parsed.database,
-        ssl: formData.ssl || parsed.ssl,
-      };
+      if (formData.connectionString.startsWith("mongodb")) {
+        dbType = "mongodb";
+        const parsed = parseMongoUrl(formData.connectionString);
+        config = {
+          host: parsed.host,
+          port: parsed.port,
+          user: parsed.user,
+          password: parsed.password,
+          database: parsed.database,
+          ssl: formData.ssl || parsed.ssl,
+        };
+      } else {
+        const parsed = parsePostgresUrl(formData.connectionString);
+        config = {
+          host: parsed.host,
+          port: parsed.port,
+          user: parsed.user,
+          password: parsed.password,
+          database: parsed.database,
+          ssl: formData.ssl || parsed.ssl,
+        };
+      }
     } else {
       let password = formData.password || "";
       if (!password && formData.dbId) {
@@ -122,7 +159,7 @@ export async function testConnectionAction(formData: {
       }
       config = {
         host: formData.host || "localhost",
-        port: formData.port || 5432,
+        port: formData.port || (dbType === "mongodb" ? 27017 : 5432),
         user: formData.user || "",
         password,
         database: formData.database || "",
@@ -130,8 +167,10 @@ export async function testConnectionAction(formData: {
       };
     }
 
-    const testResult = await testPostgresConnection(config);
-    return testResult;
+    if (dbType === "mongodb") {
+      return await testMongoConnection(config);
+    }
+    return await testPostgresConnection(config);
   } catch (error: any) {
     return { success: false, error: error.message || "Failed to test connection" };
   }
@@ -141,6 +180,7 @@ export async function testConnectionAction(formData: {
 export async function addDatabaseAction(formData: {
   name: string;
   mode: "url" | "fields";
+  type?: "postgresql" | "mongodb";
   connectionString?: string;
   host?: string;
   port?: number;
@@ -152,6 +192,7 @@ export async function addDatabaseAction(formData: {
   labels?: string;
 }) {
   try {
+    let dbType = formData.type || "postgresql";
     let connInfo = {
       host: "localhost",
       port: 5432,
@@ -165,19 +206,32 @@ export async function addDatabaseAction(formData: {
       if (!formData.connectionString) {
         throw new Error("Connection URL is required");
       }
-      const parsed = parsePostgresUrl(formData.connectionString);
-      connInfo = {
-        host: parsed.host,
-        port: parsed.port,
-        user: parsed.user,
-        password: parsed.password,
-        database: parsed.database,
-        ssl: formData.ssl || parsed.ssl,
-      };
+      if (formData.connectionString.startsWith("mongodb")) {
+        dbType = "mongodb";
+        const parsed = parseMongoUrl(formData.connectionString);
+        connInfo = {
+          host: parsed.host,
+          port: parsed.port,
+          user: parsed.user,
+          password: parsed.password,
+          database: parsed.database,
+          ssl: formData.ssl || parsed.ssl,
+        };
+      } else {
+        const parsed = parsePostgresUrl(formData.connectionString);
+        connInfo = {
+          host: parsed.host,
+          port: parsed.port,
+          user: parsed.user,
+          password: parsed.password,
+          database: parsed.database,
+          ssl: formData.ssl || parsed.ssl,
+        };
+      }
     } else {
       connInfo = {
         host: formData.host || "localhost",
-        port: Number(formData.port) || 5432,
+        port: Number(formData.port) || (dbType === "mongodb" ? 27017 : 5432),
         user: formData.user || "",
         password: formData.password || "",
         database: formData.database || "",
@@ -190,14 +244,15 @@ export async function addDatabaseAction(formData: {
     // Test connection before saving (non-blocking, but sets initial health)
     let status = "untested";
     try {
-      const test = await testPostgresConnection({
-        ...connInfo,
-      });
+      const test = dbType === "mongodb"
+        ? await testMongoConnection({ ...connInfo })
+        : await testPostgresConnection({ ...connInfo });
       status = test.success ? "healthy" : "offline";
     } catch {}
 
     const newDb = await prisma.databaseConnection.create({
       data: {
+        type: dbType,
         name: formData.name,
         host: connInfo.host,
         port: connInfo.port,
@@ -256,7 +311,6 @@ export async function restoreFromArchiveAction(backupId: string, targetDatabaseI
     const db = await prisma.databaseConnection.findUnique({ where: { id: targetDatabaseId } })
     if (!db) return { success: false, error: "Target database not found" }
 
-    const { runRestore } = await import("../lib/restore-service")
     const decrypt = (await import("../lib/encryption")).decrypt
     const decryptedPassword = decrypt(db.password)
 
@@ -275,13 +329,28 @@ export async function restoreFromArchiveAction(backupId: string, targetDatabaseI
 
     const fileStream = fs.createReadStream(backup.filepath)
 
-    const result = await runRestore(fileStream, {
-      host: db.host,
-      port: db.port,
-      user: db.user,
-      password: decryptedPassword,
-      database: db.database,
-    })
+    let result: { success: boolean; error?: string }
+
+    if (db.type === "mongodb") {
+      const { runMongoRestore } = await import("../lib/restore-mongo-service")
+      result = await runMongoRestore(fileStream, {
+        host: db.host,
+        port: db.port,
+        user: db.user,
+        password: decryptedPassword,
+        database: db.database,
+        ssl: db.ssl,
+      })
+    } else {
+      const { runRestore } = await import("../lib/restore-service")
+      result = await runRestore(fileStream, {
+        host: db.host,
+        port: db.port,
+        user: db.user,
+        password: decryptedPassword,
+        database: db.database,
+      })
+    }
 
     if (result.success) {
       try {
@@ -598,6 +667,20 @@ export async function getDatabaseSizeAction(id: string) {
     if (!db) throw new Error("Database config not found");
 
     const decryptedPassword = decrypt(db.password);
+
+    if (db.type === "mongodb") {
+      const { fetchMongoDatabaseSize } = await import("../lib/db-mongo-client");
+      const size = await fetchMongoDatabaseSize({
+        host: db.host,
+        port: db.port,
+        user: db.user,
+        password: decryptedPassword,
+        database: db.database,
+        ssl: db.ssl,
+      });
+      return { success: true, size };
+    }
+
     const size = await fetchDatabaseSize({
       host: db.host,
       port: db.port,
@@ -617,6 +700,7 @@ export async function getDatabaseSizeAction(id: string) {
 export async function updateDatabaseAction(id: string, formData: {
   name: string;
   mode: "url" | "fields";
+  type?: "postgresql" | "mongodb";
   connectionString?: string;
   host?: string;
   port?: number;
@@ -631,6 +715,7 @@ export async function updateDatabaseAction(id: string, formData: {
     const db = await prisma.databaseConnection.findUnique({ where: { id } });
     if (!db) throw new Error("Database config not found");
 
+    let dbType = formData.type || db.type;
     let connInfo = {
       host: db.host,
       port: db.port,
@@ -642,15 +727,28 @@ export async function updateDatabaseAction(id: string, formData: {
 
     if (formData.mode === "url") {
       if (formData.connectionString) {
-        const parsed = parsePostgresUrl(formData.connectionString);
-        connInfo = {
-          host: parsed.host,
-          port: parsed.port,
-          user: parsed.user,
-          password: parsed.password || connInfo.password,
-          database: parsed.database,
-          ssl: formData.ssl || parsed.ssl,
-        };
+        if (formData.connectionString.startsWith("mongodb")) {
+          dbType = "mongodb";
+          const parsed = parseMongoUrl(formData.connectionString);
+          connInfo = {
+            host: parsed.host,
+            port: parsed.port,
+            user: parsed.user,
+            password: parsed.password || connInfo.password,
+            database: parsed.database,
+            ssl: formData.ssl || parsed.ssl,
+          };
+        } else {
+          const parsed = parsePostgresUrl(formData.connectionString);
+          connInfo = {
+            host: parsed.host,
+            port: parsed.port,
+            user: parsed.user,
+            password: parsed.password || connInfo.password,
+            database: parsed.database,
+            ssl: formData.ssl || parsed.ssl,
+          };
+        }
       }
     } else {
       connInfo = {
@@ -668,15 +766,16 @@ export async function updateDatabaseAction(id: string, formData: {
     // Test connection after saving
     let status = db.status;
     try {
-      const test = await testPostgresConnection({
-        ...connInfo,
-      });
+      const test = dbType === "mongodb"
+        ? await testMongoConnection({ ...connInfo })
+        : await testPostgresConnection({ ...connInfo });
       status = test.success ? "healthy" : "offline";
     } catch {}
 
     const updatedDb = await prisma.databaseConnection.update({
       where: { id },
       data: {
+        type: dbType,
         name: formData.name,
         host: connInfo.host,
         port: connInfo.port,

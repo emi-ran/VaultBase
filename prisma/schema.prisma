@@ -9,6 +9,7 @@ generator client {
 
 model DatabaseConnection {
   id           String      @id @default(uuid())
+  type         String      @default("postgresql") // "postgresql", "mongodb"
   name         String
   host         String
   port         Int

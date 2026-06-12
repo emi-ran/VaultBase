@@ -3,18 +3,10 @@ import fs from "fs";
 import path from "path";
 import zlib from "zlib";
 import { decrypt } from "./encryption";
-import { testPostgresConnection } from "./db-client";
+import { testMongoConnection } from "./db-mongo-client";
+import { getBackupDirectory } from "./backup-service";
 
-
-export function getBackupDirectory() {
-  const dir = process.env.BACKUP_DIR || path.join(process.cwd(), "backups");
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-  }
-  return dir;
-}
-
-export interface BackupResult {
+export interface MongoBackupResult {
   success: boolean;
   filename?: string;
   filepath?: string;
@@ -22,10 +14,13 @@ export interface BackupResult {
   error?: string;
 }
 
-export async function runBackup(dbId: string, triggerType: "manual" | "scheduled", customFilename?: string): Promise<BackupResult> {
+export async function runMongoBackup(
+  dbId: string,
+  triggerType: "manual" | "scheduled",
+  customFilename?: string
+): Promise<MongoBackupResult> {
   const { prisma } = await import("./db");
 
-  // 1. Fetch database configuration
   const dbConfig = await prisma.databaseConnection.findUnique({
     where: { id: dbId },
   });
@@ -34,25 +29,15 @@ export async function runBackup(dbId: string, triggerType: "manual" | "scheduled
     return { success: false, error: "Database connection not found" };
   }
 
-  // Route to MongoDB backup if type is mongodb
-  if (dbConfig.type === "mongodb") {
-    const { runMongoBackup } = await import("./backup-mongo-service");
-    return runMongoBackup(dbId, triggerType, customFilename);
-  }
-
   const decryptedPassword = decrypt(dbConfig.password);
   const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-  let filename = `${dbConfig.name}_backup_${timestamp}.sql.gz`;
+  let filename = `${dbConfig.name}_mongo_backup_${timestamp}.gz`;
 
   if (customFilename && customFilename.trim()) {
     let cleanName = customFilename.replace(/[^a-zA-Z0-9_\-]/g, "_").trim();
     if (cleanName) {
-      if (cleanName.endsWith(".sql.gz")) {
-        // Already ends with correct extension
-      } else if (cleanName.endsWith(".sql")) {
-        cleanName = cleanName.substring(0, cleanName.length - 4) + ".sql.gz";
-      } else {
-        cleanName = cleanName + ".sql.gz";
+      if (!cleanName.endsWith(".gz")) {
+        cleanName = cleanName + ".gz";
       }
       filename = cleanName;
     }
@@ -60,7 +45,6 @@ export async function runBackup(dbId: string, triggerType: "manual" | "scheduled
 
   const filepath = path.join(getBackupDirectory(), filename);
 
-  // Create a record in processing state
   const job = await prisma.backupJob.create({
     data: {
       databaseId: dbConfig.id,
@@ -78,59 +62,45 @@ export async function runBackup(dbId: string, triggerType: "manual" | "scheduled
       const gzip = zlib.createGzip();
       gzip.pipe(writeStream);
 
-      let pgDumpArgs: string[] = [];
-      let env = { ...process.env };
+      const sslParam = dbConfig.ssl !== "disable" ? "&ssl=true&tlsAllowInvalidCertificates=true" : "&ssl=false";
+      const uri = `mongodb://${encodeURIComponent(dbConfig.user)}:${encodeURIComponent(decryptedPassword)}@${dbConfig.host}:${dbConfig.port}/${encodeURIComponent(dbConfig.database)}?authSource=admin${sslParam}`;
 
-      // We use connection string if possible, or construct from fields
-      // Using PGPASSWORD env variable is the safest way to pass password to pg_dump
-      env.PGPASSWORD = decryptedPassword;
-
-      pgDumpArgs.push("-h", dbConfig.host);
-      pgDumpArgs.push("-p", dbConfig.port.toString());
-      pgDumpArgs.push("-U", dbConfig.user);
-      pgDumpArgs.push("-d", dbConfig.database);
-      pgDumpArgs.push("--clean"); // Include DROP TABLE statements
-      pgDumpArgs.push("--if-exists"); // Add IF EXISTS to DROP statements
-      pgDumpArgs.push("--no-owner"); // Do not output commands to set ownership
-      pgDumpArgs.push("--no-privileges"); // Do not output commands to set privileges
-
-      console.log(`Starting pg_dump for ${dbConfig.name}. Output: ${filepath}`);
+      console.log(`Starting mongodump for ${dbConfig.name}. Output: ${filepath}`);
 
       let hasErrorOccurred = false;
 
-      const pgDump = spawn("pg_dump", pgDumpArgs, { env });
+      const mongodump = spawn("mongodump", [
+        `--uri=${uri}`,
+        "--archive",
+      ]);
 
-      pgDump.stdout.pipe(gzip);
+      mongodump.stdout.pipe(gzip);
 
       let stderrData = "";
-      pgDump.stderr.on("data", (data) => {
+      mongodump.stderr.on("data", (data) => {
         stderrData += data.toString();
       });
 
-      pgDump.on("error", async (err: any) => {
+      mongodump.on("error", async (err: any) => {
         hasErrorOccurred = true;
-        console.error("pg_dump process error:", err);
+        console.error("mongodump process error:", err);
         gzip.end();
         writeStream.end();
         cleanupFailedBackup(filepath);
 
         let errorMessage = err.message || "Process failed";
         if (err.code === "ENOENT") {
-          errorMessage = "pg_dump executable was not found on the system path.";
+          errorMessage = "mongodump executable was not found on the system path.";
         }
 
         await prisma.backupJob.update({
           where: { id: job.id },
-          data: {
-            status: "failed",
-            errorMessage,
-          },
+          data: { status: "failed", errorMessage },
         });
 
-        // Test the actual database connection dynamically
         let dbStatus = "healthy";
         try {
-          const test = await testPostgresConnection({
+          const test = await testMongoConnection({
             host: dbConfig.host,
             port: dbConfig.port,
             user: dbConfig.user,
@@ -151,10 +121,9 @@ export async function runBackup(dbId: string, triggerType: "manual" | "scheduled
         resolve({ success: false, error: errorMessage });
       });
 
-      pgDump.on("close", async (code) => {
+      mongodump.on("close", async (code) => {
         if (hasErrorOccurred) return;
         if (code === 0) {
-          // Success
           writeStream.on("finish", async () => {
             try {
               const stats = fs.statSync(filepath);
@@ -162,13 +131,9 @@ export async function runBackup(dbId: string, triggerType: "manual" | "scheduled
 
               await prisma.backupJob.update({
                 where: { id: job.id },
-                data: {
-                  status: "success",
-                  sizeBytes,
-                },
+                data: { status: "success", sizeBytes },
               });
 
-              // Mark database status as healthy
               await prisma.databaseConnection.update({
                 where: { id: dbConfig.id },
                 data: { status: "healthy", lastTestedAt: new Date() },
@@ -179,30 +144,22 @@ export async function runBackup(dbId: string, triggerType: "manual" | "scheduled
               cleanupFailedBackup(filepath);
               await prisma.backupJob.update({
                 where: { id: job.id },
-                data: {
-                  status: "failed",
-                  errorMessage: `Failed to calculate file size: ${err.message}`,
-                },
+                data: { status: "failed", errorMessage: `Failed to calculate file size: ${err.message}` },
               });
               resolve({ success: false, error: err.message });
             }
           });
         } else {
-          // pg_dump exited with error code
           cleanupFailedBackup(filepath);
-          console.error(`pg_dump failed with exit code ${code}: ${stderrData}`);
+          console.error(`mongodump failed with exit code ${code}: ${stderrData}`);
           await prisma.backupJob.update({
             where: { id: job.id },
-            data: {
-              status: "failed",
-              errorMessage: stderrData || `Exit code ${code}`,
-            },
+            data: { status: "failed", errorMessage: stderrData || `Exit code ${code}` },
           });
 
-          // Test the actual database connection dynamically
           let dbStatus = "healthy";
           try {
-            const test = await testPostgresConnection({
+            const test = await testMongoConnection({
               host: dbConfig.host,
               port: dbConfig.port,
               user: dbConfig.user,
@@ -225,13 +182,10 @@ export async function runBackup(dbId: string, triggerType: "manual" | "scheduled
       });
     } catch (error: any) {
       cleanupFailedBackup(filepath);
-      console.error("Backup service runtime error:", error);
+      console.error("Mongo backup service runtime error:", error);
       prisma.backupJob.update({
         where: { id: job.id },
-        data: {
-          status: "failed",
-          errorMessage: error.message || "Runtime error",
-        },
+        data: { status: "failed", errorMessage: error.message || "Runtime error" },
       }).catch(console.error);
       resolve({ success: false, error: error.message });
     }

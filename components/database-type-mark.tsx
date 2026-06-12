@@ -1,14 +1,24 @@
 import React from "react";
 
 interface DatabaseTypeMarkProps {
-  type?: "postgresql";
+  type?: "postgresql" | "mongodb";
 }
 
 export function DatabaseTypeMark({ type = "postgresql" }: DatabaseTypeMarkProps) {
-  const label = type === "postgresql" ? "PostgreSQL" : type;
+  if (type === "mongodb") {
+    return (
+      <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-[#2d5a2d]/60 bg-[#0d260d] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]" title="MongoDB" aria-label="MongoDB">
+        <svg viewBox="0 0 32 32" className="h-4 w-4" aria-hidden="true">
+          <path d="M15.9.087l.854 1.604c.192.296.4.558.645.802.715.715 1.394 1.464 2.004 2.266 1.447 1.9 2.423 4.01 3.12 6.292.418 1.394.645 2.824.662 4.27.07 4.323-1.412 8.035-4.4 11.12-.488.488-1.01.94-1.57 1.342-.296 0-.436-.227-.558-.436-.227-.383-.366-.82-.436-1.255-.105-.523-.174-1.046-.14-1.586v-.244C16.057 24.21 15.796.21 15.9.087z" fill="#599636" />
+          <path d="M15.9.034c-.035-.07-.07-.017-.105.017.017.35-.105.662-.296.96-.21.296-.488.523-.767.767-1.55 1.342-2.77 2.963-3.747 4.776-1.3 2.44-1.97 5.055-2.16 7.808-.087.993.314 4.497.627 5.508.854 2.684 2.388 4.933 4.375 6.885.488.47 1.01.906 1.55 1.325.157 0 .174-.14.21-.244a4.78 4.78 0 0 0 .157-.68l.35-2.614L15.9.034z" fill="#6cac48" />
+          <path d="M16.754 28.845c.035-.4.227-.732.436-1.063-.21-.087-.366-.26-.488-.453-.105-.174-.192-.383-.26-.575-.244-.732-.296-1.5-.366-2.248v-.453c-.087.07-.105.662-.105.75a17.37 17.37 0 0 1-.314 2.353c-.052.314-.087.627-.28.906 0 .035 0 .07.017.122.314.924.4 1.865.453 2.824v.35c0 .418-.017.33.33.47.14.052.296.07.436.174.105 0 .122-.087.122-.157l-.052-.575v-1.604c-.017-.28.035-.558.07-.82z" fill="#c2bfbf" />
+        </svg>
+      </span>
+    );
+  }
 
   return (
-    <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-[#355f83]/60 bg-[#16324b] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]" title={label} aria-label={label}>
+    <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-[#355f83]/60 bg-[#16324b] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]" title="PostgreSQL" aria-label="PostgreSQL">
       <svg viewBox="0 0 432.071 445.383" className="h-4 w-4" aria-hidden="true">
         <g style={{ fillRule: "nonzero", clipRule: "nonzero", fill: "none", stroke: "#fff", strokeWidth: 12.4651, strokeLinecap: "round", strokeLinejoin: "round", strokeMiterlimit: 4 }}>
           <path d="M323.205 324.227c2.833-23.601 1.984-27.062 19.563-23.239l4.463.392c13.517.615 31.199-2.174 41.587-7 22.362-10.376 35.622-27.7 13.572-23.148-50.297 10.376-53.755-6.655-53.755-6.655 53.111-78.803 75.313-178.836 56.149-203.322-52.27-66.789-142.748-35.206-144.262-34.386l-.482.089c-9.938-2.062-21.06-3.294-33.554-3.496-22.761-.374-40.032 5.967-53.133 15.904 0 0-161.408-66.498-153.899 83.628 1.597 31.936 45.777 241.655 98.47 178.31 19.259-23.163 37.871-42.748 37.871-42.748 9.242 6.14 20.307 9.272 31.912 8.147l.897-.765c-.281 2.876-.157 5.689.359 9.019-13.572 15.167-9.584 17.83-36.723 23.416-27.457 5.659-11.326 15.734-.797 18.367 12.768 3.193 42.305 7.716 62.268-20.224l-.795 3.188c5.325 4.26 4.965 30.619 5.72 49.452.756 18.834 2.017 36.409 5.856 46.771 3.839 10.36 8.369 37.05 44.036 29.406 29.809-6.388 52.6-15.582 54.677-101.107" style={{ fill: "#000", stroke: "#000", strokeWidth: 37.3953, strokeLinecap: "butt", strokeLinejoin: "miter" }} />

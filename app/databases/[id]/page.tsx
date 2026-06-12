@@ -5,6 +5,7 @@ import { prisma } from "../../../lib/db";
 import { decrypt } from "../../../lib/encryption";
 import { getT, Locale } from "../../../lib/i18n";
 import { fetchPostgresTables, fetchTableData } from "../../../lib/db-client";
+import { fetchMongoCollections, fetchCollectionDocuments } from "../../../lib/db-mongo-client";
 import { 
   IconDatabase, 
   IconTable, 
@@ -44,7 +45,6 @@ export default async function DatabaseExplorerPage({ params, searchParams }: Dat
   const currentPage = pageStr ? parseInt(pageStr, 10) : 1;
   const pageSize = pageSizeStr ? parseInt(pageSizeStr, 10) : 50;
 
-  // 1. Fetch database configuration from Prisma
   const db = await prisma.databaseConnection.findUnique({
     where: { id },
   });
@@ -65,44 +65,72 @@ export default async function DatabaseExplorerPage({ params, searchParams }: Dat
   }
 
   const decryptedPassword = decrypt(db.password);
+  const isMongoDb = db.type === "mongodb";
   
   let tables: string[] = [];
-  let errorMsg = "";
+  let collectionsError = "";
   
-  // 2. Fetch list of tables from PostgreSQL
   try {
-    tables = await fetchPostgresTables({
-      host: db.host,
-      port: db.port,
-      user: db.user,
-      password: decryptedPassword,
-      database: db.database,
-      ssl: db.ssl,
-    });
+    if (isMongoDb) {
+      tables = await fetchMongoCollections({
+        host: db.host,
+        port: db.port,
+        user: db.user,
+        password: decryptedPassword,
+        database: db.database,
+        ssl: db.ssl,
+      });
+    } else {
+      tables = await fetchPostgresTables({
+        host: db.host,
+        port: db.port,
+        user: db.user,
+        password: decryptedPassword,
+        database: db.database,
+        ssl: db.ssl,
+      });
+    }
   } catch (err: any) {
-    errorMsg = err.message || t("database.testFailed");
+    collectionsError = err.message || t("database.testFailed");
   }
 
-  // 3. Fetch active table data if a table is selected
   let tableData: { columns: string[]; rows: any[]; totalCount: number } | null = null;
   let queryError = "";
 
-  if (activeTable && tables.includes(activeTable)) {
+  const canQueryActiveTable = Boolean(activeTable) && (isMongoDb || (activeTable ? tables.includes(activeTable) : false));
+
+  if (canQueryActiveTable && activeTable) {
     try {
-      tableData = await fetchTableData(
-        {
-          host: db.host,
-          port: db.port,
-          user: db.user,
-          password: decryptedPassword,
-          database: db.database,
-          ssl: db.ssl,
-        },
-        activeTable,
-        currentPage,
-        pageSize,
-        true
-      );
+      if (isMongoDb) {
+        tableData = await fetchCollectionDocuments(
+          {
+            host: db.host,
+            port: db.port,
+            user: db.user,
+            password: decryptedPassword,
+            database: db.database,
+            ssl: db.ssl,
+          },
+          activeTable,
+          currentPage,
+          pageSize
+        );
+      } else {
+        tableData = await fetchTableData(
+          {
+            host: db.host,
+            port: db.port,
+            user: db.user,
+            password: decryptedPassword,
+            database: db.database,
+            ssl: db.ssl,
+          },
+          activeTable,
+          currentPage,
+          pageSize,
+          true
+        );
+      }
     } catch (err: any) {
       queryError = err.message || t("database.queryError");
     }
@@ -122,7 +150,7 @@ export default async function DatabaseExplorerPage({ params, searchParams }: Dat
           </Link>
           <div className="flex items-center gap-2 mt-1">
             <IconDatabase size={16} className="text-[#55f289]" />
-            <DatabaseTypeMark />
+            <DatabaseTypeMark type={db.type as "postgresql" | "mongodb"} />
             <h2 className="min-w-0 truncate text-xs font-mono font-bold uppercase text-white" title={db.name}>
               {db.name}
             </h2>
@@ -132,15 +160,15 @@ export default async function DatabaseExplorerPage({ params, searchParams }: Dat
 
         <div className="flex-1 overflow-y-auto p-3 space-y-1">
           <span className="px-3 py-1.5 block text-[9px] font-mono text-[#605e58] tracking-widest uppercase">
-            {t("database.tables").toUpperCase()} ({tables.length})
+            {(isMongoDb ? t("mongo.collections") : t("database.tables")).toUpperCase()} ({tables.length})
           </span>
-          {errorMsg ? (
+          {collectionsError ? (
             <div className="p-3 text-[11px] font-mono text-[#f25c55] bg-[#2d1210]/30 border border-[#4b1b1a]/50 rounded">
-              {errorMsg}
+              {collectionsError}
             </div>
           ) : tables.length === 0 ? (
             <div className="p-3 text-[11px] font-mono text-[#605e58]">
-              {t("database.noTables")}
+              {isMongoDb ? t("mongo.noCollections") : t("database.noTables")}
             </div>
           ) : (
             tables.map((tbl) => {
@@ -165,26 +193,24 @@ export default async function DatabaseExplorerPage({ params, searchParams }: Dat
       </div>
 
       {/* Right Content Area: Table Data Grid Explorer */}
-      <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#090807]">
-        {activeTable ? (
+        <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#090807]">
+          {activeTable ? (
           <div className="flex-1 flex flex-col overflow-hidden">
-            {/* Table Header Details */}
             <div className="h-16 border-b border-[#2b2926] bg-[#0d0c0b] px-8 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-3 font-mono">
                 <IconTableShare size={18} className="text-[#55f289]" />
                 <h1 className="text-xs font-bold text-white uppercase">{activeTable}</h1>
                 {tableData && (
                   <Badge variant="outline" className="bg-[#1c1a17] border-[#2b2926] text-[#a09e96] text-[9px] font-mono py-0.5">
-                    {t("database.rowsCount")} {tableData.totalCount}
+                    {isMongoDb ? `${t("mongo.documents")} ${tableData.totalCount}` : `${t("database.rowsCount")} ${tableData.totalCount}`}
                   </Badge>
                 )}
               </div>
 
-              {/* Pagination controls */}
               {tableData && (
                 <div className="flex items-center gap-4 font-mono text-xs text-[#a09e96]">
                   <div className="flex items-center gap-1.5">
-                    <span className="text-[9px] text-[#605e58] tracking-wider uppercase">{t("database.rowsPerPage")}</span>
+                    <span className="text-[9px] text-[#605e58] tracking-wider uppercase">{isMongoDb ? t("mongo.documentsPerPage") : t("database.rowsPerPage")}</span>
                     {PAGE_SIZE_OPTIONS.map((s) => {
                       const isActive = pageSize === s;
                       return (
@@ -229,7 +255,6 @@ export default async function DatabaseExplorerPage({ params, searchParams }: Dat
               )}
             </div>
 
-            {/* Table Viewer Content */}
             <div className="flex-1 overflow-auto p-8">
               {queryError ? (
                 <div className="p-4 bg-[#2d1210] border border-[#4b1b1a] rounded text-xs font-mono text-[#f25c55] flex items-center gap-2">
@@ -239,7 +264,7 @@ export default async function DatabaseExplorerPage({ params, searchParams }: Dat
               ) : !tableData || tableData.rows.length === 0 ? (
                 <div className="h-64 border border-dashed border-[#2b2926] rounded flex flex-col items-center justify-center text-[#605e58] font-mono text-xs">
                   <IconTable size={32} className="mb-2 text-[#2b2926]" />
-                  {t("database.noData")}
+                  {isMongoDb ? t("mongo.noCollections") : t("database.noData")}
                 </div>
               ) : (
                 <div className="border border-[#2b2926] rounded-md overflow-x-auto bg-[#0d0c0b]">
@@ -261,7 +286,9 @@ export default async function DatabaseExplorerPage({ params, searchParams }: Dat
                             let displayVal = "";
                             
                             if (val === null || val === undefined) {
-                              displayVal = "NULL";
+                              displayVal = t("common.null");
+                            } else if (typeof val === "object" && val?.constructor?.name === "ObjectId") {
+                              displayVal = String(val);
                             } else if (typeof val === "object") {
                               displayVal = JSON.stringify(val);
                             } else {
@@ -291,14 +318,15 @@ export default async function DatabaseExplorerPage({ params, searchParams }: Dat
             </div>
           </div>
         ) : (
-          /* Empty state: No table selected */
           <div className="flex-1 flex flex-col items-center justify-center p-8 font-mono text-xs text-[#605e58]">
             <div className="h-14 w-14 bg-[#141210] border border-[#2b2926] rounded-full flex items-center justify-center text-[#a09e96] mb-4">
               <IconTable size={24} />
             </div>
-            <h3 className="font-bold text-white text-sm uppercase">{t("database.explorerTitle")}</h3>
+            <h3 className="font-bold text-white text-sm uppercase">{isMongoDb ? t("mongo.explorerTitle") : t("database.explorerTitle")}</h3>
             <p className="mt-1.5 text-center max-w-75 leading-relaxed">
-              {t("database.explorerDesc")} {t("database.selectTable")}
+              {isMongoDb
+                ? `${t("mongo.explorerDesc")} ${t("mongo.selectCollection")}`
+                : `${t("database.explorerDesc")} ${t("database.selectTable")}`}
             </p>
           </div>
         )}

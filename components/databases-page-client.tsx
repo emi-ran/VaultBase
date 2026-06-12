@@ -512,7 +512,7 @@ export function DatabasesPageClient({ databases }: DatabasesPageClientProps) {
                       <div className="flex items-start justify-between">
                           <div className="space-y-1 max-w-[70%]">
                             <div className="flex items-center gap-2">
-                              <DatabaseTypeMark />
+<DatabaseTypeMark type={db.type as "postgresql" | "mongodb"} />
                               <h4 className="min-w-0 truncate text-xs font-mono font-bold uppercase text-white" title={db.name}>
                                 {db.name}
                               </h4>
@@ -785,7 +785,7 @@ export function DatabasesPageClient({ databases }: DatabasesPageClientProps) {
             <div className="bg-[#141210] border border-[#2b2926] rounded p-3 space-y-1.5">
               <span className="text-[9px] text-[#605e58] tracking-wider uppercase">{t("restore.targetDb")}</span>
               <div className="flex items-center gap-2">
-                <DatabaseTypeMark />
+                <DatabaseTypeMark type={dbToRestore?.type as "postgresql" | "mongodb"} />
                 <span className="text-white font-bold text-sm">{dbToRestore?.name}</span>
                 <span className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded border ${
                   dbToRestore?.environment === "production"

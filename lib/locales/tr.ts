@@ -105,6 +105,7 @@ export const tr = {
     noTables: "Tablo bulunamadı",
     rowsCount: "Toplam satır:",
     rowsPerPage: "Satır/sayfa",
+    type: "Tür",
     queryError: "Sorgu hatası: ",
     noData: "Bu tabloda veri bulunmuyor.",
     editDbTitle: "VERİTABANI BAĞLANTISINI DÜZENLE",
@@ -386,5 +387,14 @@ export const tr = {
     labelProcessing: "Yükleniyor",
     cronPlaceholder: "ör: 0 2 * * *",
     dayRange: "(1 - 31)",
+  },
+  mongo: {
+    collections: "Collection'lar",
+    documents: "Döküman",
+    noCollections: "Collection bulunamadı",
+    documentsPerPage: "Döküman/sayfa",
+    selectCollection: "Görüntülemek için bir collection seçin",
+    explorerTitle: "Collection Gezgini",
+    explorerDesc: "MongoDB dökümanlarını keşfedin ve inceleyin.",
   },
 };

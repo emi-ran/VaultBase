@@ -209,7 +209,7 @@ export function DashboardTables({ databases, backups, locale }: DashboardTablesP
                     <TableCell className="font-mono font-bold text-xs text-white px-6">
                       <div className="flex flex-col gap-1">
                         <div className="flex items-center gap-2">
-                          <DatabaseTypeMark />
+                          <DatabaseTypeMark type={db.type as "postgresql" | "mongodb"} />
                           <span className="min-w-0 truncate">{db.name}</span>
                         </div>
                         <span className="text-[9px] text-[#605e58] font-normal">{db.database}</span>
