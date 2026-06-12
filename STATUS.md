@@ -6,9 +6,9 @@ Son güncelleme: 12 Haziran 2026
 
 ## Anlık Durum
 
-**Aktif Sürüm:** 1.0.0  
+**Aktif Sürüm:** 1.1.0  
 **Genel Durum:** ✅ Kararlı (Geliştirme & Production Ortamı)  
-**Aktif Phase:** Phase 2 (Zamanlanmış Yedekler) – TAMAMLANDI
+**Aktif Phase:** Phase 4 (Geri Yükleme) – KISMEN TAMAMLANDI
 
 ---
 
@@ -50,19 +50,32 @@ Aşağıdaki tüm özellikler çalışır durumda:
 | PostgreSQL Tür Logosu | ✅ Çalışıyor | Kart/tablo/explorer başlıklarında PostgreSQL logosu |
 | Tüm Bağlantıları Test Et | ✅ Çalışıyor | /databases sayfasında tek butonla tüm bağlantıları test etme |
 | Otomatik Sağlık Kontrolü | ✅ Çalışıyor | Ayarlardan 15sn/30sn/1dk aralıkla otomatik polling, sayfa açıkken çalışır |
-| Kullanıcı Girişi | ✅ Çalışıyor | .env tabanlı admin (ADMIN_USERNAME/PASSWORD), HMAC-imzalı session cookie, middleware ile route koruması |
+| Kullanıcı Girişi | ✅ Çalışıyor | .env tabanlı admin (ADMIN_USERNAME/PASSWORD), HMAC-imzalı session cookie, proxy.ts ile route koruması |
 | Çıkış Yap | ✅ Çalışıyor | Cookie temizleme ve /login'e yönlendirme |
-| API Auth Koruması | ✅ Çalışıyor | Backup download API 401 döndürür |
+| API Auth Koruması | ✅ Çalışıyor | Backup download & restore API 401 döndürür |
+| Geri Yükleme (Restore) | ✅ Çalışıyor | Streaming gunzip → psql, schema override, Shadcn Dialog onay akışı |
+| Explorer Sayfalama Optimizasyonu | ✅ Çalışıyor | pg_class.reltuples COUNT, 25/50/100 page size seçici |
 
 ---
 
 ## Sürüm Notları
 
+### v1.1.0 — Geri Yükleme, Proxy Migration, Performans İyileştirmeleri
+
+- Geri yükleme (restore): streaming gunzip → psql, DROP SCHEMA CASCADE pre-step
+- API route: `POST /api/restore?databaseId=X` (streaming body, session auth)
+- /databases sayfasında Import butonu + Shadcn Dialog onay akışı
+- middleware.ts → proxy.ts taşıma (Turbopack NFT uyarısı azaldı)
+- Explorer sayfalama optimizasyonu: pg_class.reltuples, pageSize 25→50, 25/50/100 seçici
+- Jobs sayfası: browser confirm/alert → Shadcn Dialog (tutarlı UX)
+- Jobs sayfası: locale desteği eklendi (rowsPerPage anahtarı)
+- pg_dump --if-exists bayrağı (DROP TABLE IF EXISTS)
+
 ### v1.0.0 — Kullanıcı Girişi Eklendi
 
 - Kullanıcı adı/şifre ile giriş (.env tabanlı)
 - HMAC-SHA256 imzalı session cookie (24 saat geçerlilik)
-- Middleware ile tüm route koruması (API'lerde 401, sayfalarda /login yönlendirmesi)
+- proxy.ts ile tüm route koruması (API'lerde 401, sayfalarda /login yönlendirmesi)
 - Giriş yapmış kullanıcıyı /login'den /'ye yönlendirme
 - Sidebar'da çıkış butonu
 
@@ -83,10 +96,14 @@ Aşağıdaki tüm özellikler çalışır durumda:
   - Düzeltme: scripts/test-core.ts importlarındaki uzantılar kaldırıldı.
 - **[ÇÖZÜLDÜ]** Docker pnpm esbuild scriptinin çalışmasının engellenmesi
   - Düzeltme: package.json'a pnpm onlyBuiltDependencies tanımlandı.
+- **[ÇÖZÜLDÜ]** Büyük tablolarda explorer COUNT(*) yavaşlığı
+  - Düzeltme: pg_class.reltuples ile yaklaşık COUNT (10k+ satır), sayfa boyutu 25→50, 25/50/100 seçici
+- **[ÇÖZÜLDÜ]** Eski yedeklerde (--if-exists olmadan) restore başarısızlığı
+  - Düzeltme: backup-service.ts'ye --if-exists eklendi, restore pipe'ında ON_ERROR_STOP=1 kaldırıldı
 
 ### Açık
 - pg_dump Windows'ta PATH'de yoksa hata mesajı bazen belirsiz olabiliyor
-- Büyük tablolarda (>100k satır) explorer yavaşlayabilir
+- Restore için arşiv sayfasından doğrudan geri yükleme henüz yok
 
 ---
 
@@ -118,13 +135,15 @@ Aşağıdaki tüm özellikler çalışır durumda:
 
 ---
 
-## Sonraki Adımlar (Phase 3)
+## Sonraki Adımlar (Phase 3 & 4)
 
 Öncelik sırasına göre:
 
-1. **Bulut depolama entegrasyonu** — Amazon S3, Cloudflare R2, Google Cloud Storage, MinIO entegrasyonları
-2. **Otomatik bulut senkronizasyonu** — yedek tamamlandığında otomatik olarak bulut depolamaya kopyalanması
-3. **Bulut yedekleri yönetimi** — bulut üzerindeki yedek dosyalarını arama, indirme ve silme arayüzleri
+1. **Arşiv sayfasından restore** — doğrudan archive listesinden yedek seçip hedef DB seçerek geri yükleme
+2. **Restore işlem geçmişi** — geri yükleme loglarının jobs sayfasında görüntülenmesi
+3. **Bulut depolama entegrasyonu** — Amazon S3, Cloudflare R2, Google Cloud Storage, MinIO entegrasyonları
+4. **Otomatik bulut senkronizasyonu** — yedek tamamlandığında otomatik olarak bulut depolamaya kopyalanması
+5. **Bulut yedekleri yönetimi** — bulut üzerindeki yedek dosyalarını arama, indirme ve silme arayüzleri
 
 ---
 
@@ -132,8 +151,8 @@ Aşağıdaki tüm özellikler çalışır durumda:
 
 ```
 Branch: master
-Son Commit: style: add PostgreSQL type logo to database headers (084ceef)
-Değiştirilmemiş dosya: Hayır (çalışma dizininde değişiklikler var)
+Son Commit: fix: replace browser confirm/alert with Shadcn Dialog; migrate to proxy.ts; optimize explorer pagination (6c67bad)
+Değiştirilmemiş dosya: Evet (değişiklikler var)
 ```
 
 ---

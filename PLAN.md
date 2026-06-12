@@ -105,13 +105,14 @@ VaultBase; birden fazla PostgreSQL (ilerleyen sürümlerde MongoDB) veritabanın
 
 ---
 
-## Phase 4 – Geri Yükleme Sistemi (PLANLANDI)
+## Phase 4 – Geri Yükleme Sistemi (KISMEN TAMAMLANDI)
 
 ### 4.1 Restore İşlemleri
-- [ ] Yedekten geri yükleme butonu (onay modalı ile)
-- [ ] pg_restore / psql entegrasyonu
-- [ ] Geri yükleme öncesi hedef veritabanı seçimi
-- [ ] Geri yükleme logları ve durum takibi
+- [x] Yedekten geri yükleme butonu (Shadcn Dialog onay modalı ile)
+- [x] Streaming gunzip → psql entegrasyonu
+- [x] Geri yükleme öncesi hedef veritabanı seçimi (databases sayfasından)
+- [ ] Arşiv sayfasından doğrudan geri yükleme (yedek seç + hedef DB seç)
+- [ ] Geri yükleme logları ve durum takibi (jobs sayfası)
 
 ---
 
@@ -133,7 +134,7 @@ VaultBase; birden fazla PostgreSQL (ilerleyen sürümlerde MongoDB) veritabanın
 ### 6.1 Temel Giriş Sistemi (TAMAMLANDI)
 - [x] .env tabanlı admin girişi (ADMIN_USERNAME / ADMIN_PASSWORD)
 - [x] HMAC-SHA256 imzalı session cookie (Web Crypto API)
-- [x] Middleware ile route koruması (sayfa → /login, API → 401)
+- [x] proxy.ts ile route koruması (sayfa → /login, API → 401)
 - [x] Giriş formu (/login)
 - [x] Çıkış butonu (sidebar)
 - [x] Oturum süresi: 24 saat
@@ -162,7 +163,8 @@ VaultBase; birden fazla PostgreSQL (ilerleyen sürümlerde MongoDB) veritabanın
 | Sorun | Öncelik | Durum |
 |---|---|---|
 | pg_dump yerel olarak kurulu olmadığında Çevrimdışı olarak işaretleme sorunu | Yüksek | Çözüldü (Phase 1 sonunda) |
-| Büyük tablolarda sayfalandırma performansı | Orta | Açık |
+| Büyük tablolarda sayfalandırma performansı | Orta | Çözüldü (pg_class.reltuples + 25/50/100 seçici) |
+| Eski yedeklerde (--if-exists olmadan) restore başarısızlığı | Yüksek | Çözüldü (backup + restore dual fix) |
 | Docker olmadan Windows'ta çalışan pg_dump yolu otomatik tespiti | Düşük | Açık |
 
 ---
@@ -170,7 +172,8 @@ VaultBase; birden fazla PostgreSQL (ilerleyen sürümlerde MongoDB) veritabanın
 ## Sürüm Geçmişi
 
 | Sürüm | Tarih | Açıklama |
-|---|---|---|
+|---|---|---|---|
+| 1.1.0 | 12 Haziran 2026 | Geri yükleme (streaming gunzip → psql), middleware→proxy taşıma, explorer optimizasyonu (pg_class.reltuples, 25/50/100), jobs Shadcn Dialog, pg_dump --if-exists |
 | 1.0.0 | 12 Haziran 2026 | Phase 2 tamamlandı – Zamanlanmış otomatik yedekler, sistem saati, zaman dilimi ayarı, tüm bağlantıları test et, otomatik sağlık kontrolü, PostgreSQL logosu, şifreli export/import (ayarlar dahil) |
-| 1.0.0 | 12 Haziran 2026 | Phase 6.1 – Kullanıcı girişi (env tabanlı admin, HMAC session, middleware koruma, çıkış) |
+| 1.0.0 | 12 Haziran 2026 | Phase 6.1 – Kullanıcı girişi (env tabanlı admin, HMAC session, proxy.ts koruma, çıkış) |
 | 0.1.0-alpha | Haziran 2026 | Phase 1 tamamlandı – temel yedekleme ve dashboard |
