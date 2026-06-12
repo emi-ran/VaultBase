@@ -26,6 +26,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "./ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "./ui/dialog";
 import { DatabaseModal } from "./database-modal";
+import { DatabaseTypeMark } from "./database-type-mark";
 import { 
   triggerBackupAction, 
   deleteDatabaseAction, 
@@ -381,14 +382,17 @@ export function DatabasesPageClient({ databases }: DatabasesPageClientProps) {
                     {/* Header */}
                     <CardHeader className="p-5 pb-3">
                       <div className="flex items-start justify-between">
-                        <div className="space-y-1 max-w-[70%]">
-                          <h4 className="text-xs font-mono font-bold text-white truncate uppercase" title={db.name}>
-                            {db.name}
-                          </h4>
-                          <span className="text-[10px] font-mono text-[#605e58] truncate block" title={db.database}>
-                            {db.database}
-                          </span>
-                        </div>
+                          <div className="space-y-1 max-w-[70%]">
+                            <div className="flex items-center gap-2">
+                              <DatabaseTypeMark />
+                              <h4 className="min-w-0 truncate text-xs font-mono font-bold uppercase text-white" title={db.name}>
+                                {db.name}
+                              </h4>
+                            </div>
+                            <span className="text-[10px] font-mono text-[#605e58] truncate block" title={db.database}>
+                              {db.database}
+                            </span>
+                          </div>
 
                         <Badge variant="outline" className={`text-[9px] font-mono border py-0.5 px-2 ${
                           db.environment === "production" 

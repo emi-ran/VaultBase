@@ -16,6 +16,7 @@ import {
 } from "@tabler/icons-react";
 import { Button } from "../../../components/ui/button";
 import { Badge } from "../../../components/ui/badge";
+import { DatabaseTypeMark } from "../../../components/database-type-mark";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../../../components/ui/card";
 import { 
   Table, 
@@ -119,7 +120,8 @@ export default async function DatabaseExplorerPage({ params, searchParams }: Dat
           </Link>
           <div className="flex items-center gap-2 mt-1">
             <IconDatabase size={16} className="text-[#55f289]" />
-            <h2 className="text-xs font-mono font-bold text-white truncate uppercase" title={db.name}>
+            <DatabaseTypeMark />
+            <h2 className="min-w-0 truncate text-xs font-mono font-bold uppercase text-white" title={db.name}>
               {db.name}
             </h2>
           </div>

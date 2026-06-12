@@ -26,6 +26,7 @@ import {
   TableRow 
 } from "./ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "./ui/dialog";
+import { DatabaseTypeMark } from "./database-type-mark";
 import { 
   triggerBackupAction, 
   deleteDatabaseAction, 
@@ -206,8 +207,11 @@ export function DashboardTables({ databases, backups, locale }: DashboardTablesP
                 {databases.map((db) => (
                   <TableRow key={db.id} className="border-b border-[#2b2926]/40 hover:bg-[#141210]/40">
                     <TableCell className="font-mono font-bold text-xs text-white px-6">
-                      <div className="flex flex-col">
-                        <span>{db.name}</span>
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-2">
+                          <DatabaseTypeMark />
+                          <span className="min-w-0 truncate">{db.name}</span>
+                        </div>
                         <span className="text-[9px] text-[#605e58] font-normal">{db.database}</span>
                       </div>
                     </TableCell>
