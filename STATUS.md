@@ -6,7 +6,7 @@ Son güncelleme: 12 Haziran 2026
 
 ## Anlık Durum
 
-**Aktif Sürüm:** v0.2.0-alpha  
+**Aktif Sürüm:** 1.0.0  
 **Genel Durum:** ✅ Kararlı (Geliştirme & Production Ortamı)  
 **Aktif Phase:** Phase 2 (Zamanlanmış Yedekler) – TAMAMLANDI
 

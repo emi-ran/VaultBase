@@ -152,5 +152,5 @@ VaultBase; birden fazla PostgreSQL (ilerleyen sürümlerde MongoDB) veritabanın
 
 | Sürüm | Tarih | Açıklama |
 |---|---|---|
-| 0.2.0-alpha | 12 Haziran 2026 | Phase 2 tamamlandı – Zamanlanmış otomatik yedekler, sistem saati ve zaman dilimi ayarı |
+| 1.0.0 | 12 Haziran 2026 | Phase 2 tamamlandı – Zamanlanmış otomatik yedekler, sistem saati ve zaman dilimi ayarı, tüm bağlantıları test et, otomatik sağlık kontrolü, şifreli export/import |
 | 0.1.0-alpha | Haziran 2026 | Phase 1 tamamlandı – temel yedekleme ve dashboard |

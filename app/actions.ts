@@ -291,8 +291,10 @@ export async function exportSettingsAction(password?: string) {
     const databases = await prisma.databaseConnection.findMany();
     const schedules = await prisma.schedule.findMany();
 
+    const settingsRecords = await prisma.setting.findMany();
+
     const exportData = {
-      version: "1.1.0",
+      version: "1.0.0",
       timestamp: new Date().toISOString(),
       databases: databases.map((db: DatabaseConnection) => ({
         name: db.name,
@@ -313,6 +315,10 @@ export async function exportSettingsAction(password?: string) {
           enabled: sch.enabled,
         };
       }),
+      settings: settingsRecords.map((s: { key: string; value: string }) => ({
+        key: s.key,
+        value: s.value,
+      })),
     };
 
     let wrappedExport: any;
@@ -321,7 +327,7 @@ export async function exportSettingsAction(password?: string) {
       const jsonStr = JSON.stringify(exportData);
       const { salt, payload } = encryptWithPassword(jsonStr, password);
       wrappedExport = {
-        version: "1.1.0",
+        version: "1.0.0",
         encrypted: true,
         passwordProtected: true,
         salt,
@@ -329,7 +335,7 @@ export async function exportSettingsAction(password?: string) {
       };
     } else {
       wrappedExport = {
-        version: "1.1.0",
+        version: "1.0.0",
         encrypted: false,
         data: exportData,
       };
@@ -451,6 +457,21 @@ export async function importSettingsAction(jsonString: string, password?: string
         }
       }
     }
+
+    // Import settings (timezone, healthCheckInterval, etc.)
+    if (importData.settings && Array.isArray(importData.settings)) {
+      for (const setting of importData.settings) {
+        await prisma.setting.upsert({
+          where: { key: setting.key },
+          update: { value: setting.value },
+          create: { key: setting.key, value: setting.value },
+        });
+      }
+    }
+
+    // Reload cron schedules in case timezone changed
+    const { reloadSchedules } = await import("../lib/cron-service");
+    await reloadSchedules();
 
     revalidatePath("/");
     return { success: true, importedCount };

@@ -118,7 +118,7 @@ export function Sidebar() {
           </div>
           <div>
             <h1 className="font-mono text-xs tracking-wider text-white font-bold uppercase">VAULTBASE</h1>
-            <span className="font-mono text-[9px] text-[#605e58] tracking-widest block mt-0.5">v0.2.0-alpha</span>
+            <span className="font-mono text-[9px] text-[#605e58] tracking-widest block mt-0.5">v1.0.0</span>
           </div>
         </div>
 
