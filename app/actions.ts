@@ -49,6 +49,41 @@ export async function setLanguageAction(locale: Locale) {
   return { success: true };
 }
 
+// Login Action
+export async function loginAction(username: string, password: string) {
+  try {
+    const { verifyCredentials, createSession } = await import("../lib/auth");
+    if (!verifyCredentials(username, password)) {
+      return { success: false, error: "INVALID_CREDENTIALS" };
+    }
+    const token = await createSession(username);
+    const cookieStore = await cookies();
+    cookieStore.set("session", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 86400,
+    });
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message || "Login failed" };
+  }
+}
+
+// Logout Action
+export async function logoutAction() {
+  const cookieStore = await cookies();
+  cookieStore.set("session", "", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: 0,
+  });
+  return { success: true };
+}
+
 // Test Connection Action
 export async function testConnectionAction(formData: {
   mode: "url" | "fields";

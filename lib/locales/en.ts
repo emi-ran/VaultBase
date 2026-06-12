@@ -224,6 +224,18 @@ export const en = {
     envLimit: "Environment Limit",
     cleanupLink: "Manage Backup Archive",
   },
+  auth: {
+    title: "Sign In",
+    username: "USERNAME",
+    password: "PASSWORD",
+    login: "SIGN IN",
+    loggingIn: "SIGNING IN...",
+    invalidCredentials: "Invalid username or password.",
+    logout: "SIGN OUT",
+    sessionExpired: "Your session has expired. Please sign in again.",
+    welcome: "Welcome to VaultBase",
+    welcomeDesc: "Sign in to access the PostgreSQL database backup management system.",
+  },
   jobs: {
     title: "BACKUP JOB LOGS",
     desc: "Review the execution history and status of all automatic and manual backup jobs.",

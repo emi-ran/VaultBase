@@ -50,6 +50,21 @@ Aşağıdaki tüm özellikler çalışır durumda:
 | PostgreSQL Tür Logosu | ✅ Çalışıyor | Kart/tablo/explorer başlıklarında PostgreSQL logosu |
 | Tüm Bağlantıları Test Et | ✅ Çalışıyor | /databases sayfasında tek butonla tüm bağlantıları test etme |
 | Otomatik Sağlık Kontrolü | ✅ Çalışıyor | Ayarlardan 15sn/30sn/1dk aralıkla otomatik polling, sayfa açıkken çalışır |
+| Kullanıcı Girişi | ✅ Çalışıyor | .env tabanlı admin (ADMIN_USERNAME/PASSWORD), HMAC-imzalı session cookie, middleware ile route koruması |
+| Çıkış Yap | ✅ Çalışıyor | Cookie temizleme ve /login'e yönlendirme |
+| API Auth Koruması | ✅ Çalışıyor | Backup download API 401 döndürür |
+
+---
+
+## Sürüm Notları
+
+### v1.0.0 — Kullanıcı Girişi Eklendi
+
+- Kullanıcı adı/şifre ile giriş (.env tabanlı)
+- HMAC-SHA256 imzalı session cookie (24 saat geçerlilik)
+- Middleware ile tüm route koruması (API'lerde 401, sayfalarda /login yönlendirmesi)
+- Giriş yapmış kullanıcıyı /login'den /'ye yönlendirme
+- Sidebar'da çıkış butonu
 
 ---
 

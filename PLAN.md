@@ -128,10 +128,19 @@ VaultBase; birden fazla PostgreSQL (ilerleyen sürümlerde MongoDB) veritabanın
 
 ---
 
-## Phase 6 – Kullanıcı Yönetimi & Güvenlik (PLANLANDI)
+## Phase 6 – Kullanıcı Yönetimi & Güvenlik (KISMİ TAMAMLANDI)
 
-- [ ] Temel kullanıcı girişi (username/password, JWT veya session)
-- [ ] Çok kullanıcılı erişim yönetimi
+### 6.1 Temel Giriş Sistemi (TAMAMLANDI)
+- [x] .env tabanlı admin girişi (ADMIN_USERNAME / ADMIN_PASSWORD)
+- [x] HMAC-SHA256 imzalı session cookie (Web Crypto API)
+- [x] Middleware ile route koruması (sayfa → /login, API → 401)
+- [x] Giriş formu (/login)
+- [x] Çıkış butonu (sidebar)
+- [x] Oturum süresi: 24 saat
+- [x] Giriş yapmış kullanıcı /login'den /'ye yönlendirilir
+
+### 6.2 Gelecek (PLANLANDI)
+- [ ] Çok kullanıcılı erişim yönetimi (DB tabanlı kullanıcılar)
 - [ ] İki faktörlü kimlik doğrulama (2FA) desteği
 - [ ] Rol tabanlı yetkilendirme (Admin / Viewer)
 
@@ -163,4 +172,5 @@ VaultBase; birden fazla PostgreSQL (ilerleyen sürümlerde MongoDB) veritabanın
 | Sürüm | Tarih | Açıklama |
 |---|---|---|
 | 1.0.0 | 12 Haziran 2026 | Phase 2 tamamlandı – Zamanlanmış otomatik yedekler, sistem saati, zaman dilimi ayarı, tüm bağlantıları test et, otomatik sağlık kontrolü, PostgreSQL logosu, şifreli export/import (ayarlar dahil) |
+| 1.0.0 | 12 Haziran 2026 | Phase 6.1 – Kullanıcı girişi (env tabanlı admin, HMAC session, middleware koruma, çıkış) |
 | 0.1.0-alpha | Haziran 2026 | Phase 1 tamamlandı – temel yedekleme ve dashboard |

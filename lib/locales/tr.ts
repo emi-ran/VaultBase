@@ -224,6 +224,18 @@ export const tr = {
     envLimit: "Ortam Limiti",
     cleanupLink: "Yedek Arşivini Yönet",
   },
+  auth: {
+    title: "Giriş Yap",
+    username: "KULLANICI ADI",
+    password: "ŞİFRE",
+    login: "GİRİŞ YAP",
+    loggingIn: "GİRİŞ YAPILIYOR...",
+    invalidCredentials: "Hatalı kullanıcı adı veya şifre.",
+    logout: "ÇIKIŞ YAP",
+    sessionExpired: "Oturum süreniz doldu. Lütfen tekrar giriş yapın.",
+    welcome: "VaultBase'e Hoş Geldiniz",
+    welcomeDesc: "PostgreSQL veritabanı yedekleme yönetim sistemine erişmek için giriş yapın.",
+  },
   jobs: {
     title: "YEDEK İŞ LOGLARI",
     desc: "Tüm otomatik ve manuel yedekleme işlerinin geçmişini ve durumunu inceleyin.",

@@ -75,6 +75,13 @@ VaultBase, birden fazla PostgreSQL veritabanını tek bir panelden güvenli şek
 - ✅ Sağlık kontrolü aralığı ayarı (15sn / 30sn / 1dk)
 - ✅ Otomatik sağlık kontrolü (sayfa açıkken periyodik polling)
 
+### Güvenlik
+- ✅ Kullanıcı adı / şifre ile giriş (`.env` tabanlı)
+- ✅ HMAC-SHA256 imzalı session cookie (24 saat)
+- ✅ Middleware ile route koruması
+- ✅ API uç noktalarında 401 koruması
+- ✅ Tüm veritabanı şifreleri AES-256-CBC ile şifrelenir
+
 ### Genel
 - ✅ Dashboard istatistik kartları
 - ✅ Son aktiviteler akışı
@@ -149,6 +156,10 @@ DATABASE_URL="file:./vaultbase.db"
 # AES-256 şifreleme anahtarı — EN AZ 32 karakter olmalı!
 APP_SECRET="buraya-cok-gizli-ve-uzun-bir-anahtar-girin-32-karakter"
 
+# Yönetici giriş bilgileri (web arayüzü için)
+ADMIN_USERNAME="admin"
+ADMIN_PASSWORD="guclu-bir-sifre-belirleyin"
+
 # Yedek dosyalarının kaydedileceği dizin (isteğe bağlı)
 BACKUP_DIR="./backups"
 
@@ -161,6 +172,12 @@ STORAGE_LIMIT_MB=5120
 ---
 
 ## 📖 Kullanım
+
+### Giriş
+
+1. Tarayıcınızda `http://sunucunuz:3000/login` adresine gidin
+2. `.env` dosyasında tanımladığınız `ADMIN_USERNAME` ve `ADMIN_PASSWORD` ile giriş yapın
+3. Oturum 24 saat boyunca geçerlidir; sidebardaki **Çıkış Yap** butonu ile oturumu sonlandırabilirsiniz
 
 ### Veritabanı Ekleme
 
@@ -193,9 +210,12 @@ Export sırasında isteğe bağlı bir şifre belirleyebilirsiniz (AES-256-CBC k
 
 ```
 .
+├── middleware.ts                   # Route koruması (auth)
 ├── app/
 │   ├── actions.ts                  # Tüm Server Actions
 │   ├── page.tsx                    # Ana dashboard
+│   ├── login/
+│   │   └── page.tsx                # Giriş formu
 │   ├── archive/page.tsx            # Yedek arşivi
 │   ├── databases/page.tsx          # Bağlantı yönetimi
 │   ├── databases/[id]/page.tsx     # Salt okunur tablo gezgini
@@ -218,6 +238,7 @@ Export sırasında isteğe bağlı bir şifre belirleyebilirsiniz (AES-256-CBC k
 │   ├── theme-provider.tsx          # Tema sağlayıcı
 │   └── ui/                         # Shadcn UI bileşenleri
 ├── lib/
+│   ├── auth.ts                     # Session yönetimi (HMAC-SHA256 imzalı cookie)
 │   ├── backup-service.ts           # pg_dump çalıştırıcı
 │   ├── cron-service.ts             # Zamanlanmış yedek cron yöneticisi
 │   ├── db.ts                       # Prisma SQLite istemcisi

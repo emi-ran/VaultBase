@@ -2,12 +2,18 @@ import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 import { prisma } from "../../../../lib/db";
+import { verifySession } from "../../../../lib/auth";
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const token = request.cookies.get("session")?.value;
+    if (!token || !(await verifySession(token))) {
+      return new NextResponse("Unauthorized", { status: 401 });
+    }
+
     const { id } = await params;
     const job = await prisma.backupJob.findUnique({
       where: { id },

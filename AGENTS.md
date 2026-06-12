@@ -67,6 +67,8 @@ Next.js 16 (App Router), Tailwind CSS v4, Shadcn UI, SQLite (Prisma 7 + Better-S
 ├── app/
 │   ├── actions.ts                  # Tüm Server Actions
 │   ├── page.tsx                    # Ana dashboard (Genel Bakış)
+│   ├── login/
+│   │   └── page.tsx                # Giriş formu (client component)
 │   ├── archive/
 │   │   └── page.tsx                # Yedek arşivi yönetim sayfası
 │   ├── databases/
@@ -91,6 +93,7 @@ Next.js 16 (App Router), Tailwind CSS v4, Shadcn UI, SQLite (Prisma 7 + Better-S
 │   ├── theme-provider.tsx          # Tema sağlayıcı
 │   └── ui/                         # Shadcn UI bileşenleri
 ├── lib/
+│   ├── auth.ts                     # Session yönetimi (HMAC-SHA256 imzalı cookie)
 │   ├── backup-service.ts           # pg_dump spawn executor
 │   ├── cron-service.ts             # Zamanlanmış yedek cron yöneticisi
 │   ├── db.ts                       # Prisma client (SQLite)
@@ -100,6 +103,7 @@ Next.js 16 (App Router), Tailwind CSS v4, Shadcn UI, SQLite (Prisma 7 + Better-S
 │   └── locales/
 │       ├── tr.ts                   # Türkçe çeviriler
 │       └── en.ts                   # İngilizce çeviriler
+├── middleware.ts                   # Route koruması (auth kontrolü + yönlendirme)
 ├── prisma/
 │   └── schema.prisma               # SQLite şeması
 ├── prisma.config.ts                # Prisma 7 konfigürasyonu

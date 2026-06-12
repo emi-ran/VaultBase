@@ -15,7 +15,8 @@ import {
   IconSettings,
   IconShield,
   IconCircleFilled,
-  IconLanguage
+  IconLanguage,
+  IconLogout
 } from "@tabler/icons-react";
 
 export function Sidebar() {
@@ -195,6 +196,19 @@ export function Sidebar() {
             {t("common.good").toUpperCase()}
           </span>
         </div>
+
+        {/* Logout */}
+        <button
+          onClick={async () => {
+            const { logoutAction } = await import("../app/actions");
+            await logoutAction();
+            window.location.href = "/login";
+          }}
+          className="flex items-center gap-2 w-full px-3 py-2 rounded text-[10px] font-mono tracking-wider text-[#605e58] hover:text-[#f28955] hover:bg-[#141210] transition-colors cursor-pointer"
+        >
+          <IconLogout size={14} />
+          {t("auth.logout")}
+        </button>
       </div>
     </aside>
   );
