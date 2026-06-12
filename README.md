@@ -224,9 +224,8 @@ Export sırasında isteğe bağlı bir şifre belirleyebilirsiniz (AES-256-CBC k
 
 ```
 .
-├── proxy.ts                        # Route koruması (auth)
-├── instrumentation.ts              # Next.js instrumentation (cron başlatma)
 ├── proxy.ts                        # Route koruması (auth kontrolü + yönlendirme)
+├── instrumentation.ts              # Next.js instrumentation (cron başlatma)
 ├── app/
 │   ├── actions.ts                  # Tüm Server Actions
 │   ├── page.tsx                    # Ana dashboard

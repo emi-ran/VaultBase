@@ -105,14 +105,14 @@ VaultBase; birden fazla PostgreSQL (ilerleyen sürümlerde MongoDB) veritabanın
 
 ---
 
-## Phase 4 – Geri Yükleme Sistemi (KISMEN TAMAMLANDI)
+## Phase 4 – Geri Yükleme Sistemi (TAMAMLANDI)
 
 ### 4.1 Restore İşlemleri
 - [x] Yedekten geri yükleme butonu (Shadcn Dialog onay modalı ile)
 - [x] Streaming gunzip → psql entegrasyonu
 - [x] Geri yükleme öncesi hedef veritabanı seçimi (databases sayfasından)
-- [ ] Arşiv sayfasından doğrudan geri yükleme (yedek seç + hedef DB seç)
-- [ ] Geri yükleme logları ve durum takibi (jobs sayfası)
+- [x] Arşiv sayfasından doğrudan geri yükleme (yedek seç + hedef DB seç)
+- [x] Geri yükleme logları ve durum takibi (jobs sayfası)
 
 ---
 
@@ -173,7 +173,7 @@ VaultBase; birden fazla PostgreSQL (ilerleyen sürümlerde MongoDB) veritabanın
 
 | Sürüm | Tarih | Açıklama |
 |---|---|---|---|
-| 1.1.0 | 12 Haziran 2026 | Geri yükleme (streaming gunzip → psql), middleware→proxy taşıma, explorer optimizasyonu (pg_class.reltuples, 25/50/100), jobs Shadcn Dialog, pg_dump --if-exists |
+| 1.1.0 | 12 Haziran 2026 | Geri yükleme (streaming gunzip → psql), middleware→proxy taşıma, explorer optimizasyonu (pg_class.reltuples, 25/50/100), jobs Shadcn Dialog, pg_dump --if-exists, arşivden restore, restore job logları |
 | 1.0.0 | 12 Haziran 2026 | Phase 2 tamamlandı – Zamanlanmış otomatik yedekler, sistem saati, zaman dilimi ayarı, tüm bağlantıları test et, otomatik sağlık kontrolü, PostgreSQL logosu, şifreli export/import (ayarlar dahil) |
 | 1.0.0 | 12 Haziran 2026 | Phase 6.1 – Kullanıcı girişi (env tabanlı admin, HMAC session, proxy.ts koruma, çıkış) |
 | 0.1.0-alpha | Haziran 2026 | Phase 1 tamamlandı – temel yedekleme ve dashboard |

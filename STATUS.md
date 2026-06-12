@@ -37,6 +37,8 @@ Aşağıdaki tüm özellikler çalışır durumda:
 | Yedek indirme | ✅ Çalışıyor | API route |
 | Yedek silme | ✅ Çalışıyor | Onay modalı ile |
 | Arşivi temizle | ✅ Çalışıyor | Toplu silme, onay modalı |
+| Arşivden Geri Yükleme | ✅ Çalışıyor | Archive sayfasından yedek seç + hedef DB seç + Shadcn Dialog onay akışı |
+| Restore İşlem Logları | ✅ Çalışıyor | BackupJob.type alanı, jobs sayfasında RESTORE badge + type filtre |
 | Tablo gezgini | ✅ Çalışıyor | Salt okunur, sayfalandırılmış |
 | Ayarlar export (şifreli) | ✅ Çalışıyor | Kullanıcı şifresiyle AES-256 şifreleme, modal üzerinden |
 | Ayarlar export (şifresiz) | ✅ Çalışıyor | Düz metin JSON (uyarı ile) |
@@ -70,6 +72,8 @@ Aşağıdaki tüm özellikler çalışır durumda:
 - Jobs sayfası: browser confirm/alert → Shadcn Dialog (tutarlı UX)
 - Jobs sayfası: locale desteği eklendi (rowsPerPage anahtarı)
 - pg_dump --if-exists bayrağı (DROP TABLE IF EXISTS)
+- Arşiv sayfasından doğrudan geri yükleme (yedek seç + hedef DB seç + Shadcn Dialog)
+- Restore işlem logları: BackupJob.type alanı, jobs sayfasında type badge + filtre
 
 ### v1.0.0 — Kullanıcı Girişi Eklendi
 
@@ -100,10 +104,11 @@ Aşağıdaki tüm özellikler çalışır durumda:
   - Düzeltme: pg_class.reltuples ile yaklaşık COUNT (10k+ satır), sayfa boyutu 25→50, 25/50/100 seçici
 - **[ÇÖZÜLDÜ]** Eski yedeklerde (--if-exists olmadan) restore başarısızlığı
   - Düzeltme: backup-service.ts'ye --if-exists eklendi, restore pipe'ında ON_ERROR_STOP=1 kaldırıldı
+- **[ÇÖZÜLDÜ]** Arşiv sayfasından doğrudan geri yükleme
+  - Düzeltme: archive-page-client.tsx restore butonu + hedef DB seçici + Shadcn Dialog + restoreFromArchiveAction
 
 ### Açık
 - pg_dump Windows'ta PATH'de yoksa hata mesajı bazen belirsiz olabiliyor
-- Restore için arşiv sayfasından doğrudan geri yükleme henüz yok
 
 ---
 
@@ -139,9 +144,7 @@ Aşağıdaki tüm özellikler çalışır durumda:
 
 Öncelik sırasına göre:
 
-1. **Arşiv sayfasından restore** — doğrudan archive listesinden yedek seçip hedef DB seçerek geri yükleme
-2. **Restore işlem geçmişi** — geri yükleme loglarının jobs sayfasında görüntülenmesi
-3. **Bulut depolama entegrasyonu** — Amazon S3, Cloudflare R2, Google Cloud Storage, MinIO entegrasyonları
+1. **Bulut depolama entegrasyonu** — Amazon S3, Cloudflare R2, Google Cloud Storage, MinIO entegrasyonları
 4. **Otomatik bulut senkronizasyonu** — yedek tamamlandığında otomatik olarak bulut depolamaya kopyalanması
 5. **Bulut yedekleri yönetimi** — bulut üzerindeki yedek dosyalarını arama, indirme ve silme arayüzleri
 
@@ -150,8 +153,8 @@ Aşağıdaki tüm özellikler çalışır durumda:
 ## Git Durumu
 
 ```
-Branch: master
-Son Commit: fix: replace browser confirm/alert with Shadcn Dialog; migrate to proxy.ts; optimize explorer pagination (6c67bad)
+Branch: db_restore
+Son Commit: feat: add restore job logging with BackupJob.type field; add type badge/filter to jobs page (c642224)
 Değiştirilmemiş dosya: Evet (değişiklikler var)
 ```
 
