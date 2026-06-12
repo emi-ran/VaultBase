@@ -55,8 +55,7 @@ COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
 COPY --from=builder /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
 COPY --from=builder /app/.npmrc* ./
 
-# Environment variables defaults
-ENV APP_SECRET="vaultbase-default-production-secret-key-replace-me"
+# Runtime defaults
 ENV DATABASE_URL="file:/app/data/dev.db"
 
 # Create volumes folder
