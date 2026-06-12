@@ -191,15 +191,30 @@ db-backuper/
 ├── app/
 │   ├── actions.ts                  # Tüm Server Actions
 │   ├── page.tsx                    # Ana dashboard
+│   ├── archive/page.tsx            # Yedek arşivi
+│   ├── databases/page.tsx          # Bağlantı yönetimi
 │   ├── databases/[id]/page.tsx     # Salt okunur tablo gezgini
+│   ├── jobs/page.tsx               # Yedek işlem geçmişi
+│   ├── schedules/page.tsx          # Zamanlama yönetimi
 │   ├── settings/page.tsx           # Ayarlar sayfası
+│   ├── storage/page.tsx            # Depolama analizi
 │   └── api/backups/[id]/route.ts   # Yedek indirme endpoint'i
 ├── components/
-│   ├── dashboard-tables.tsx        # Ana tablo bileşenleri
+│   ├── archive-page-client.tsx     # Arşiv arayüzü
+│   ├── dashboard-tables.tsx        # Dashboard tabloları
+│   ├── database-modal.tsx          # Bağlantı ekleme/düzenleme modalı
+│   ├── database-type-mark.tsx      # Veritabanı tür logosu
+│   ├── databases-page-client.tsx   # Bağlantı listeleme arayüzü
 │   ├── i18n-provider.tsx           # Dil context sağlayıcı
+│   ├── jobs-page-client.tsx        # İşlem geçmişi arayüzü
+│   ├── schedules-page-client.tsx   # Zamanlama arayüzü
+│   ├── sidebar.tsx                 # Yan navigasyon
+│   ├── storage-page-client.tsx     # Depolama analiz arayüzü
+│   ├── theme-provider.tsx          # Tema sağlayıcı
 │   └── ui/                         # Shadcn UI bileşenleri
 ├── lib/
 │   ├── backup-service.ts           # pg_dump çalıştırıcı
+│   ├── cron-service.ts             # Zamanlanmış yedek cron yöneticisi
 │   ├── db.ts                       # Prisma SQLite istemcisi
 │   ├── db-client.ts                # PostgreSQL dinamik bağlantı
 │   ├── encryption.ts               # AES-256-CBC şifreleme
@@ -241,7 +256,7 @@ db-backuper/
 | Phase | Özellik | Durum |
 |---|---|---|
 | **1** | Temel altyapı, yedekleme, dashboard, explorer | ✅ Tamamlandı |
-| **2** | Zamanlanmış otomatik yedekler (node-cron) | 🔜 Planlandı |
+| **2** | Zamanlanmış otomatik yedekler (node-cron) | ✅ Tamamlandı |
 | **3** | Bulut depolama (S3 / R2 / GCS / MinIO) | 🔜 Planlandı |
 | **4** | Geri yükleme sistemi (pg_restore) | 🔜 Planlandı |
 | **5** | MongoDB desteği (mongodump) | 🔜 Planlandı |

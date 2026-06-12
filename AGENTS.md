@@ -68,23 +68,31 @@ db-backuper/
 │   ├── actions.ts                  # Tüm Server Actions
 │   ├── page.tsx                    # Ana dashboard (Genel Bakış)
 │   ├── archive/
-│   │   └── page.tsx                # Yedek arşivi yönetim sayfası (Arama, filtreleme, indirme, silme)
+│   │   └── page.tsx                # Yedek arşivi yönetim sayfası
 │   ├── databases/
-│   │   ├── page.tsx                # Bağlantı yönetim sayfası (Arama, filtreleme, test, vb.)
+│   │   ├── page.tsx                # Bağlantı yönetim sayfası
 │   │   └── [id]/page.tsx           # Salt okunur tablo gezgini
+│   ├── jobs/page.tsx               # Yedek işlem geçmişi sayfası
+│   ├── schedules/page.tsx          # Zamanlama yönetim sayfası
 │   ├── settings/page.tsx           # Ayarlar (export/import)
 │   ├── storage/page.tsx            # Depolama durum & analiz sayfası
 │   └── api/backups/[id]/route.ts   # Yedek dosyası indirme endpoint
 ├── components/
+│   ├── archive-page-client.tsx     # Arşiv arayüzü
 │   ├── dashboard-tables.tsx        # Dashboard veritabanı ve yedek listesi
-│   ├── databases-page-client.tsx   # Bağlantı listeleme ve yönetim arayüzü
-│   ├── archive-page-client.tsx     # Yedek arşivi listeleme ve filtreleme arayüzü
-│   ├── storage-page-client.tsx     # Depolama durum & analiz arayüzü
 │   ├── database-modal.tsx          # Bağlantı ekleme & düzenleme modalı
+│   ├── database-type-mark.tsx      # Veritabanı tür logosu
+│   ├── databases-page-client.tsx   # Bağlantı listeleme arayüzü
 │   ├── i18n-provider.tsx           # İstemci tarafı dil contexti
+│   ├── jobs-page-client.tsx        # İşlem geçmişi arayüzü
+│   ├── schedules-page-client.tsx   # Zamanlama arayüzü
+│   ├── sidebar.tsx                 # Yan navigasyon
+│   ├── storage-page-client.tsx     # Depolama analiz arayüzü
+│   ├── theme-provider.tsx          # Tema sağlayıcı
 │   └── ui/                         # Shadcn UI bileşenleri
 ├── lib/
 │   ├── backup-service.ts           # pg_dump spawn executor
+│   ├── cron-service.ts             # Zamanlanmış yedek cron yöneticisi
 │   ├── db.ts                       # Prisma client (SQLite)
 │   ├── db-client.ts                # PostgreSQL dinamik bağlantı
 │   ├── encryption.ts               # AES-256-CBC şifreleme

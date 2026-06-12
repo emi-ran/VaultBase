@@ -218,7 +218,7 @@ export default async function DashboardPage() {
                           </p>
                           <div className="flex justify-between text-[10px] text-[#605e58]">
                             <span>{act.filename.substring(0, 24)}...</span>
-                            <span>{new Date(act.createdAt).toLocaleTimeString()}</span>
+                            <span>{new Date(act.createdAt).toLocaleTimeString(locale === "tr" ? "tr-TR" : "en-US")}</span>
                           </div>
                         </div>
                       </div>

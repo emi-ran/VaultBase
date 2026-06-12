@@ -30,7 +30,7 @@ export default async function RootLayout({
       style={{ colorScheme: "dark" }}
     >
       <body className="bg-[#090807] text-[#E6E4DD] font-sans antialiased overflow-hidden">
-        <ThemeProvider defaultTheme="dark" forcedTheme="dark">
+        <ThemeProvider>
           <LanguageProvider initialLocale={locale}>
             <div className="flex h-screen w-screen overflow-hidden">
               <Sidebar />

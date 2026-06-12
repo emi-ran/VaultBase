@@ -368,7 +368,7 @@ export function DatabasesPageClient({ databases }: DatabasesPageClientProps) {
               const isTesting = testingDbs[db.id] || false;
               const labelsArr = db.labels ? db.labels.split(",").map((l: string) => l.trim()).filter(Boolean) : [];
               const lastTestedStr = db.lastTestedAt 
-                ? new Date(db.lastTestedAt).toLocaleString() 
+                ? new Date(db.lastTestedAt).toLocaleString(locale === "tr" ? "tr-TR" : "en-US") 
                 : t("database.neverTested") || "Hiç test edilmedi";
 
               return (

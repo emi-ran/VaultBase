@@ -6,7 +6,7 @@ Son güncelleme: 12 Haziran 2026
 
 ## Anlık Durum
 
-**Aktif Sürüm:** v0.1.0-alpha  
+**Aktif Sürüm:** v0.2.0-alpha  
 **Genel Durum:** ✅ Kararlı (Geliştirme & Production Ortamı)  
 **Aktif Phase:** Phase 2 (Zamanlanmış Yedekler) – TAMAMLANDI
 
@@ -45,6 +45,8 @@ Aşağıdaki tüm özellikler çalışır durumda:
 | Docker paketi | ✅ Çalışıyor | postgresql-client-18 dahil |
 | Onay modalleri | ✅ Çalışıyor | Yedek al, sil, temizle |
 | Depolama göstergesi | ✅ Çalışıyor | Limit takibi |
+| /jobs Sayfası | ✅ Çalışıyor | Yedek işlem geçmişi listeleme, durum/tetikleyici filtreleri, hata modalı |
+| PostgreSQL Tür Logosu | ✅ Çalışıyor | Kart/tablo/explorer başlıklarında PostgreSQL logosu |
 
 ---
 
@@ -74,7 +76,7 @@ Aşağıdaki tüm özellikler çalışır durumda:
 
 ```json
 {
-  "next": "16.2.6",
+  "next": "16.2.9",
   "react": "19.x",
   "prisma": "7.x",
   "@prisma/adapter-better-sqlite3": "7.x",
@@ -112,8 +114,8 @@ Aşağıdaki tüm özellikler çalışır durumda:
 
 ```
 Branch: master
-Son Commit: style: replace native timezone select in settings page with scrollable Shadcn Select (4859a13)
-Değiştirilmemiş dosya: Evet (tüm değişiklikler commit edildi)
+Son Commit: style: add PostgreSQL type logo to database headers (084ceef)
+Değiştirilmemiş dosya: Hayır (çalışma dizininde değişiklikler var)
 ```
 
 ---
