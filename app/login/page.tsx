@@ -2,10 +2,12 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { IconShield } from "@tabler/icons-react";
+import { IconShield, IconLanguage } from "@tabler/icons-react";
+import { useTranslation } from "../../components/i18n-provider";
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const { locale, setLocale, t } = useTranslation();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -27,7 +29,7 @@ export default function LoginPage() {
     } else {
       setError(
         result.error === "INVALID_CREDENTIALS"
-          ? "Hatalı kullanıcı adı veya şifre."
+          ? t("auth.invalidCredentials")
           : result.error
       );
       setLoading(false);
@@ -55,7 +57,7 @@ export default function LoginPage() {
         {/* Welcome */}
         <div className="text-center">
           <p className="font-mono text-xs text-[#a09e96]">
-            PostgreSQL veritabanı yedekleme yönetim sistemine erişmek için giriş yapın.
+            {t("auth.welcomeDesc")}
           </p>
         </div>
 
@@ -70,7 +72,7 @@ export default function LoginPage() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1.5">
             <label className="font-mono text-[10px] tracking-wider text-[#605e58]">
-              KULLANICI ADI
+              {t("auth.username")}
             </label>
             <input
               name="username"
@@ -85,7 +87,7 @@ export default function LoginPage() {
 
           <div className="space-y-1.5">
             <label className="font-mono text-[10px] tracking-wider text-[#605e58]">
-              ŞİFRE
+              {t("auth.password")}
             </label>
             <input
               name="password"
@@ -101,10 +103,42 @@ export default function LoginPage() {
             disabled={loading}
             className="w-full bg-[#1b3224] hover:bg-[#24402f] disabled:opacity-50 border border-[#2b4c37] rounded px-4 py-2.5 font-mono text-xs text-white font-bold tracking-wider transition-colors cursor-pointer"
           >
-            {loading ? "GİRİŞ YAPILIYOR..." : "GİRİŞ YAP"}
+            {loading ? t("auth.loggingIn") : t("auth.login")}
           </button>
         </form>
+
+        {/* Language Selector */}
+        <div className="border-t border-[#2b2926] pt-4">
+          <div className="flex items-center justify-between text-[10px] font-mono">
+            <span className="flex items-center gap-1.5 text-[#605e58]">
+              <IconLanguage size={12} />
+              {locale === "tr" ? "DİL" : "LANGUAGE"}
+            </span>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setLocale("tr")}
+                className={`px-1.5 py-0.5 rounded cursor-pointer ${
+                  locale === "tr" ? "bg-[#1b3224] text-white border border-[#2b4c37]" : "hover:text-[#E6E4DD]"
+                }`}
+              >
+                TR
+              </button>
+              <button
+                onClick={() => setLocale("en")}
+                className={`px-1.5 py-0.5 rounded cursor-pointer ${
+                  locale === "en" ? "bg-[#1b3224] text-white border border-[#2b4c37]" : "hover:text-[#E6E4DD]"
+                }`}
+              >
+                EN
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
+}
+
+export default function LoginPage() {
+  return <LoginForm />;
 }

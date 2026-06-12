@@ -197,6 +197,8 @@ SQLite ayar veritabanı ve yedek dosyalarınız sırasıyla container içindeki 
 ├── prisma/                         # Veritabanı şeması ve migrasyon tanımları
 ├── prisma.config.ts                # Prisma 7 konfigürasyonu
 ├── scripts/                        # Geliştirici test betikleri
+├── data/                           # Yerel SQLite veritabanı depolama alanı
+├── hooks/                          # Özel React hook'ları (placeholder)
 └── Dockerfile                      # Next.js + postgresql-client-18 + mongodb-database-tools paketlerini barındırır
 ```
 

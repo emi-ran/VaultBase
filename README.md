@@ -197,6 +197,8 @@ Configure VaultBase using your `.env` file:
 ├── prisma/                         # Database schema + migrations
 ├── prisma.config.ts                # Prisma 7 configuration
 ├── scripts/                        # Development test runner scripts
+├── data/                           # Local SQLite database storage
+├── hooks/                          # Custom React hooks (placeholder)
 └── Dockerfile                      # Bundles Next.js + postgresql-client-18 + mongodb-database-tools
 ```
 

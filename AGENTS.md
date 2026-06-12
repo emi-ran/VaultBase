@@ -149,6 +149,8 @@ Next.js 16 (App Router), Tailwind CSS v4, Shadcn UI, SQLite (Prisma 7 + Better-S
 pnpm install        # Bağımlılıkları yükle
 pnpm dev            # Geliştirme sunucusu (port 3000)
 pnpm build          # Production build
+pnpm format         # Prettier ile kod formatlama
+pnpm typecheck      # TypeScript tip kontrolü (tsc --noEmit)
 pnpm prisma db push # Veritabanı şemasını uygula (geliştirme)
 pnpm prisma migrate deploy # Mevcut migration'ları uygula (Docker/üretim)
 pnpm prisma studio  # Prisma Studio ile SQLite görüntüle

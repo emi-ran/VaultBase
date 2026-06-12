@@ -1,7 +1,8 @@
 import React from "react";
+import Link from "next/link";
 import { cookies } from "next/headers";
 import { prisma, DatabaseConnection, BackupJob } from "../lib/db";
-import { getT, Locale } from "../lib/i18n";
+import { getT, getTranslations, translate, Locale } from "../lib/i18n";
 import { DatabaseModal } from "../components/database-modal";
 import { DashboardTables } from "../components/dashboard-tables";
 import { 
@@ -33,11 +34,17 @@ export default async function DashboardPage() {
     orderBy: { createdAt: "desc" },
   });
 
-  const backups = await prisma.backupJob.findMany({
+  const archiveBackups = await prisma.backupJob.findMany({
     where: {
       type: "backup",
     },
     orderBy: { createdAt: "desc" },
+    include: { database: true },
+  });
+
+  const recentJobs = await prisma.backupJob.findMany({
+    orderBy: { createdAt: "desc" },
+    take: 10,
     include: { database: true },
   });
 
@@ -50,7 +57,7 @@ export default async function DashboardPage() {
   const offlineDbs = databases.filter((db: DatabaseConnection) => db.status === "offline");
   const isHealthy = offlineDbs.length === 0 && dbCount > 0;
   
-  const successBackups = backups.filter((b: BackupJob) => b.status === "success");
+  const successBackups = archiveBackups.filter((b: BackupJob) => b.status === "success");
   const lastBackup = successBackups.length > 0 ? successBackups[0] : null;
   const totalBytes = successBackups.reduce((sum: number, b: BackupJob) => sum + b.sizeBytes, 0);
 
@@ -63,7 +70,7 @@ export default async function DashboardPage() {
       {/* Top Header */}
       <header className="h-16 border-b border-[#2b2926] px-8 flex items-center justify-between shrink-0 bg-[#0d0c0b]">
         <div className="flex items-center gap-4">
-          <h2 className="text-sm font-mono tracking-wider font-bold text-white uppercase">{t("common.recentActivities").split(" ")[1] || "Genel bakış"}</h2>
+          <h2 className="text-sm font-mono tracking-wider font-bold text-white uppercase">{t("navigation.overview")}</h2>
           <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#1b3224]/30 border border-[#2b4c37] text-[10px] font-mono text-[#55f289]">
             <IconCircleFilled size={6} className="animate-pulse" />
             {t("common.workerActive").toUpperCase()}
@@ -174,7 +181,7 @@ export default async function DashboardPage() {
             <IconAlertCircle size={18} className="shrink-0 animate-bounce" />
             <div>
               <span className="font-bold">{t("common.attentionRequired")}: </span>
-              {offlineDbs.map((db: DatabaseConnection) => db.name).join(", ")} veritabanlarına şu an erişilemiyor. Lütfen bağlantıları kontrol edin.
+              {offlineDbs.map((db: DatabaseConnection) => db.name).join(", ")} {t("common.offlineDbs")}
             </div>
           </div>
         )}
@@ -185,7 +192,7 @@ export default async function DashboardPage() {
           {/* Left Side: Databases & Archive (2 cols wide) */}
           <div className="lg:col-span-2 space-y-6">
             
-            <DashboardTables databases={databases} backups={backups} locale={locale} />
+            <DashboardTables databases={databases} backups={archiveBackups} locale={locale} />
 
           </div>
 
@@ -196,36 +203,43 @@ export default async function DashboardPage() {
                 <CardTitle className="text-xs font-mono font-bold tracking-wider text-white uppercase">
                   {t("common.recentActivities")}
                 </CardTitle>
-                <Button variant="ghost" className="text-[9px] text-[#605e58] hover:text-white font-mono h-6 px-2 rounded cursor-pointer">
-                  {t("common.seeAll")}
-                </Button>
+                <Link href="/jobs">
+                  <Button variant="ghost" className="text-[9px] text-[#605e58] hover:text-white font-mono h-6 px-2 rounded cursor-pointer">
+                    {t("common.seeAll")}
+                  </Button>
+                </Link>
               </CardHeader>
               <CardContent className="p-6 space-y-4">
-                {backups.length === 0 ? (
+                {recentJobs.length === 0 ? (
                   <div className="text-center py-16 text-xs font-mono text-[#605e58]">
                     {t("common.noActivities")}
                   </div>
                 ) : (
                   <div className="space-y-4 font-mono text-xs">
-                    {backups.slice(0, 10).map((act: any) => (
-                      <div key={act.id} className="flex gap-3 border-b border-[#2b2926]/30 pb-3 last:border-0 last:pb-0">
-                        <div className="mt-0.5">
-                          <IconActivity size={14} className={
-                            act.status === "success" ? "text-[#55f289]" : act.status === "failed" ? "text-[#f25c55]" : "text-[#f2b855]"
-                          } />
-                        </div>
-                        <div className="flex-1 space-y-1">
-                          <p className="text-[#E6E4DD]">
-                            <span className="font-bold text-white">{act.database?.name || "Veritabanı"}</span> yedeği{" "}
-                            {act.status === "success" ? "başarıyla tamamlandı." : act.status === "failed" ? "başarısız oldu." : "işleme alındı."}
-                          </p>
-                          <div className="flex justify-between text-[10px] text-[#605e58]">
-                            <span>{act.filename.substring(0, 24)}...</span>
-                            <span>{new Date(act.createdAt).toLocaleTimeString(locale === "tr" ? "tr-TR" : "en-US")}</span>
+                    {recentJobs.map((act: BackupJob & { database: DatabaseConnection }) => {
+                      const isRestore = act.type === "restore";
+                      const statusKey = act.status === "success" ? "Success" : act.status === "failed" ? "Failed" : "Processing";
+                      const section = isRestore ? "restore" : "backup";
+                      const message = translate(getTranslations(locale), `${section}.activity${statusKey}`, { name: act.database?.name || "" });
+                      return (
+                        <div key={act.id} className="flex gap-3 border-b border-[#2b2926]/30 pb-3 last:border-0 last:pb-0">
+                          <div className="mt-0.5">
+                            <IconActivity size={14} className={
+                              act.status === "success" ? "text-[#55f289]" : act.status === "failed" ? "text-[#f25c55]" : "text-[#f2b855]"
+                            } />
+                          </div>
+                          <div className="flex-1 space-y-1">
+                            <p className="text-[#E6E4DD]">
+                              {message}
+                            </p>
+                            <div className="flex justify-between text-[10px] text-[#605e58]">
+                              <span>{act.filename.substring(0, 24)}...</span>
+                              <span>{new Date(act.createdAt).toLocaleTimeString(locale === "tr" ? "tr-TR" : "en-US")}</span>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </CardContent>

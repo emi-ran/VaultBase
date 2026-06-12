@@ -1,12 +1,12 @@
 # VaultBase – Geliştirme Durumu
 
-Son güncelleme: 12 Haziran 2026
+Son güncelleme: 13 Haziran 2026
 
 ---
 
 ## Anlık Durum
 
-**Aktif Sürüm:** 1.2.0  
+**Aktif Sürüm:** 1.0.0  
 **Genel Durum:** ✅ Kararlı (Geliştirme & Production Ortamı)  
 **Aktif Phase:** Phase 5 (MongoDB Desteği) – TAMAMLANDI
 
@@ -69,7 +69,7 @@ Aşağıdaki tüm özellikler çalışır durumda:
 
 ## Sürüm Notları
 
-### v1.2.0 — MongoDB Desteği, i18n Polisajı
+### v1.0.0 — MongoDB Desteği, i18n Polisajı
 
 - MongoDB bağlantı: lib/db-mongo-client.ts (ping, collections, documents, size)
 - MongoDB yedekleme: lib/backup-mongo-service.ts (mongodump --archive | gzip)
@@ -177,8 +177,7 @@ Aşağıdaki tüm özellikler çalışır durumda:
 1. **Bulut depolama entegrasyonu** — Amazon S3, Cloudflare R2, Google Cloud Storage, MinIO entegrasyonları
 2. **Otomatik bulut senkronizasyonu** — yedek tamamlandığında otomatik olarak bulut depolamaya kopyalanması
 3. **Bulut yedekleri yönetimi** — bulut üzerindeki yedek dosyalarını arama, indirme ve silme arayüzleri
-4. **MongoDB eksikleri** — /storage MongoDB istatistiği, Dashboard sağlık kontrolü, cron schedule test
-5. **Çok kullanıcılı erişim yönetimi** — 2FA, roller (Admin / Viewer)
+4. **Çok kullanıcılı erişim yönetimi** — 2FA, roller (Admin / Viewer)
 
 ---
 
@@ -186,8 +185,8 @@ Aşağıdaki tüm özellikler çalışır durumda:
 
 ```
 Branch: mongo_support (master'e merge edilmedi)
-Son Commit: 581f6f6 — feat: MongoDB support - connection, explorer, backup/restore, type selector
-Değiştirilmemiş dosya: Hayır (clean working tree)
+Son Commit: 5509df8 — refactor: backup job handling and UI improvements
+Durum: Unstaged değişiklikler — login page i18n + dil seçici, dashboard restore activity fix, "See All" link, clear logs modal detail box, jobs clear button styling, locale key eklemeleri
 ```
 
 ---

@@ -1,6 +1,7 @@
 export const en = {
   common: {
     systemHealth: "System Health",
+    offlineDbs: "databases are currently unreachable. Please check the connections.",
     healthy: "Healthy",
     offline: "Offline",
     untested: "Untested",
@@ -17,6 +18,7 @@ export const en = {
     actions: "Actions",
     none: "None",
     clear: "Clear",
+    filesOnDisk: "Files on Disk",
     close: "Close",
     testConnection: "Test connection",
     testing: "Testing...",
@@ -147,6 +149,9 @@ export const en = {
   },
   backup: {
     archive: "BACKUP ARCHIVE",
+    activitySuccess: "{name} backup completed successfully.",
+    activityFailed: "{name} backup failed.",
+    activityProcessing: "{name} backup processing.",
     noBackups: "No completed backup files yet",
     backupNow: "Backup Now",
     download: "Download (ZIP)",
@@ -179,8 +184,11 @@ export const en = {
     deleteDesc: "This action cannot be undone. The file {filename} will be permanently deleted.",
     clearTitle: "Clear Entire Archive",
   },
-  restore: {
+    restore: {
     title: "Restore Database",
+    activitySuccess: "{name} restore completed successfully.",
+    activityFailed: "{name} restore failed.",
+    activityProcessing: "{name} restore processing.",
     desc: "Select a backup file (.sql.gz or .gz) to restore to this database.",
     selectFile: "Select File",
     noFile: "No file selected",
@@ -347,7 +355,7 @@ export const en = {
     logout: "SIGN OUT",
     sessionExpired: "Your session has expired. Please sign in again.",
     welcome: "Welcome to VaultBase",
-    welcomeDesc: "Sign in to access the PostgreSQL database backup management system.",
+    welcomeDesc: "Sign in to access the PostgreSQL and MongoDB database backup management system.",
   },
   jobs: {
     title: "BACKUP JOB LOGS",

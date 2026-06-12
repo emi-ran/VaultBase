@@ -1,6 +1,7 @@
 export const tr = {
   common: {
     systemHealth: "Sistem Sağlığı",
+    offlineDbs: "veritabanlarına şu an erişilemiyor. Lütfen bağlantıları kontrol edin.",
     healthy: "Sağlıklı",
     offline: "Çevrimdışı",
     untested: "Test Edilmedi",
@@ -17,6 +18,7 @@ export const tr = {
     actions: "İşlemler",
     none: "Yok",
     clear: "Temizle",
+    filesOnDisk: "Diskteki Dosyalar",
     close: "Kapat",
     testConnection: "Bağlantıyı test et",
     testing: "Test ediliyor...",
@@ -147,6 +149,9 @@ export const tr = {
   },
   backup: {
     archive: "YEDEK ARŞİVİ",
+    activitySuccess: "{name} yedeği başarıyla tamamlandı.",
+    activityFailed: "{name} yedeği başarısız oldu.",
+    activityProcessing: "{name} yedeği işleme alındı.",
     noBackups: "Henüz tamamlanmış yedek dosyası yok",
     backupNow: "Yedek Al",
     download: "İndir (ZIP)",
@@ -179,8 +184,11 @@ export const tr = {
     deleteDesc: "Bu işlem geri alınamaz. {filename} dosyası diskten tamamen silinecektir.",
     clearTitle: "Tüm Arşivi Temizle",
   },
-  restore: {
+    restore: {
     title: "Veritabanını Geri Yükle",
+    activitySuccess: "{name} geri yüklemesi başarıyla tamamlandı.",
+    activityFailed: "{name} geri yüklemesi başarısız oldu.",
+    activityProcessing: "{name} geri yüklemesi işleme alındı.",
     desc: "Bir yedek dosyası (.sql.gz veya .gz) seçerek bu veritabanına geri yükleyin.",
     selectFile: "Dosya Seç",
     noFile: "Henüz dosya seçilmedi",
@@ -347,7 +355,7 @@ export const tr = {
     logout: "ÇIKIŞ YAP",
     sessionExpired: "Oturum süreniz doldu. Lütfen tekrar giriş yapın.",
     welcome: "VaultBase'e Hoş Geldiniz",
-    welcomeDesc: "PostgreSQL veritabanı yedekleme yönetim sistemine erişmek için giriş yapın.",
+    welcomeDesc: "PostgreSQL ve MongoDB veritabanı yedekleme yönetim sistemine erişmek için giriş yapın.",
   },
   jobs: {
     title: "YEDEK İŞ LOGLARI",

@@ -181,8 +181,8 @@ export function JobsPageClient({ initialJobs }: JobsPageClientProps) {
         {jobs.length > 0 && (
           <Button
             onClick={openClearLogsDialog}
-            variant="ghost"
-            className="border border-[#2b2926] hover:bg-[#2d1210]/30 text-[#a09e96] hover:text-[#f25c55] font-mono text-xs cursor-pointer py-1.5 px-3 h-auto rounded flex items-center gap-2"
+            variant="outline"
+            className="border-[#4b1b1a]/40 text-[#f25c55] hover:bg-[#2d1210]/20 hover:text-[#f25c55] hover:border-[#f25c55]/30 font-mono text-xs rounded cursor-pointer h-8 px-3 gap-2"
           >
             <IconTrash size={14} />
             {t("jobs.clearLogs")}
@@ -563,6 +563,27 @@ export function JobsPageClient({ initialJobs }: JobsPageClientProps) {
               {clearLogsError}
             </div>
           )}
+
+          <div className="py-4 space-y-2 font-mono text-xs">
+            <div className="bg-[#141210] border border-[#2b2926] rounded p-3 space-y-1.5">
+              <div className="flex justify-between">
+                <span className="text-[#605e58]">{t("jobs.statsTotal")}</span>
+                <span className="text-white font-bold">{totalLogs}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-[#605e58]">{t("backup.backupNow")}</span>
+                <span className="text-[#55f289]">{jobs.filter(j => j.type === "backup").length}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-[#605e58]">{t("restore.title")}</span>
+                <span className="text-[#e6b04e]">{restoreLogs}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-[#605e58]">{t("common.filesOnDisk")}</span>
+                <span className="text-[#a09e96]">{jobs.filter(j => j.status === "success").length}</span>
+              </div>
+            </div>
+          </div>
 
           <DialogFooter className="pt-3 border-t border-[#2b2926] flex flex-row justify-end gap-3">
             <Button

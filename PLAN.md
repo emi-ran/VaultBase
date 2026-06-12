@@ -190,8 +190,5 @@ VaultBase; birden fazla PostgreSQL ve MongoDB veritabanını tek bir panelden y�
 
 | Sürüm | Tarih | Açıklama |
 |---|---|---|---|
-| 1.2.0 | 12 Haziran 2026 | MongoDB desteği (bağlantı, explorer, mongodump/mongorestore backup/restore, type selector, SVG logo, tür routing), i18n polisajı (200+ sabit string temizliği), esbuild güvenlik fix |
-| 1.1.0 | 12 Haziran 2026 | Geri yükleme (streaming gunzip → psql), middleware→proxy taşıma, explorer optimizasyonu (pg_class.reltuples, 25/50/100), jobs Shadcn Dialog, pg_dump --if-exists, arşivden restore, restore job logları |
-| 1.0.0 | 12 Haziran 2026 | Phase 2 tamamlandı – Zamanlanmış otomatik yedekler, sistem saati, zaman dilimi ayarı, tüm bağlantıları test et, otomatik sağlık kontrolü, PostgreSQL logosu, şifreli export/import (ayarlar dahil) |
-| 1.0.0 | 12 Haziran 2026 | Phase 6.1 – Kullanıcı girişi (env tabanlı admin, HMAC session, proxy.ts koruma, çıkış) |
-| 0.1.0-alpha | Haziran 2026 | Phase 1 tamamlandı – temel yedekleme ve dashboard |
+| 1.0.0 | 12 Haziran 2026 | MongoDB desteği (bağlantı, explorer, mongodump/mongorestore backup/restore), i18n polisajı, esbuild güvenlik fix, geri yükleme (streaming gunzip → psql/mongorestore), explorer optimizasyonu, arşivden restore, restore job logları, scheduled backups, system clock, timezone, health polling, encrypted export/import, user login (HMAC session), phase 1–5 + 6.1 |
+| 1.0.0 | Haziran 2026 | Phase 1 tamamlandı – temel yedekleme ve dashboard |
