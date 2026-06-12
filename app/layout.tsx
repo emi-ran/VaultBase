@@ -1,5 +1,6 @@
 import { Geist_Mono, Noto_Sans } from "next/font/google";
 import { cookies } from "next/headers";
+import type { Metadata } from "next";
 import "./globals.css";
 import { ThemeProvider } from "../components/theme-provider";
 import { LanguageProvider } from "../components/i18n-provider";
@@ -7,6 +8,15 @@ import { Sidebar } from "../components/sidebar";
 import { Locale } from "../lib/i18n";
 import { verifySession } from "../lib/auth";
 import { cn } from "../lib/utils";
+
+export const metadata: Metadata = {
+  title: "VaultBase",
+  description: "Self-hosted PostgreSQL and MongoDB backup manager with a read-only database explorer.",
+  icons: {
+    icon: "/icon.svg",
+    shortcut: "/icon.svg",
+  },
+};
 
 const notoSans = Noto_Sans({ subsets: ["latin"], variable: "--font-sans" });
 
