@@ -84,6 +84,7 @@ export async function runBackup(dbId: string, triggerType: "manual" | "scheduled
       pgDumpArgs.push("-U", dbConfig.user);
       pgDumpArgs.push("-d", dbConfig.database);
       pgDumpArgs.push("--clean"); // Include DROP TABLE statements
+      pgDumpArgs.push("--if-exists"); // Add IF EXISTS to DROP statements
       pgDumpArgs.push("--no-owner"); // Do not output commands to set ownership
       pgDumpArgs.push("--no-privileges"); // Do not output commands to set privileges
 

@@ -15,7 +15,8 @@ import {
   IconCircleFilled,
   IconClock,
   IconFileZip,
-  IconTag
+  IconTag,
+  IconUpload
 } from "@tabler/icons-react";
 import { useTranslation } from "./i18n-provider";
 import { Button } from "./ui/button";
@@ -74,6 +75,14 @@ export function DatabasesPageClient({ databases }: DatabasesPageClientProps) {
   const [backingUp, setBackingUp] = useState(false);
   const [backupResult, setBackupResult] = useState<{ success: boolean; message: string } | null>(null);
   const [customFilename, setCustomFilename] = useState("");
+
+  // Restore dialog states
+  const [restoreOpen, setRestoreOpen] = useState(false);
+  const [dbToRestore, setDbToRestore] = useState<any>(null);
+  const [restoreFile, setRestoreFile] = useState<File | null>(null);
+  const [restoreAcknowledged, setRestoreAcknowledged] = useState(false);
+  const [restoring, setRestoring] = useState(false);
+  const [restoreResult, setRestoreResult] = useState<{ success: boolean; message: string } | null>(null);
 
   // Delete DB dialog states
   const [deleteDbOpen, setDeleteDbOpen] = useState(false);
@@ -232,6 +241,51 @@ export function DatabasesPageClient({ databases }: DatabasesPageClientProps) {
       setBackupResult({ success: false, message: err.message || "Backup failed" });
     } finally {
       setBackingUp(false);
+    }
+  };
+
+  // Open Restore dialog
+  const openRestoreDialog = (db: any) => {
+    setDbToRestore(db);
+    setRestoreFile(null);
+    setRestoreAcknowledged(false);
+    setRestoreResult(null);
+    setRestoreOpen(true);
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return "0 B";
+    const k = 1024;
+    const sizes = ["B", "KB", "MB", "GB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+  };
+
+  const handleStartRestore = async () => {
+    if (!dbToRestore || !restoreFile) return;
+    setRestoring(true);
+    setRestoreResult(null);
+    try {
+      const response = await fetch(`/api/restore?databaseId=${dbToRestore.id}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/gzip" },
+        body: restoreFile,
+      })
+      const result = await response.json()
+      if (result.success) {
+        setRestoreResult({ success: true, message: t("restore.success") })
+        setTimeout(() => {
+          setRestoreOpen(false)
+          setDbToRestore(null)
+          router.refresh()
+        }, 2000)
+      } else {
+        setRestoreResult({ success: false, message: t("restore.failed") + (result.error || "") })
+      }
+    } catch (err: any) {
+      setRestoreResult({ success: false, message: t("restore.failed") + (err.message || "") })
+    } finally {
+      setRestoring(false)
     }
   };
 
@@ -585,6 +639,17 @@ export function DatabasesPageClient({ databases }: DatabasesPageClientProps) {
                           <IconDatabaseExport size={14} />
                         </Button>
 
+                        {/* Restore / Import action */}
+                        <Button 
+                          onClick={() => openRestoreDialog(db)}
+                          size="icon" 
+                          variant="ghost" 
+                          className="h-7 w-7 text-[#e6b04e] hover:bg-[#2b2310]/30 rounded cursor-pointer" 
+                          title={t("restore.title")}
+                        >
+                          <IconUpload size={14} />
+                        </Button>
+
                         {/* Edit database modal */}
                         <DatabaseModal
                           database={db}
@@ -696,6 +761,158 @@ export function DatabasesPageClient({ databases }: DatabasesPageClientProps) {
                 </span>
               ) : (
                 t("backup.backupNow")
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Restore Database Dialog */}
+      <Dialog open={restoreOpen} onOpenChange={(v) => { if (!restoring) { setRestoreOpen(v); setRestoreResult(null); } }}>
+        <DialogContent className="max-w-125 bg-[#0d0c0b] text-[#E6E4DD] border border-[#2b2926] font-sans rounded-md">
+          <DialogHeader>
+            <DialogTitle className="text-sm font-mono tracking-wider uppercase text-white flex items-center gap-2">
+              <IconUpload size={16} className="text-[#e6b04e]" />
+              {t("restore.title")?.toUpperCase() || "VERİTABANINI GERİ YÜKLE"}
+            </DialogTitle>
+            <DialogDescription className="text-xs text-[#a09e96] pt-1">
+              {t("restore.desc") || "Bir .sql.gz yedek dosyası seçerek bu veritabanına geri yükleyin."}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="py-4 space-y-5 font-mono text-xs">
+            {/* Target Database Info */}
+            <div className="bg-[#141210] border border-[#2b2926] rounded p-3 space-y-1.5">
+              <span className="text-[9px] text-[#605e58] tracking-wider uppercase">{t("restore.targetDb") || "HEDEF VERİTABANI"}</span>
+              <div className="flex items-center gap-2">
+                <DatabaseTypeMark />
+                <span className="text-white font-bold text-sm">{dbToRestore?.name}</span>
+                <span className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded border ${
+                  dbToRestore?.environment === "production"
+                    ? "bg-[#2d1b10] border-[#4b2f1a] text-[#f29f55]"
+                    : dbToRestore?.environment === "staging"
+                    ? "bg-[#10222d] border-[#1a3f4b] text-[#55b8f2]"
+                    : "bg-[#1c1a17] border-[#2b2926] text-[#a09e96]"
+                }`}>
+                  {dbToRestore?.environment?.toUpperCase()}
+                </span>
+              </div>
+              <span className="text-[#a09e96] text-[10px]">{dbToRestore?.host}:{dbToRestore?.port}/{dbToRestore?.database}</span>
+            </div>
+
+            {/* File Picker */}
+            <div className="space-y-2">
+              <span className="text-[10px] text-[#a09e96] tracking-wider uppercase">{t("restore.selectFile") || "DOSYA SEÇ"}</span>
+              <label className="flex items-center gap-3 bg-[#141210] border border-[#2b2926] hover:border-[#e6b04e]/40 rounded p-3 cursor-pointer transition-colors">
+                <IconUpload size={20} className="text-[#e6b04e] shrink-0" />
+                <div className="flex-1 min-w-0">
+                  {restoreFile ? (
+                    <span className="text-white text-[11px] truncate block">
+                      {(t("restore.fileInfo") || "{filename} ({size})")
+                        .replace("{filename}", restoreFile.name)
+                        .replace("{size}", formatFileSize(restoreFile.size))}
+                    </span>
+                  ) : (
+                    <span className="text-[#605e58] text-[11px]">{t("restore.noFile") || "Henüz dosya seçilmedi"}</span>
+                  )}
+                </div>
+                <input
+                  type="file"
+                  accept=".sql.gz,.gz"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0]
+                    if (file) {
+                      if (!file.name.endsWith(".sql.gz") && !file.name.endsWith(".gz")) {
+                        setRestoreResult({ success: false, message: t("restore.invalidFile") || "Lütfen geçerli bir .sql.gz dosyası seçin." })
+                        setRestoreFile(null)
+                        setRestoreAcknowledged(false)
+                        return
+                      }
+                      setRestoreFile(file)
+                      setRestoreResult(null)
+                    }
+                  }}
+                />
+              </label>
+            </div>
+
+            {/* Production Warning */}
+            {dbToRestore?.environment === "production" && (
+              <div className="bg-[#2d1210] border border-[#4b1b1a] rounded p-3 flex items-start gap-2">
+                <IconAlertCircle size={14} className="text-[#f25c55] shrink-0 mt-0.5" />
+                <span className="text-[11px] text-[#f25c55]">
+                  {(t("restore.productionWarning") || "Bu bir PRODUCTION veritabanıdır! Devam etmeden önce güncel bir yedek aldığınızdan emin olun.")}
+                </span>
+              </div>
+            )}
+
+            {/* Critical Warning */}
+            <div className="bg-[#1a0e0e] border border-[#3a1818] rounded p-3 space-y-2">
+              <div className="flex items-center gap-2">
+                <IconAlertCircle size={14} className="text-[#f25c55]" />
+                <span className="text-[11px] font-bold text-[#f25c55] tracking-wider uppercase">
+                  {t("restore.warningTitle") || "VERİ KAYBI UYARISI"}
+                </span>
+              </div>
+              <p className="text-[11px] text-[#f25c55]/90 leading-relaxed">
+                {(t("restore.warningText") || "Bu işlem hedef veritabanındaki tüm mevcut tabloları ve verileri SİLECEKTİR. İşlem geri alınamaz.")}
+              </p>
+            </div>
+
+            {/* Acknowledgement Checkbox */}
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={restoreAcknowledged}
+                disabled={!restoreFile || restoring}
+                onChange={(e) => setRestoreAcknowledged(e.target.checked)}
+                className="mt-0.5 accent-[#e6b04e]"
+              />
+              <span className={`text-[11px] leading-relaxed ${!restoreFile ? "text-[#605e58]" : "text-[#a09e96]"}`}>
+                {(t("restore.confirmLabel") || "Veri kaybı riskini anlıyorum ve geri yüklemeyi başlatmak istiyorum.")}
+              </span>
+            </label>
+
+            {/* Result alert */}
+            {restoreResult && (
+              <div className={`p-3 rounded border text-xs ${
+                restoreResult.success
+                  ? "bg-[#132219] border-[#1b3f2a] text-[#55f289]"
+                  : "bg-[#2d1210] border-[#4b1b1a] text-[#f25c55]"
+              }`}>
+                {restoreResult.message}
+              </div>
+            )}
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              disabled={restoring}
+              onClick={() => { setRestoreOpen(false); setDbToRestore(null); setRestoreResult(null); }}
+              className="border-[#2b2926] text-[#E6E4DD] hover:bg-[#1c1a17] hover:text-white font-mono text-xs cursor-pointer rounded"
+            >
+              {t("common.cancel")}
+            </Button>
+            <Button
+              type="button"
+              disabled={!restoreFile || !restoreAcknowledged || restoring}
+              onClick={handleStartRestore}
+              className={`font-mono text-xs cursor-pointer rounded flex items-center gap-2 ${
+                !restoreFile || !restoreAcknowledged
+                  ? "bg-[#2b2926] text-[#605e58] cursor-not-allowed"
+                  : "bg-[#2d1210] hover:bg-[#4b1b1a] text-[#f25c55] border border-[#4b1b1a]"
+              }`}
+            >
+              {restoring ? (
+                <span className="flex items-center gap-2">
+                  <IconLoader2 size={12} className="animate-spin" />
+                  {t("restore.processing") || "Geri yükleniyor..."}
+                </span>
+              ) : (
+                <span>{t("restore.startButton") || "GERİ YÜKLEMEYİ BAŞLAT"}</span>
               )}
             </Button>
           </DialogFooter>
