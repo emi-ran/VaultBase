@@ -286,13 +286,13 @@ export async function getTableDataAction(id: string, tableName: string, page: nu
 }
 
 // Export Settings Action
-export async function exportSettingsAction() {
+export async function exportSettingsAction(password?: string) {
   try {
     const databases = await prisma.databaseConnection.findMany();
     const schedules = await prisma.schedule.findMany();
 
     const exportData = {
-      version: "1.0.0",
+      version: "1.1.0",
       timestamp: new Date().toISOString(),
       databases: databases.map((db: DatabaseConnection) => ({
         name: db.name,
@@ -300,13 +300,12 @@ export async function exportSettingsAction() {
         port: db.port,
         user: db.user,
         database: db.database,
-        password: decrypt(db.password), // Decrypt password to export it securely within the encrypted JSON
+        password: decrypt(db.password),
         ssl: db.ssl,
         environment: db.environment,
         labels: db.labels,
       })),
       schedules: schedules.map((sch: Schedule) => {
-        // Map to corresponding database short name to match on restore
         const db = databases.find((d: DatabaseConnection) => d.id === sch.databaseId);
         return {
           dbName: db ? db.name : null,
@@ -316,13 +315,25 @@ export async function exportSettingsAction() {
       }),
     };
 
-    const jsonStr = JSON.stringify(exportData);
-    const encryptedPayload = encrypt(jsonStr);
+    let wrappedExport: any;
 
-    const wrappedExport = {
-      encrypted: true,
-      payload: encryptedPayload,
-    };
+    if (password) {
+      const jsonStr = JSON.stringify(exportData);
+      const { salt, payload } = encryptWithPassword(jsonStr, password);
+      wrappedExport = {
+        version: "1.1.0",
+        encrypted: true,
+        passwordProtected: true,
+        salt,
+        payload,
+      };
+    } else {
+      wrappedExport = {
+        version: "1.1.0",
+        encrypted: false,
+        data: exportData,
+      };
+    }
 
     return { success: true, jsonString: JSON.stringify(wrappedExport, null, 2) };
   } catch (error: any) {
@@ -331,22 +342,31 @@ export async function exportSettingsAction() {
 }
 
 // Import Settings Action
-export async function importSettingsAction(jsonString: string) {
+export async function importSettingsAction(jsonString: string, password?: string) {
   try {
     const parsedData = JSON.parse(jsonString);
     let importData: any;
-    let isEncrypted = false;
 
-    if (parsedData && parsedData.encrypted && parsedData.payload) {
-      isEncrypted = true;
+    if (parsedData && parsedData.passwordProtected) {
+      if (!password) {
+        return { success: false, error: "PASSWORD_REQUIRED" };
+      }
+      try {
+        const decryptedStr = decryptWithPassword(parsedData.payload, password, parsedData.salt);
+        importData = JSON.parse(decryptedStr);
+      } catch {
+        return { success: false, error: "WRONG_PASSWORD" };
+      }
+    } else if (parsedData && parsedData.encrypted && !parsedData.passwordProtected && parsedData.payload) {
       const decryptedStr = decrypt(parsedData.payload);
       if (!decryptedStr) {
         throw new Error("Decryption failed. Please make sure the APP_SECRET on this server matches the exporting server.");
       }
       importData = JSON.parse(decryptedStr);
+    } else if (!parsedData.encrypted && parsedData.data) {
+      importData = parsedData.data;
     } else {
-      // Legacy unencrypted import support
-      importData = parsedData;
+      throw new Error("Invalid import format");
     }
 
     if (!importData.databases || !Array.isArray(importData.databases)) {
@@ -356,7 +376,6 @@ export async function importSettingsAction(jsonString: string) {
     let importedCount = 0;
 
     for (const dbInfo of importData.databases) {
-      // Find if duplicate exists by matching short name and host/db
       const existing = await prisma.databaseConnection.findFirst({
         where: {
           OR: [
@@ -371,11 +390,8 @@ export async function importSettingsAction(jsonString: string) {
       });
 
       let dbId = "";
-      
-      // Decrypt/Encrypt password appropriately
-      // If encrypted, the password in JSON is plain text, so we encrypt it.
-      // If legacy unencrypted, the password in JSON is already encrypted, so we keep it as-is.
-      const dbPassword = isEncrypted ? encrypt(dbInfo.password || "") : dbInfo.password;
+
+      const dbPassword = encrypt(dbInfo.password || "");
 
       if (existing) {
         // Update credentials and info

@@ -9,11 +9,15 @@ import {
   IconAlertCircle,
   IconCheck,
   IconShieldLock,
-  IconVolume
+  IconLock,
+  IconLockOpen,
+  IconLoader2
 } from "@tabler/icons-react";
 import { Button } from "../../components/ui/button";
+import { Input } from "../../components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "../../components/ui/dialog";
 import { exportSettingsAction, importSettingsAction, getSettingsAction, saveSettingsAction } from "../actions";
 
 const COMMON_TIMEZONES = [
@@ -47,6 +51,20 @@ export default function SettingsPage() {
   const [timezone, setTimezone] = useState("Europe/Istanbul");
   const [healthCheckInterval, setHealthCheckInterval] = useState("30");
   const [timezonesList, setTimezonesList] = useState<string[]>(COMMON_TIMEZONES);
+
+  // Export modal state
+  const [exportModalOpen, setExportModalOpen] = useState(false);
+  const [exportPassword, setExportPassword] = useState("");
+  const [exportPasswordConfirm, setExportPasswordConfirm] = useState("");
+  const [exporting, setExporting] = useState(false);
+  const [exportError, setExportError] = useState("");
+
+  // Import password modal state
+  const [importModalOpen, setImportModalOpen] = useState(false);
+  const [importFileContent, setImportFileContent] = useState("");
+  const [importPassword, setImportPassword] = useState("");
+  const [importing, setImporting] = useState(false);
+  const [importError, setImportError] = useState("");
 
   React.useEffect(() => {
     const loadSettings = async () => {
@@ -90,30 +108,42 @@ export default function SettingsPage() {
     }
   };
 
-  const handleExport = async () => {
-    setLoading(true);
-    setStatus(null);
+  const triggerDownload = (jsonString: string) => {
+    const blob = new Blob([jsonString], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `vaultbase_settings_${new Date().toISOString().split("T")[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleExportWithPassword = async () => {
+    if (exportPassword !== exportPasswordConfirm) {
+      setExportError(t("settingsPage.exportPasswordMismatch"));
+      return;
+    }
+    setExportError("");
+    setExporting(true);
     try {
-      const res = await exportSettingsAction();
+      const res = exportPassword
+        ? await exportSettingsAction(exportPassword)
+        : await exportSettingsAction();
       if (res.success && res.jsonString) {
-        // Create a blob and trigger download
-        const blob = new Blob([res.jsonString], { type: "application/json" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `vaultbase_settings_${new Date().toISOString().split("T")[0]}.json`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+        triggerDownload(res.jsonString);
+        setExportModalOpen(false);
+        setExportPassword("");
+        setExportPasswordConfirm("");
         setStatus({ type: "success", message: "Ayarlar başarıyla dışa aktarıldı." });
       } else {
-        setStatus({ type: "error", message: `Dışa aktarma başarısız: ${res.error}` });
+        setExportError(res.error || "Export failed");
       }
     } catch (err: any) {
-      setStatus({ type: "error", message: err.message || "Failed to export settings" });
+      setExportError(err.message || "Export failed");
     } finally {
-      setLoading(false);
+      setExporting(false);
     }
   };
 
@@ -125,23 +155,34 @@ export default function SettingsPage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    setLoading(true);
     setStatus(null);
 
     try {
-      const reader = new FileReader();
-      reader.onload = async (event) => {
-        const text = event.target?.result as string;
+      const text = await file.text();
+
+      let parsed;
+      try {
+        parsed = JSON.parse(text);
+      } catch {
+        setStatus({ type: "error", message: "Geçersiz JSON dosyası." });
+        return;
+      }
+
+      if (parsed && parsed.passwordProtected) {
+        setImportFileContent(text);
+        setImportPassword("");
+        setImportError("");
+        setImportModalOpen(true);
+      } else {
+        setLoading(true);
         try {
           const res = await importSettingsAction(text);
           if (res.success) {
-            setStatus({ 
-              type: "success", 
-              message: `${res.importedCount} yeni veritabanı bağlantısı başarıyla içe aktarıldı. Sayfa yenileniyor...` 
+            setStatus({
+              type: "success",
+              message: `${res.importedCount} yeni veritabanı bağlantısı başarıyla içe aktarıldı. Sayfa yenileniyor...`
             });
-            setTimeout(() => {
-              window.location.reload();
-            }, 1500);
+            setTimeout(() => window.location.reload(), 1500);
           } else {
             setStatus({ type: "error", message: `${t("settingsPage.importFailed")}: ${res.error}` });
           }
@@ -150,11 +191,39 @@ export default function SettingsPage() {
         } finally {
           setLoading(false);
         }
-      };
-      reader.readAsText(file);
+      }
     } catch (err: any) {
       setStatus({ type: "error", message: "Dosya okunamadı." });
-      setLoading(false);
+    }
+
+    e.target.value = "";
+  };
+
+  const handleImportWithPassword = async () => {
+    if (!importPassword) {
+      setImportError(t("settingsPage.importPasswordRequired"));
+      return;
+    }
+    setImportError("");
+    setImporting(true);
+    try {
+      const res = await importSettingsAction(importFileContent, importPassword);
+      if (res.success) {
+        setImportModalOpen(false);
+        setStatus({
+          type: "success",
+          message: `${res.importedCount} yeni veritabanı bağlantısı başarıyla içe aktarıldı. Sayfa yenileniyor...`
+        });
+        setTimeout(() => window.location.reload(), 1500);
+      } else if (res.error === "WRONG_PASSWORD") {
+        setImportError(t("settingsPage.importPasswordWrong"));
+      } else {
+        setImportError(res.error || t("settingsPage.importFailed"));
+      }
+    } catch (err: any) {
+      setImportError(err.message || t("settingsPage.importFailed"));
+    } finally {
+      setImporting(false);
     }
   };
 
@@ -283,16 +352,22 @@ export default function SettingsPage() {
 
             {/* Instruction Warning Alert */}
             <div className="p-4 bg-[#141210] border border-[#2b2926] rounded text-xs font-mono text-[#a09e96] space-y-2 leading-relaxed">
-              <span className="text-white font-bold uppercase block">⚠️ UYARI / NOT:</span>
+              <span className="text-white font-bold uppercase block">⚠️ NOTLAR:</span>
               <p>
-                Veritabanı şifreleri veritabanında şifreli olarak saklanır. Yedeklerinizi başka bir sunucuya taşırken şifrelerin başarıyla çözülebilmesi için, her iki sunucudaki <code className="text-white px-1 py-0.5 bg-[#2c2925] rounded">APP_SECRET</code> çevre değişkeninin (env) <strong>tamamen aynı</strong> olması gerekir. Aksi takdirde veritabanı bağlantısı şifresi çözülemez ve yeniden girmeniz gerekir.
+                • Dışa aktarma sırasında kullanıcı şifresi belirlerseniz dosya AES-256 ile şifrelenir. İçe aktarırken aynı şifre girilmelidir.
+              </p>
+              <p>
+                • Şifresiz dışa aktarılan dosyalar düz metin içerir ve veritabanı şifreleri dosyada açıkça görünür. Bu dosyaları güvenli olmayan ortamlarda paylaşmayın.
+              </p>
+              <p>
+                • Tüm veritabanı şifreleri yerel SQLite veritabanında <code className="text-white px-1 py-0.5 bg-[#2c2925] rounded">APP_SECRET</code> anahtarı ile şifrelenerek saklanır. İçe aktarma sırasında şifreler otomatik olarak bu sunucunun anahtarı ile yeniden şifrelenir.
               </p>
             </div>
 
             {/* Action buttons */}
             <div className="flex flex-col sm:flex-row gap-4 pt-2">
               <Button
-                onClick={handleExport}
+                onClick={() => { setExportModalOpen(true); setExportPassword(""); setExportPasswordConfirm(""); setExportError(""); }}
                 disabled={loading}
                 className="bg-[#1b3224] hover:bg-[#223f2d] text-white border border-[#2b4c37] font-mono text-xs cursor-pointer py-2.5 h-auto rounded flex-1 flex items-center justify-center gap-2"
               >
@@ -324,6 +399,178 @@ export default function SettingsPage() {
         </Card>
 
       </div>
+
+      {/* Export Password Modal */}
+      <Dialog open={exportModalOpen} onOpenChange={setExportModalOpen}>
+        <DialogContent className="max-w-[500px] bg-[#0d0c0b] text-[#E6E4DD] border border-[#2b2926] font-sans rounded-md">
+          <DialogHeader>
+            <DialogTitle className="text-sm font-mono tracking-wider uppercase text-white flex items-center gap-2">
+              <IconLock size={16} className="text-[#55f289]" />
+              {t("settingsPage.exportPasswordTitle")}
+            </DialogTitle>
+            <DialogDescription className="text-xs text-[#a09e96] pt-1 leading-relaxed">
+              {t("settingsPage.exportPasswordDesc")}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="py-4 space-y-4 font-mono text-xs">
+            <div className="space-y-2">
+              <label className="block text-[10px] text-[#a09e96] uppercase tracking-wider">
+                {t("settingsPage.exportPasswordLabel")}
+              </label>
+              <Input
+                type="password"
+                value={exportPassword}
+                onChange={(e) => setExportPassword(e.target.value)}
+                disabled={exporting}
+                className="bg-[#141210] border-[#2b2926] focus:border-[#d2541c] text-xs text-white rounded h-9 w-full"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-[10px] text-[#a09e96] uppercase tracking-wider">
+                {t("settingsPage.exportPasswordConfirm")}
+              </label>
+              <Input
+                type="password"
+                value={exportPasswordConfirm}
+                onChange={(e) => setExportPasswordConfirm(e.target.value)}
+                disabled={exporting}
+                className="bg-[#141210] border-[#2b2926] focus:border-[#d2541c] text-xs text-white rounded h-9 w-full"
+              />
+            </div>
+
+            {exportError && (
+              <div className="p-3 bg-[#2d1210] border border-[#4b1b1a] text-[#f25c55] rounded">
+                {exportError}
+              </div>
+            )}
+
+            {!exportPassword && !exportError && (
+              <div className="p-3 bg-[#2d1b10] border border-[#4b2f1a] text-[#f29f55] rounded flex items-start gap-2">
+                <IconAlertCircle size={14} className="mt-0.5 shrink-0" />
+                <span>{t("settingsPage.exportWarning")}</span>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              disabled={exporting}
+              onClick={() => { setExportModalOpen(false); setExportError(""); }}
+              className="border-[#2b2926] text-[#E6E4DD] hover:bg-[#1c1a17] hover:text-white font-mono text-xs cursor-pointer rounded"
+            >
+              {t("common.cancel")}
+            </Button>
+            {exportPassword ? (
+              <Button
+                type="button"
+                disabled={exporting}
+                onClick={handleExportWithPassword}
+                className="bg-[#1b3224] hover:bg-[#223f2d] text-white border border-[#2b4c37] font-mono text-xs cursor-pointer rounded"
+              >
+                {exporting ? (
+                  <span className="flex items-center gap-1">
+                    <IconLoader2 size={12} className="animate-spin" />
+                    {t("settingsPage.exportInProgress")}
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-1.5">
+                    <IconLock size={12} />
+                    {t("settingsPage.exportWithPassword")}
+                  </span>
+                )}
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                disabled={exporting}
+                onClick={handleExportWithPassword}
+                className="bg-[#2d1210] hover:bg-[#3f1614] text-[#f25c55] border border-[#4b1b1a] font-mono text-xs cursor-pointer rounded"
+              >
+                {exporting ? (
+                  <span className="flex items-center gap-1">
+                    <IconLoader2 size={12} className="animate-spin" />
+                    {t("settingsPage.exportInProgress")}
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-1.5">
+                    <IconLockOpen size={12} />
+                    {t("settingsPage.exportWithoutPassword")}
+                  </span>
+                )}
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Import Password Modal */}
+      <Dialog open={importModalOpen} onOpenChange={setImportModalOpen}>
+        <DialogContent className="max-w-[500px] bg-[#0d0c0b] text-[#E6E4DD] border border-[#2b2926] font-sans rounded-md">
+          <DialogHeader>
+            <DialogTitle className="text-sm font-mono tracking-wider uppercase text-white flex items-center gap-2">
+              <IconLock size={16} className="text-[#f29f55]" />
+              {t("settingsPage.importPasswordTitle")}
+            </DialogTitle>
+            <DialogDescription className="text-xs text-[#a09e96] pt-1 leading-relaxed">
+              {t("settingsPage.importPasswordDesc")}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="py-4 space-y-4 font-mono text-xs">
+            <div className="space-y-2">
+              <label className="block text-[10px] text-[#a09e96] uppercase tracking-wider">
+                {t("settingsPage.importPasswordLabel")}
+              </label>
+              <Input
+                type="password"
+                value={importPassword}
+                onChange={(e) => setImportPassword(e.target.value)}
+                disabled={importing}
+                placeholder="••••••••"
+                className="bg-[#141210] border-[#2b2926] focus:border-[#d2541c] text-xs text-white rounded h-9 w-full"
+              />
+            </div>
+
+            {importError && (
+              <div className="p-3 bg-[#2d1210] border border-[#4b1b1a] text-[#f25c55] rounded">
+                {importError}
+              </div>
+            )}
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              disabled={importing}
+              onClick={() => { setImportModalOpen(false); setImportError(""); }}
+              className="border-[#2b2926] text-[#E6E4DD] hover:bg-[#1c1a17] hover:text-white font-mono text-xs cursor-pointer rounded"
+            >
+              {t("common.cancel")}
+            </Button>
+            <Button
+              type="button"
+              disabled={importing || !importPassword}
+              onClick={handleImportWithPassword}
+              className="bg-[#1b3224] hover:bg-[#223f2d] text-white border border-[#2b4c37] font-mono text-xs cursor-pointer rounded"
+            >
+              {importing ? (
+                <span className="flex items-center gap-1">
+                  <IconLoader2 size={12} className="animate-spin" />
+                  {t("settingsPage.importInProgress")}
+                </span>
+              ) : (
+                t("common.import")
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
     </div>
   );
 }

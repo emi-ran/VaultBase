@@ -38,8 +38,9 @@ Aşağıdaki tüm özellikler çalışır durumda:
 | Yedek silme | ✅ Çalışıyor | Onay modalı ile |
 | Arşivi temizle | ✅ Çalışıyor | Toplu silme, onay modalı |
 | Tablo gezgini | ✅ Çalışıyor | Salt okunur, sayfalandırılmış |
-| Ayarlar export | ✅ Çalışıyor | JSON formatı |
-| Ayarlar import | ✅ Çalışıyor | JSON formatı |
+| Ayarlar export (şifreli) | ✅ Çalışıyor | Kullanıcı şifresiyle AES-256 şifreleme, modal üzerinden |
+| Ayarlar export (şifresiz) | ✅ Çalışıyor | Düz metin JSON (uyarı ile) |
+| Ayarlar import (şifreli dosya) | ✅ Çalışıyor | Modal ile şifre sorulur, hatalı şifrede uyarı |
 | Test senaryoları | ✅ Çalışıyor | Şifreleme ve Ayarlar export/import testleri (scripts/test-core.ts) |
 | Türkçe arayüz | ✅ Çalışıyor | i18n altyapısı hazır |
 | Docker paketi | ✅ Çalışıyor | postgresql-client-18 dahil |
