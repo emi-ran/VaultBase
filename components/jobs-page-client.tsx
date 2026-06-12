@@ -15,7 +15,8 @@ import {
   IconTerminal, 
   IconFileText, 
   IconChevronLeft, 
-  IconChevronRight 
+  IconChevronRight,
+  IconUpload
 } from "@tabler/icons-react";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
@@ -38,6 +39,7 @@ interface BackupJob {
   status: string; // "success", "failed", "processing"
   errorMessage: string | null;
   triggerType: string; // "manual", "scheduled"
+  type: string; // "backup", "restore"
   createdAt: Date;
 }
 
@@ -53,6 +55,7 @@ export function JobsPageClient({ initialJobs }: JobsPageClientProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [triggerFilter, setTriggerFilter] = useState("all");
+  const [typeFilter, setTypeFilter] = useState("all");
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
@@ -76,6 +79,7 @@ export function JobsPageClient({ initialJobs }: JobsPageClientProps) {
   const totalLogs = jobs.length;
   const successLogs = jobs.filter(j => j.status === "success").length;
   const failedLogs = jobs.filter(j => j.status === "failed").length;
+  const restoreLogs = jobs.filter(j => j.type === "restore").length;
 
   const openDeleteLogDialog = (id: string) => {
     setLogToDelete(id);
@@ -142,7 +146,11 @@ export function JobsPageClient({ initialJobs }: JobsPageClientProps) {
       triggerFilter === "all" || 
       job.triggerType === triggerFilter;
 
-    return matchesSearch && matchesStatus && matchesTrigger;
+    const matchesType = 
+      typeFilter === "all" || 
+      job.type === typeFilter;
+
+    return matchesSearch && matchesStatus && matchesTrigger && matchesType;
   });
 
   // Pagination calculations
@@ -184,7 +192,7 @@ export function JobsPageClient({ initialJobs }: JobsPageClientProps) {
       <div className="p-8 max-w-5xl w-full mx-auto space-y-6 flex-1">
         
         {/* Statistics Widgets */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           <Card className="bg-[#0d0c0b] border-[#2b2926] rounded-md font-sans">
             <CardHeader className="p-4 flex flex-row items-center justify-between pb-2">
               <span className="text-[10px] font-mono tracking-wider text-[#a09e96] uppercase">{t("jobs.statsTotal")}</span>
@@ -212,6 +220,16 @@ export function JobsPageClient({ initialJobs }: JobsPageClientProps) {
             </CardHeader>
             <CardContent className="p-4 pt-0">
               <div className="text-2xl font-mono font-bold text-[#f25c55]/80">{failedLogs}</div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-[#0d0c0b] border-[#2b2926] rounded-md font-sans border-l-2 border-l-[#e6b04e]/60">
+            <CardHeader className="p-4 flex flex-row items-center justify-between pb-2">
+              <span className="text-[10px] font-mono tracking-wider text-[#a09e96] uppercase">{t("jobs.statsRestore")}</span>
+              <IconUpload size={16} className="text-[#e6b04e]/60" />
+            </CardHeader>
+            <CardContent className="p-4 pt-0">
+              <div className="text-2xl font-mono font-bold text-[#e6b04e]/80">{restoreLogs}</div>
             </CardContent>
           </Card>
         </div>
@@ -254,7 +272,7 @@ export function JobsPageClient({ initialJobs }: JobsPageClientProps) {
           </div>
 
           {/* Trigger filter */}
-          <div className="w-full md:w-48">
+          <div className="w-full md:w-44">
             <Select 
               value={triggerFilter} 
               onValueChange={(val) => {
@@ -269,6 +287,26 @@ export function JobsPageClient({ initialJobs }: JobsPageClientProps) {
                 <SelectItem value="all" className="hover:bg-[#2b2926] text-xs font-mono">{t("jobs.filterTrigger")}</SelectItem>
                 <SelectItem value="manual" className="hover:bg-[#2b2926] text-xs font-mono">{t("jobs.manual")}</SelectItem>
                 <SelectItem value="scheduled" className="hover:bg-[#2b2926] text-xs font-mono">{t("jobs.scheduled")}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Type filter */}
+          <div className="w-full md:w-44">
+            <Select 
+              value={typeFilter} 
+              onValueChange={(val) => {
+                setTypeFilter(val);
+                setCurrentPage(1);
+              }}
+            >
+              <SelectTrigger className="bg-[#0d0c0b] border-[#2b2926] text-xs text-white font-mono rounded h-9">
+                <SelectValue placeholder={t("jobs.filterType")} />
+              </SelectTrigger>
+              <SelectContent className="bg-[#0d0c0b] border-[#2b2926] text-[#E6E4DD]" position="popper">
+                <SelectItem value="all" className="hover:bg-[#2b2926] text-xs font-mono">{t("jobs.filterType")}</SelectItem>
+                <SelectItem value="backup" className="hover:bg-[#2b2926] text-xs font-mono text-[#55f289]">{t("jobs.typeBackup")}</SelectItem>
+                <SelectItem value="restore" className="hover:bg-[#2b2926] text-xs font-mono text-[#e6b04e]">{t("jobs.typeRestore")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -328,6 +366,13 @@ export function JobsPageClient({ initialJobs }: JobsPageClientProps) {
                               : "bg-[#201430]/20 border-[#2f1c4a] text-[#a45cf2]"
                           }`}>
                             {job.triggerType === "manual" ? t("jobs.manual").toUpperCase() : t("jobs.scheduled").toUpperCase()}
+                          </span>
+                          <span className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded border ${
+                            job.type === "restore"
+                              ? "bg-[#2b2310]/30 border-[#4c3b1a] text-[#e6b04e]"
+                              : "bg-[#132219]/30 border-[#1b3f2a] text-[#55f289]"
+                          }`}>
+                            {job.type === "restore" ? (t("jobs.typeRestore") || "RESTORE").toUpperCase() : (t("jobs.typeBackup") || "BACKUP").toUpperCase()}
                           </span>
                         </div>
 
@@ -428,7 +473,7 @@ export function JobsPageClient({ initialJobs }: JobsPageClientProps) {
 
       {/* Delete Log Confirmation Modal */}
       <Dialog open={deleteLogOpen} onOpenChange={(v) => { if (!deletingLog) { setDeleteLogOpen(v); setDeleteLogError(null); } }}>
-        <DialogContent className="max-w-[450px] sm:max-w-[450px] bg-[#0d0c0b] border-[#2b2926] text-[#E6E4DD] rounded-md font-sans p-6">
+        <DialogContent className="max-w-112.5 sm:max-w-112.5 bg-[#0d0c0b] border-[#2b2926] text-[#E6E4DD] rounded-md font-sans p-6">
           <DialogHeader className="border-b border-[#2b2926] pb-4 mb-4">
             <DialogTitle className="text-sm font-mono tracking-wider text-white uppercase flex items-center gap-2">
               <IconAlertCircle size={16} className="text-[#f25c55]" />
@@ -467,7 +512,7 @@ export function JobsPageClient({ initialJobs }: JobsPageClientProps) {
 
       {/* Clear All Logs Confirmation Modal */}
       <Dialog open={clearLogsOpen} onOpenChange={(v) => { if (!clearingLogs) { setClearLogsOpen(v); setClearLogsError(null); } }}>
-        <DialogContent className="max-w-[450px] sm:max-w-[450px] bg-[#0d0c0b] border-[#2b2926] text-[#E6E4DD] rounded-md font-sans p-6">
+        <DialogContent className="max-w-112.5 sm:max-w-112.5 bg-[#0d0c0b] border-[#2b2926] text-[#E6E4DD] rounded-md font-sans p-6">
           <DialogHeader className="border-b border-[#2b2926] pb-4 mb-4">
             <DialogTitle className="text-sm font-mono tracking-wider text-white uppercase flex items-center gap-2">
               <IconAlertCircle size={16} className="text-[#f25c55]" />
@@ -506,7 +551,7 @@ export function JobsPageClient({ initialJobs }: JobsPageClientProps) {
 
       {/* Error Details Modal */}
       <Dialog open={!!selectedError} onOpenChange={(open) => !open && setSelectedError(null)}>
-        <DialogContent className="max-w-[600px] sm:max-w-[600px] bg-[#0d0c0b] border-[#2b2926] text-[#E6E4DD] rounded-md font-sans p-6">
+        <DialogContent className="max-w-150 sm:max-w-150 bg-[#0d0c0b] border-[#2b2926] text-[#E6E4DD] rounded-md font-sans p-6">
           <DialogHeader className="border-b border-[#2b2926] pb-4 mb-4">
             <DialogTitle className="text-sm font-mono tracking-wider text-white uppercase flex items-center gap-2">
               <IconTerminal size={16} className="text-[#f25c55]" />
@@ -517,7 +562,7 @@ export function JobsPageClient({ initialJobs }: JobsPageClientProps) {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="bg-[#141210] border border-[#2b2926] rounded p-4 overflow-auto max-h-[300px]">
+          <div className="bg-[#141210] border border-[#2b2926] rounded p-4 overflow-auto max-h-75">
             <pre className="font-mono text-xs text-[#f25c55] leading-relaxed whitespace-pre-wrap break-all">
               {selectedError}
             </pre>

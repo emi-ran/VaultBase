@@ -162,7 +162,7 @@ export function DatabaseModal({ onSuccess, trigger, database: editingDb }: Datab
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="max-w-[600px] sm:max-w-[600px] w-full bg-[#0d0c0b] text-[#E6E4DD] border border-[#2b2926] p-0 overflow-hidden rounded-md shadow-2xl font-sans">
+      <DialogContent className="max-w-150 sm:max-w-150 w-full bg-[#0d0c0b] text-[#E6E4DD] border border-[#2b2926] p-0 overflow-hidden rounded-md shadow-2xl font-sans">
         <DialogHeader className="p-6 border-b border-[#2b2926]">
           <DialogTitle className="text-sm font-mono tracking-wider uppercase text-white">
             {isEdit ? (t("database.editDbTitle") || "VERİTABANI BAĞLANTISINI DÜZENLE") : t("database.newDbTitle")}

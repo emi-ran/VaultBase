@@ -78,8 +78,9 @@ VaultBase, birden fazla PostgreSQL veritabanını tek bir panelden güvenli şek
 ### Güvenlik
 - ✅ Kullanıcı adı / şifre ile giriş (`.env` tabanlı)
 - ✅ HMAC-SHA256 imzalı session cookie (24 saat)
-- ✅ Middleware ile route koruması
+- ✅ Proxy (proxy.ts) ile route koruması
 - ✅ API uç noktalarında 401 koruması
+- ✅ Geri yükleme (streaming gunzip → psql, onay modalı ile)
 - ✅ Tüm veritabanı şifreleri AES-256-CBC ile şifrelenir
 
 ### Genel
@@ -209,13 +210,22 @@ Ayarlar → Yapılandırmayı Dışa Aktar → vaultbase_config.json
 Bu JSON dosyasını başka bir VaultBase instance'ında **"İçe Aktar"** ile yükleyebilirsiniz.
 Export sırasında isteğe bağlı bir şifre belirleyebilirsiniz (AES-256-CBC koruma) veya uyarıyı kabul ederek şifresiz dışa aktarabilirsiniz.
 
+### Veritabanı Geri Yükleme
+
+1. **/databases** sayfasında hedef veritabanının satırındaki **Import** butonuna (🟠) tıklayın
+2. Açılan modalda hedef DB bilgilerini, uyarıları ve veri kaybı onay kutusunu görün
+3. `.sql.gz` yedek dosyasını seçin
+4. Onay kutusunu işaretleyip **Geri Yükle**'ye tıklayın
+5. Hedef veritabanının public schema'sı tamamen değiştirilir (DROP SCHEMA CASCADE → CREATE SCHEMA)
+
 ---
 
 ## 📁 Proje Yapısı
 
 ```
 .
-├── proxy.ts                        # Route koruması (auth)
+├── proxy.ts                        # Route koruması (auth kontrolü + yönlendirme)
+├── instrumentation.ts              # Next.js instrumentation (cron başlatma)
 ├── app/
 │   ├── actions.ts                  # Tüm Server Actions
 │   ├── page.tsx                    # Ana dashboard
@@ -228,13 +238,15 @@ Export sırasında isteğe bağlı bir şifre belirleyebilirsiniz (AES-256-CBC k
 │   ├── schedules/page.tsx          # Zamanlama yönetimi
 │   ├── settings/page.tsx           # Ayarlar sayfası
 │   ├── storage/page.tsx            # Depolama analizi
-│   └── api/backups/[id]/route.ts   # Yedek indirme endpoint'i
+│   └── api/
+│       ├── backups/[id]/route.ts   # Yedek indirme endpoint'i
+│       └── restore/route.ts        # Geri yükleme endpoint'i (streaming)
 ├── components/
 │   ├── archive-page-client.tsx     # Arşiv arayüzü
 │   ├── dashboard-tables.tsx        # Dashboard tabloları
 │   ├── database-modal.tsx          # Bağlantı ekleme/düzenleme modalı
 │   ├── database-type-mark.tsx      # Veritabanı tür logosu
-│   ├── databases-page-client.tsx   # Bağlantı listeleme arayüzü
+│   ├── databases-page-client.tsx   # Bağlantı listeleme (restore butonu dahil)
 │   ├── i18n-provider.tsx           # Dil context sağlayıcı
 │   ├── jobs-page-client.tsx        # İşlem geçmişi arayüzü
 │   ├── schedules-page-client.tsx   # Zamanlama arayüzü
@@ -250,15 +262,19 @@ Export sırasında isteğe bağlı bir şifre belirleyebilirsiniz (AES-256-CBC k
 │   ├── db-client.ts                # PostgreSQL dinamik bağlantı
 │   ├── encryption.ts               # AES-256-CBC şifreleme
 │   ├── i18n.ts                     # i18n yardımcıları
+│   ├── restore-service.ts          # Geri yükleme (gunzip → psql)
+│   ├── utils.ts                    # cn() yardımcısı (tailwind-merge)
 │   └── locales/
 │       ├── tr.ts                   # Türkçe çeviriler
 │       └── en.ts                   # İngilizce çeviriler
 ├── prisma/
 │   └── schema.prisma               # SQLite şeması
 ├── prisma.config.ts                # Prisma 7 konfigürasyonu
-├── Dockerfile
-├── docker-compose.yml
-├── .env.example
+├── scripts/
+│   └── test-core.ts                # Şifreleme ve Ayarlar export/import testleri
+├── Dockerfile                      # postgresql-client-18 içerir
+├── docker-compose.yml              # Docker Compose konfigürasyonu
+├── .env.example                    # Örnek ortam değişkenleri
 ├── AGENTS.md                       # AI ajan rehberi
 ├── PLAN.md                         # Proje yol haritası
 └── STATUS.md                       # Geliştirme durumu
@@ -289,7 +305,7 @@ Export sırasında isteğe bağlı bir şifre belirleyebilirsiniz (AES-256-CBC k
 | **1** | Temel altyapı, yedekleme, dashboard, explorer | ✅ Tamamlandı |
 | **2** | Zamanlanmış otomatik yedekler (node-cron) | ✅ Tamamlandı |
 | **3** | Bulut depolama (S3 / R2 / GCS / MinIO) | 🔜 Planlandı |
-| **4** | Geri yükleme sistemi (pg_restore) | 🔜 Planlandı |
+| **4** | Geri yükleme sistemi (psql + streaming) | ✅ Kısmen Tamamlandı |
 | **5** | MongoDB desteği (mongodump) | 🔜 Planlandı |
 | **6** | Kullanıcı yönetimi & 2FA | 🔜 Planlandı |
 

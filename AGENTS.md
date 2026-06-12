@@ -65,6 +65,8 @@ Next.js 16 (App Router), Tailwind CSS v4, Shadcn UI, SQLite (Prisma 7 + Better-S
 
 ```
 .
+├── instrumentation.ts              # Next.js instrumentation (cron başlatma)
+├── proxy.ts                        # Route koruması (auth kontrolü + yönlendirme)
 ├── app/
 │   ├── actions.ts                  # Tüm Server Actions
 │   ├── page.tsx                    # Ana dashboard (Genel Bakış)
@@ -79,13 +81,15 @@ Next.js 16 (App Router), Tailwind CSS v4, Shadcn UI, SQLite (Prisma 7 + Better-S
 │   ├── schedules/page.tsx          # Zamanlama yönetim sayfası
 │   ├── settings/page.tsx           # Ayarlar (export/import)
 │   ├── storage/page.tsx            # Depolama durum & analiz sayfası
-│   └── api/backups/[id]/route.ts   # Yedek dosyası indirme endpoint
+│   └── api/
+│       ├── backups/[id]/route.ts   # Yedek dosyası indirme endpoint
+│       └── restore/route.ts        # Geri yükleme endpoint (streaming body)
 ├── components/
 │   ├── archive-page-client.tsx     # Arşiv arayüzü
 │   ├── dashboard-tables.tsx        # Dashboard veritabanı ve yedek listesi
 │   ├── database-modal.tsx          # Bağlantı ekleme & düzenleme modalı
 │   ├── database-type-mark.tsx      # Veritabanı tür logosu
-│   ├── databases-page-client.tsx   # Bağlantı listeleme arayüzü
+│   ├── databases-page-client.tsx   # Bağlantı listeleme (restore butonu dahil)
 │   ├── i18n-provider.tsx           # İstemci tarafı dil contexti
 │   ├── jobs-page-client.tsx        # İşlem geçmişi arayüzü
 │   ├── schedules-page-client.tsx   # Zamanlama arayüzü
@@ -101,10 +105,11 @@ Next.js 16 (App Router), Tailwind CSS v4, Shadcn UI, SQLite (Prisma 7 + Better-S
 │   ├── db-client.ts                # PostgreSQL dinamik bağlantı
 │   ├── encryption.ts               # AES-256-CBC şifreleme
 │   ├── i18n.ts                     # i18n yardımcıları
+│   ├── restore-service.ts          # Geri yükleme (gunzip → psql)
+│   ├── utils.ts                    # cn() yardımcısı (tailwind-merge)
 │   └── locales/
 │       ├── tr.ts                   # Türkçe çeviriler
 │       └── en.ts                   # İngilizce çeviriler
-├── proxy.ts                        # Route koruması (auth kontrolü + yönlendirme)
 ├── prisma/
 │   └── schema.prisma               # SQLite şeması
 ├── prisma.config.ts                # Prisma 7 konfigürasyonu
@@ -139,7 +144,8 @@ Next.js 16 (App Router), Tailwind CSS v4, Shadcn UI, SQLite (Prisma 7 + Better-S
 pnpm install        # Bağımlılıkları yükle
 pnpm dev            # Geliştirme sunucusu (port 3000)
 pnpm build          # Production build
-pnpm prisma db push # Veritabanı şemasını uygula
+pnpm prisma db push # Veritabanı şemasını uygula (geliştirme)
+pnpm prisma migrate deploy # Mevcut migration'ları uygula (Docker/üretim)
 pnpm prisma studio  # Prisma Studio ile SQLite görüntüle
 ```
 
