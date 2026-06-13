@@ -184,9 +184,9 @@ Aşağıdaki tüm özellikler çalışır durumda:
 ## Git Durumu
 
 ```
-Branch: mongo_support (master'e merge edilmedi)
-Son Commit: 5509df8 — refactor: backup job handling and UI improvements
-Durum: Unstaged değişiklikler — login page i18n + dil seçici, dashboard restore activity fix, "See All" link, clear logs modal detail box, jobs clear button styling, locale key eklemeleri
+Branch: master
+Son Commit: 8258c56 — chore: merge remote changes, keep larger sidebar icon and original icon.svg
+Durum: Unstaged değişiklikler — README.md ve README.tr.md dosyalarına Windows PowerShell için docker run komutu uyumluluğu/notu eklenmesi
 ```
 
 ---

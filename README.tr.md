@@ -154,8 +154,9 @@ docker compose down
 
 SQLite ayar veritabanı ve yedek dosyalarınız sırasıyla container içindeki `/app/data` ve `/app/backups` kalıcı disk alanlarına (volume) kaydedilir.
 
-Docker Compose yerine image'ı elle çalıştırmak isterseniz aynı zorunlu ortam değişkenlerini verin ve kalıcı volume bağlayın:
+Docker Compose yerine image'ı elle çalıştırmak isterseniz aynı zorunlu ortam değişkenlerini verin ve kalıcı volume bağlayın.
 
+**Linux / macOS / Git Bash:**
 ```bash
 docker run -d \
   --name vaultbase \
@@ -168,6 +169,22 @@ docker run -d \
   -e STORAGE_LIMIT_MB="5120" \
   -v vaultbase-data:/app/data \
   -v vaultbase-backups:/app/backups \
+  3mirun/vaultbase:latest
+```
+
+**Windows PowerShell:**
+```powershell
+docker run -d `
+  --name vaultbase `
+  -p 3000:3000 `
+  -e APP_SECRET="replace-with-a-secure-random-secret-key-at-least-32-chars" `
+  -e ADMIN_USERNAME="admin" `
+  -e ADMIN_PASSWORD="replace-with-a-strong-password" `
+  -e DATABASE_URL="file:/app/data/dev.db" `
+  -e BACKUP_DIR="/app/backups" `
+  -e STORAGE_LIMIT_MB="5120" `
+  -v vaultbase-data:/app/data `
+  -v vaultbase-backups:/app/backups `
   3mirun/vaultbase:latest
 ```
 
