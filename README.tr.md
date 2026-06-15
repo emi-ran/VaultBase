@@ -206,62 +206,6 @@ docker run -d `
 > [!WARNING]
 > `APP_SECRET` anahtarını güvenli bir yerde saklayın. Bu anahtar değiştirilir veya kaybolursa, şifreli veritabanı şifreleri çözülemez hale gelir.
 
----
-
-## 📁 Proje Yapısı
-
-```
-.
-├── proxy.ts                        # Rota koruma middleware'i
-├── instrumentation.ts              # Next.js instrumentation (zamanlanmış yedekleri tetikler)
-├── app/
-│   ├── actions.ts                  # Backend Server Action'ları
-│   ├── page.tsx                    # Dashboard (Genel Bakış)
-│   ├── login/                      # Giriş sayfası formu
-│   ├── archive/                    # Yedek arşivi tablosu
-│   ├── databases/                  # Veritabanı bağlantı yönetimi & çoklu-DB Explorer
-│   ├── jobs/                       # İşlem logları & geçmişi
-│   ├── schedules/                  # Otomatik yedekleme cron yöneticisi
-│   ├── settings/                   # Yapılandırma içe/dışa aktarım sayfası
-│   ├── storage/                    # Disk alanı analiz sayfası
-│   └── api/                        # Yedek indirme ve geri yükleme rotaları
-├── components/
-│   ├── ui/                         # Shadcn UI ortak bileşenleri
-│   ├── archive-page-client.tsx     # Arşiv arayüzü
-│   ├── dashboard-tables.tsx        # Dashboard veritabanı ve yedek listesi
-│   ├── database-modal.tsx          # Bağlantı ekleme & düzenleme modalı
-│   ├── database-type-mark.tsx      # PostgreSQL/MongoDB tür rozeti
-│   ├── databases-page-client.tsx   # Bağlantı listeleme (test/backup/restore)
-│   ├── i18n-provider.tsx           # İstemci tarafı dil contexti
-│   ├── jobs-page-client.tsx        # İşlem geçmişi arayüzü
-│   ├── schedules-page-client.tsx   # Zamanlama arayüzü
-│   ├── sidebar.tsx                 # Yan navigasyon
-│   ├── storage-page-client.tsx     # Depolama analiz arayüzü
-│   └── theme-provider.tsx          # Tema sağlayıcı
-├── lib/
-│   ├── auth.ts                     # Session oturum yönetimi (HMAC-SHA256)
-│   ├── backup-mongo-service.ts     # mongodump spawn executor (MongoDB)
-│   ├── backup-service.ts           # pg_dump spawn executor + tür yönlendirmesi
-│   ├── cron-service.ts             # node-cron zamanlayıcılarını yönetir
-│   ├── db-mongo-client.ts          # MongoDB dinamik bağlantı & sorgular
-│   ├── db.ts                       # SQLite Prisma bağlantı istemcisi
-│   ├── db-client.ts                # PostgreSQL dinamik bağlantı havuzu
-│   ├── encryption.ts               # AES-256-CBC şifreleme yardımcısı
-│   ├── i18n.ts                     # Dil çeviri yardımcıları
-│   ├── restore-mongo-service.ts    # gunzip → mongorestore geri yükleme
-│   ├── restore-service.ts          # gunzip → psql geri yükleme
-│   ├── utils.ts                    # cn() tailwind-merge yardımcısı
-│   └── locales/                    # İngilizce (en) ve Türkçe (tr) dil paketleri
-├── prisma/                         # Veritabanı şeması ve migrasyon tanımları
-├── prisma.config.ts                # Prisma 7 konfigürasyonu
-├── scripts/                        # Geliştirici test betikleri
-├── data/                           # Yerel SQLite veritabanı depolama alanı
-├── hooks/                          # Özel React hook'ları (placeholder)
-└── Dockerfile                      # Next.js + postgresql-client-18 + mongodb-database-tools paketlerini barındırır
-```
-
----
-
 ## 🤝 Katkıda Bulunma
 
 Projeye katkı sağlamak isterseniz aşağıdaki adımları izleyebilirsiniz:
