@@ -76,7 +76,7 @@ Start manual backups showing estimated size or manage scheduled jobs, restoring 
 ### Prerequisites
 
 | Component | Minimum Version |
-|---|---|---|
+|---|---|
 | Node.js | v20+ |
 | pnpm | v8+ |
 | PostgreSQL Client (`pg_dump`) | v14+ |

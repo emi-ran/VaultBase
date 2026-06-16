@@ -185,8 +185,8 @@ Aşağıdaki tüm özellikler çalışır durumda:
 
 ```
 Branch: master
-Son Commit: 8258c56 — chore: merge remote changes, keep larger sidebar icon and original icon.svg
-Durum: Unstaged değişiklikler — README.md ve README.tr.md dosyalarına Windows PowerShell için docker run komutu uyumluluğu/notu eklenmesi
+Son Commit: ab512b7 — docs: fix column mismatch in prerequisites table in README files
+Durum: Temiz (Clean)
 ```
 
 ---

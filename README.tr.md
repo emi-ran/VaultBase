@@ -76,7 +76,7 @@ Yedekleme başlatmadan önce tahmini boyutu görün, geçmiş yedeklerinizi yön
 ### Gereksinimler
 
 | Araç | Minimum Sürüm |
-|---|---|---|
+|---|---|
 | Node.js | v20+ |
 | pnpm | v8+ |
 | PostgreSQL İstemcisi (`pg_dump`) | v14+ |
