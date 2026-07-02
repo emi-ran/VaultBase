@@ -3,18 +3,22 @@ services:
     image: 3mirun/vaultbase:latest
     container_name: vaultbase-app
     ports:
-      - "3000:3000"
+      - "3010:3010"
     volumes:
       # Persistent storage for SQLite metadata
-      - ./data:/app/data
+      - vaultbase-data:/app/data
       # Location where gzipped backups will be stored
-      - ./backups:/app/backups
+      - vaultbase-backups:/app/backups
     environment:
       - DATABASE_URL=file:/app/data/dev.db
       - APP_SECRET=${APP_SECRET:?APP_SECRET is required}
       - ADMIN_USERNAME=${ADMIN_USERNAME:?ADMIN_USERNAME is required}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD:?ADMIN_PASSWORD is required}
-      - PORT=${PORT:-3000}
+      - PORT=${PORT:-3010}
       - STORAGE_LIMIT_MB=${STORAGE_LIMIT_MB:-5120}
       - BACKUP_DIR=/app/backups
     restart: unless-stopped
+
+volumes:
+  vaultbase-data:
+  vaultbase-backups:

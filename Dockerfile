@@ -43,7 +43,7 @@ RUN pnpm install --prod --frozen-lockfile
 # Runner stage
 FROM base AS runner
 ENV NODE_ENV=production
-ENV PORT=3000
+ENV PORT=3010
 ENV HOSTNAME="0.0.0.0"
 
 COPY --from=builder /app/package.json ./package.json
@@ -60,8 +60,9 @@ ENV DATABASE_URL="file:/app/data/dev.db"
 
 # Create volumes folder
 RUN mkdir -p /app/data /app/backups
+VOLUME ["/app/data", "/app/backups"]
 
-EXPOSE 3000
+EXPOSE 3010
 
 # Start script that runs prisma migrations and then starts next server
 CMD ["sh", "-c", "pnpm prisma migrate deploy && pnpm start"]
